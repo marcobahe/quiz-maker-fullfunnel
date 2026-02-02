@@ -113,6 +113,18 @@ const QuestionNode = ({ id, data, selected }) => {
           </div>
         ))}
       </div>
+
+      {/* General "all options" source handle */}
+      <div className="px-3 py-1.5 border-t border-gray-100 text-center">
+        <span className="text-[10px] text-purple-400/70 select-none">Todas as respostas</span>
+      </div>
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="general"
+        className="!bg-purple-400 !w-4 !h-4 !border-2 !border-white"
+        title="Todas as respostas → mesmo destino"
+      />
     </div>
   );
 };

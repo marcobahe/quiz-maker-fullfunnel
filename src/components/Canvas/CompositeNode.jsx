@@ -213,6 +213,18 @@ function QuestionElement({ element, nodeId }) {
         >
           <Plus size={12} /> Opção
         </button>
+
+        {/* General "all options" handle */}
+        <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1">
+          <span className="text-[10px] text-purple-400 select-none flex-1">Todas as respostas</span>
+          <Handle
+            type="source"
+            position={Position.Right}
+            id={`${element.id}-general`}
+            className="!bg-purple-400 !w-3 !h-3 !right-[-5px] !border !border-white"
+            title="Todas as respostas → mesmo destino"
+          />
+        </div>
       </div>
     </div>
   );

@@ -87,12 +87,23 @@ export default function QuizPlayerPage() {
     const nodeEdges = edges.filter(e => e.source === fromNodeId);
     
     if (optionIndex !== null) {
-      // Try to find edge from specific option handle
-      const optionEdge = nodeEdges.find(e => e.sourceHandle === `option-${optionIndex}`);
+      // 1. Try specific option handle (highest priority)
+      //    Legacy format: option-N  |  Composite format: elementId-option-N
+      const optionEdge = nodeEdges.find(e =>
+        e.sourceHandle === `option-${optionIndex}` ||
+        (e.sourceHandle && e.sourceHandle.endsWith(`-option-${optionIndex}`))
+      );
       if (optionEdge) return optionEdge.target;
+
+      // 2. Try "general" handle (fallback for all options → same destination)
+      const generalEdge = nodeEdges.find(e =>
+        e.sourceHandle === 'general' ||
+        (e.sourceHandle && e.sourceHandle.endsWith('-general'))
+      );
+      if (generalEdge) return generalEdge.target;
     }
     
-    // Fallback to first edge
+    // 3. Last resort: first available edge
     if (nodeEdges.length > 0) return nodeEdges[0].target;
     return null;
   }, [edges]);
