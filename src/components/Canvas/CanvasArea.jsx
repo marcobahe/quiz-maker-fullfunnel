@@ -304,6 +304,7 @@ const edgeTypes = {
 
 export default function CanvasArea() {
   const reactFlowWrapper = useRef(null);
+  const reactFlowInstance = useRef(null);
 
   const nodes = useQuizStore((s) => s.nodes);
   const edges = useQuizStore((s) => s.edges);
@@ -411,11 +412,16 @@ export default function CanvasArea() {
       const type = event.dataTransfer.getData('application/reactflow');
       if (!type || !reactFlowWrapper.current) return;
 
-      const bounds = reactFlowWrapper.current.getBoundingClientRect();
-      const position = {
-        x: event.clientX - bounds.left - 100,
-        y: event.clientY - bounds.top - 50,
-      };
+      // Use screenToFlowPosition to account for zoom and pan
+      const position = reactFlowInstance.current
+        ? reactFlowInstance.current.screenToFlowPosition({
+            x: event.clientX,
+            y: event.clientY,
+          })
+        : {
+            x: event.clientX - reactFlowWrapper.current.getBoundingClientRect().left,
+            y: event.clientY - reactFlowWrapper.current.getBoundingClientRect().top,
+          };
 
       // Result stays as a standalone legacy node
       if (type === 'result') {
@@ -458,6 +464,7 @@ export default function CanvasArea() {
         onConnect={onConnect}
         onConnectEnd={onConnectEnd}
         onNodesDelete={onNodesDelete}
+        onInit={(instance) => { reactFlowInstance.current = instance; }}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
         onDragOver={onDragOver}
