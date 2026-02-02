@@ -15,25 +15,27 @@ const useQuizStore = create((set, get) => ({
   quizName: 'Meu Novo Quiz',
   quizStatus: 'Rascunho',
   isSaved: true,
-  
+
   // Nodes and edges for canvas
   nodes: initialNodes,
   edges: [],
-  
-  // Selected node
-  selectedNode: null,
-  
+
+  // Selected node – store only ID so reads are always fresh
+  selectedNodeId: null,
+
   // Gamification
   gamificationEnabled: true,
   pointsToShow: [],
-  
-  // Actions
+
+  // Properties panel open/closed
+  propertiesPanelOpen: true,
+
+  // ── Basic actions ──────────────────────────────────────────────
+
   setQuizId: (id) => set({ quizId: id }),
-  
   setQuizName: (name) => set({ quizName: name, isSaved: false }),
-  
   setQuizStatus: (status) => set({ quizStatus: status }),
-  
+
   setNodes: (nodesOrUpdater) => {
     if (typeof nodesOrUpdater === 'function') {
       set((state) => ({ nodes: nodesOrUpdater(state.nodes), isSaved: false }));
@@ -41,7 +43,7 @@ const useQuizStore = create((set, get) => ({
       set({ nodes: nodesOrUpdater, isSaved: false });
     }
   },
-  
+
   setEdges: (edgesOrUpdater) => {
     if (typeof edgesOrUpdater === 'function') {
       set((state) => ({ edges: edgesOrUpdater(state.edges), isSaved: false }));
@@ -49,58 +51,117 @@ const useQuizStore = create((set, get) => ({
       set({ edges: edgesOrUpdater, isSaved: false });
     }
   },
-  
-  addNode: (node) => set((state) => ({ 
-    nodes: [...state.nodes, node],
-    isSaved: false 
-  })),
-  
-  updateNode: (id, data) => set((state) => ({
-    nodes: state.nodes.map((node) => 
-      node.id === id ? { ...node, data: { ...node.data, ...data } } : node
-    ),
-    isSaved: false
-  })),
-  
-  removeNode: (id) => set((state) => ({
-    nodes: state.nodes.filter((node) => node.id !== id),
-    edges: state.edges.filter((edge) => edge.source !== id && edge.target !== id),
-    selectedNode: state.selectedNode?.id === id ? null : state.selectedNode,
-    isSaved: false
-  })),
-  
-  selectNode: (node) => set({ selectedNode: node }),
-  
-  toggleGamification: () => set((state) => ({ 
-    gamificationEnabled: !state.gamificationEnabled 
-  })),
-  
+
+  addNode: (node) =>
+    set((state) => ({
+      nodes: [...state.nodes, node],
+      isSaved: false,
+    })),
+
+  updateNode: (id, data) =>
+    set((state) => ({
+      nodes: state.nodes.map((n) =>
+        n.id === id ? { ...n, data: { ...n.data, ...data } } : n,
+      ),
+      isSaved: false,
+    })),
+
+  removeNode: (id) =>
+    set((state) => ({
+      nodes: state.nodes.filter((n) => n.id !== id),
+      edges: state.edges.filter((e) => e.source !== id && e.target !== id),
+      selectedNodeId: state.selectedNodeId === id ? null : state.selectedNodeId,
+      isSaved: false,
+    })),
+
+  // Accepts a node object (takes .id) or a string id, or null
+  selectNode: (nodeOrId) => {
+    if (!nodeOrId) return set({ selectedNodeId: null });
+    const id = typeof nodeOrId === 'string' ? nodeOrId : nodeOrId.id;
+    set({ selectedNodeId: id, propertiesPanelOpen: true });
+  },
+
+  // ── Composite-node element operations ──────────────────────────
+
+  updateNodeElement: (nodeId, elementId, data) =>
+    set((state) => ({
+      nodes: state.nodes.map((n) => {
+        if (n.id !== nodeId) return n;
+        const elements = (n.data.elements || []).map((el) =>
+          el.id === elementId ? { ...el, ...data } : el,
+        );
+        return { ...n, data: { ...n.data, elements } };
+      }),
+      isSaved: false,
+    })),
+
+  addNodeElement: (nodeId, element) =>
+    set((state) => ({
+      nodes: state.nodes.map((n) => {
+        if (n.id !== nodeId) return n;
+        return { ...n, data: { ...n.data, elements: [...(n.data.elements || []), element] } };
+      }),
+      isSaved: false,
+    })),
+
+  removeNodeElement: (nodeId, elementId) =>
+    set((state) => ({
+      nodes: state.nodes.map((n) => {
+        if (n.id !== nodeId) return n;
+        return {
+          ...n,
+          data: { ...n.data, elements: (n.data.elements || []).filter((el) => el.id !== elementId) },
+        };
+      }),
+      // Also clean up edges connected to this element's option handles
+      edges: state.edges.filter((e) => !e.sourceHandle?.startsWith(`${elementId}-option-`)),
+      isSaved: false,
+    })),
+
+  reorderNodeElements: (nodeId, fromIndex, toIndex) =>
+    set((state) => ({
+      nodes: state.nodes.map((n) => {
+        if (n.id !== nodeId) return n;
+        const els = [...(n.data.elements || [])];
+        const [moved] = els.splice(fromIndex, 1);
+        els.splice(toIndex, 0, moved);
+        return { ...n, data: { ...n.data, elements: els } };
+      }),
+      isSaved: false,
+    })),
+
+  // ── UI toggles ─────────────────────────────────────────────────
+
+  setPropertiesPanelOpen: (open) => set({ propertiesPanelOpen: open }),
+
+  toggleGamification: () =>
+    set((state) => ({ gamificationEnabled: !state.gamificationEnabled })),
+
   showPoints: (points, x, y) => {
     const id = Date.now();
     set((state) => ({
-      pointsToShow: [...state.pointsToShow, { id, points, x, y }]
+      pointsToShow: [...state.pointsToShow, { id, points, x, y }],
     }));
     setTimeout(() => {
       set((state) => ({
-        pointsToShow: state.pointsToShow.filter((p) => p.id !== id)
+        pointsToShow: state.pointsToShow.filter((p) => p.id !== id),
       }));
     }, 1500);
   },
-  
+
   saveQuiz: () => set({ isSaved: true }),
-  
   publishQuiz: () => set({ quizStatus: 'Publicado', isSaved: true }),
-  
-  // Reset store for new quiz
-  resetQuiz: () => set({
-    quizId: null,
-    quizName: 'Meu Novo Quiz',
-    quizStatus: 'Rascunho',
-    isSaved: true,
-    nodes: initialNodes,
-    edges: [],
-    selectedNode: null,
-  }),
+
+  resetQuiz: () =>
+    set({
+      quizId: null,
+      quizName: 'Meu Novo Quiz',
+      quizStatus: 'Rascunho',
+      isSaved: true,
+      nodes: initialNodes,
+      edges: [],
+      selectedNodeId: null,
+    }),
 }));
 
 export default useQuizStore;

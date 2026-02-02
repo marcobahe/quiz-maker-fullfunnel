@@ -8,6 +8,8 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+/* ── React Flow Base ──────────────────────────────────────────── */
+
 .react-flow__node {
   border-radius: 8px;
 }
@@ -15,6 +17,16 @@ body {
 .react-flow__edge-path {
   stroke: #7c3aed;
   stroke-width: 2;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #5b21b6;
+  stroke-width: 3;
+}
+
+/* Wider invisible click area for edges */
+.react-flow__edge-interaction {
+  stroke-width: 20;
 }
 
 .react-flow__handle {
@@ -34,6 +46,8 @@ body {
   border-radius: 8px;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
+
+/* ── Animations ───────────────────────────────────────────────── */
 
 @keyframes float-up {
   0% {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { PanelRightOpen, PanelRightClose } from 'lucide-react';
+import { PanelRightOpen } from 'lucide-react';
 import TopBar from '@/components/Layout/TopBar';
 import ElementsPanel from '@/components/Panels/ElementsPanel';
 import PropertiesPanel from '@/components/Panels/PropertiesPanel';
@@ -16,9 +16,18 @@ export default function BuilderPage() {
   const params = useParams();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { pointsToShow, selectedNode, setQuizId, setQuizName, setNodes, setEdges, setQuizStatus } = useQuizStore();
+
+  const pointsToShow = useQuizStore((s) => s.pointsToShow);
+  const selectedNodeId = useQuizStore((s) => s.selectedNodeId);
+  const propertiesPanelOpen = useQuizStore((s) => s.propertiesPanelOpen);
+  const setPropertiesPanelOpen = useQuizStore((s) => s.setPropertiesPanelOpen);
+  const setQuizId = useQuizStore((s) => s.setQuizId);
+  const setQuizName = useQuizStore((s) => s.setQuizName);
+  const setNodes = useQuizStore((s) => s.setNodes);
+  const setEdges = useQuizStore((s) => s.setEdges);
+  const setQuizStatus = useQuizStore((s) => s.setQuizStatus);
+
   const [loading, setLoading] = useState(true);
-  const [showProperties, setShowProperties] = useState(true);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -32,12 +41,8 @@ export default function BuilderPage() {
     }
   }, [status, params.id]);
 
-  // Auto-open properties panel when a node is selected
-  useEffect(() => {
-    if (selectedNode) {
-      setShowProperties(true);
-    }
-  }, [selectedNode]);
+  // Auto-open panel when a node is selected (store already does this in selectNode)
+  // but if panel was manually closed and user clicks a node, it re-opens via selectNode
 
   const loadQuiz = async (id) => {
     try {
@@ -47,18 +52,21 @@ export default function BuilderPage() {
         setQuizId(quiz.id);
         setQuizName(quiz.name);
         setQuizStatus(quiz.status === 'published' ? 'Publicado' : 'Rascunho');
-        
+
         if (quiz.canvasData) {
-          const canvasData = typeof quiz.canvasData === 'string' ? JSON.parse(quiz.canvasData) : quiz.canvasData;
+          const canvasData =
+            typeof quiz.canvasData === 'string'
+              ? JSON.parse(quiz.canvasData)
+              : quiz.canvasData;
           if (canvasData.nodes) setNodes(canvasData.nodes);
           if (canvasData.edges) {
-            // Force all edges to bezier curves
-            const fixedEdges = canvasData.edges.map(edge => ({
+            // Migrate old edge types to custom-bezier
+            const migratedEdges = canvasData.edges.map((edge) => ({
               ...edge,
-              type: 'default',
+              type: 'custom-bezier',
               style: { stroke: '#7c3aed', strokeWidth: 2 },
             }));
-            setEdges(fixedEdges);
+            setEdges(migratedEdges);
           }
         }
       } else {
@@ -74,7 +82,7 @@ export default function BuilderPage() {
   if (status === 'loading' || loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
       </div>
     );
   }
@@ -84,42 +92,40 @@ export default function BuilderPage() {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <TopBar quizId={params.id} />
-      
+
       <div className="flex flex-1 overflow-hidden">
         <ElementsPanel />
-        
+
+        {/* Canvas area */}
         <div className="flex-1 relative">
           <CanvasArea />
-          
+
           {pointsToShow.map((p) => (
             <PointsBalloon key={p.id} points={p.points} x={p.x} y={p.y} />
           ))}
-          
-          {/* Toggle properties panel button */}
-          {!showProperties && (
+
+          {/* Re-open button (visible when panel is closed) */}
+          {!propertiesPanelOpen && (
             <button
-              onClick={() => setShowProperties(true)}
-              className="absolute top-4 right-4 z-10 bg-white shadow-lg rounded-lg p-2 hover:bg-gray-50 transition-colors border border-gray-200"
+              onClick={() => setPropertiesPanelOpen(true)}
+              className="absolute top-4 right-4 z-10 bg-white shadow-lg rounded-lg p-2.5 hover:bg-gray-50 transition-all border border-gray-200 hover:shadow-xl group"
               title="Abrir propriedades"
             >
-              <PanelRightOpen size={20} className="text-gray-600" />
+              <PanelRightOpen size={20} className="text-gray-500 group-hover:text-accent transition-colors" />
             </button>
           )}
         </div>
-        
-        {/* Properties panel with close button */}
-        {showProperties && (
-          <div className="relative">
-            <button
-              onClick={() => setShowProperties(false)}
-              className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Fechar propriedades"
-            >
-              <PanelRightClose size={18} />
-            </button>
-            <PropertiesPanel />
+
+        {/* Properties panel with slide animation */}
+        <div
+          className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            propertiesPanelOpen ? 'w-80' : 'w-0'
+          }`}
+        >
+          <div className="w-80 h-full">
+            <PropertiesPanel onClose={() => setPropertiesPanelOpen(false)} />
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
