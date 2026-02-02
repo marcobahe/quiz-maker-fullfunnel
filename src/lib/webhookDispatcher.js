@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 
 /**
- * Dispatch webhooks and GHL integrations for a new lead.
+ * Dispatch webhooks and Full Funnel integrations for a new lead.
  * Fire-and-forget: does NOT block the caller.
  */
 export function dispatchIntegrations({ quiz, lead, answers, score, resultCategory, scoreRanges }) {
@@ -86,15 +86,15 @@ async function sendWebhook(integration, payload) {
   }
 }
 
-// ── GoHighLevel ──────────────────────────────────────────────
+// ── Full Funnel (GHL API) ────────────────────────────────────
 
 async function sendToGHL(integration, payload) {
   try {
     const config = JSON.parse(integration.config);
-    const { apiKey, locationId, pipelineId, stageId, tags, customFields } = config;
+    const { apiKey, locationId, pipelineId, stageId, tags, customFieldMappings } = config;
 
     if (!apiKey || !locationId) {
-      console.error('[GHL] Missing apiKey or locationId');
+      console.error('[FullFunnel] Missing apiKey or locationId');
       return;
     }
 
@@ -109,20 +109,44 @@ async function sendToGHL(integration, payload) {
       source: `Quiz: ${payload.quiz.name}`,
     };
 
-    // Map custom fields if configured
-    if (customFields && typeof customFields === 'object') {
+    // Build custom fields from mappings + answers
+    if (customFieldMappings && typeof customFieldMappings === 'object') {
       contactBody.customFields = [];
-      for (const [key, value] of Object.entries(customFields)) {
-        // value can reference answer index or be static
-        contactBody.customFields.push({ id: key, value });
+
+      // Build a lookup of answers by their key (nodeId or nodeId__elementId)
+      const answersMap = {};
+      if (Array.isArray(payload.answers)) {
+        for (const ans of payload.answers) {
+          // Answers can come keyed by questionId, elementId, or composite keys
+          if (ans.questionId) answersMap[ans.questionId] = ans.answer || ans.value || '';
+          if (ans.elementId) answersMap[ans.elementId] = ans.answer || ans.value || '';
+          // Support composite key format: nodeId__elementId
+          if (ans.nodeId && ans.elementId) answersMap[`${ans.nodeId}__${ans.elementId}`] = ans.answer || ans.value || '';
+        }
+      } else if (payload.answers && typeof payload.answers === 'object') {
+        // answers is an object keyed by nodeId or nodeId__elementId
+        for (const [key, val] of Object.entries(payload.answers)) {
+          answersMap[key] = typeof val === 'object' ? (val.answer || val.value || JSON.stringify(val)) : String(val);
+        }
       }
 
-      // Add quiz result as custom field if present
-      if (payload.result?.title) {
-        contactBody.customFields.push({
-          id: customFields.resultField || 'quiz_result',
-          value: payload.result.title,
-        });
+      for (const [mappingKey, fieldId] of Object.entries(customFieldMappings)) {
+        // Strip "contact." prefix if present — GHL API expects just the field ID
+        const cleanFieldId = fieldId.replace(/^contact\./, '');
+        let value = '';
+
+        if (mappingKey === '_score') {
+          value = String(payload.score ?? 0);
+        } else if (mappingKey === '_result') {
+          value = payload.result?.title || '';
+        } else {
+          // Look up the answer by the mapping key
+          value = answersMap[mappingKey] || '';
+        }
+
+        if (value) {
+          contactBody.customFields.push({ id: cleanFieldId, value });
+        }
       }
     }
 
@@ -138,7 +162,7 @@ async function sendToGHL(integration, payload) {
     });
 
     const contactData = await contactRes.json();
-    console.log(`[GHL] Contact created/updated: ${contactRes.status}`, contactData?.contact?.id || '');
+    console.log(`[FullFunnel] Contact created/updated: ${contactRes.status}`, contactData?.contact?.id || '');
 
     // 2. Create opportunity if pipeline configured
     if (pipelineId && contactData?.contact?.id) {
@@ -163,10 +187,10 @@ async function sendToGHL(integration, payload) {
         signal: AbortSignal.timeout(15000),
       });
 
-      console.log(`[GHL] Opportunity created: ${oppRes.status}`);
+      console.log(`[FullFunnel] Opportunity created: ${oppRes.status}`);
     }
   } catch (err) {
-    console.error(`[GHL] ${integration.name} failed:`, err.message);
+    console.error(`[FullFunnel] ${integration.name} failed:`, err.message);
   }
 }
 
@@ -218,7 +242,7 @@ export async function testGHL(integration) {
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`GHL API retornou ${res.status}: ${body}`);
+    throw new Error(`Full Funnel API retornou ${res.status}: ${body}`);
   }
 
   const data = await res.json();

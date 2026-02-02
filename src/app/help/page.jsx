@@ -42,7 +42,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'Como integrar com outras ferramentas?',
-    answer: 'Na aba "Integração" do quiz, configure webhooks ou conecte diretamente com GoHighLevel. Os leads capturados são enviados automaticamente para sua ferramenta de CRM/email.',
+    answer: 'Na aba "Integração" do quiz, configure webhooks ou conecte diretamente com Full Funnel. Os leads capturados são enviados automaticamente para sua ferramenta de CRM/email.',
     icon: Puzzle,
   },
   {
@@ -75,7 +75,7 @@ const FAQ_ITEMS = [
 const USEFUL_LINKS = [
   { label: 'Criar um quiz do zero', href: '/', desc: 'Vá ao dashboard e clique em "Criar Quiz"' },
   { label: 'Usar templates prontos', href: '/templates', desc: 'Escolha entre templates profissionais' },
-  { label: 'Configurar integrações', href: '/integrations', desc: 'Conecte com GoHighLevel, webhooks e mais' },
+  { label: 'Configurar integrações', href: '/integrations', desc: 'Conecte com Full Funnel, webhooks e mais' },
   { label: 'Gerenciar seu time', href: '/settings/team', desc: 'Convide membros e defina permissões' },
   { label: 'Ver Analytics', href: '/analytics', desc: 'Acompanhe performance dos seus quizzes' },
 ];

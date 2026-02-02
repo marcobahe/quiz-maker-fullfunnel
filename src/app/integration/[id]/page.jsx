@@ -298,8 +298,41 @@ function WebhooksSection({ quizId }) {
   );
 }
 
-// ── GoHighLevel Section ──────────────────────────────────────
-function GoHighLevelSection({ quizId }) {
+// ── Full Funnel Section ──────────────────────────────────────
+
+/** Extract questions from canvasData nodes */
+function extractQuestions(canvasData) {
+  const questions = [];
+  if (!canvasData?.nodes) return questions;
+
+  for (const node of canvasData.nodes) {
+    // Legacy single/multiple choice nodes
+    if (node.type === 'single-choice' || node.type === 'multiple-choice') {
+      questions.push({
+        id: node.id,
+        question: node.data?.question || 'Pergunta sem título',
+        type: node.type,
+      });
+    }
+    // Composite nodes with question elements
+    if (node.type === 'composite' && node.data?.elements) {
+      for (const el of node.data.elements) {
+        if (el.type === 'question-single' || el.type === 'question-multiple' || el.type === 'question-icons') {
+          questions.push({
+            id: `${node.id}__${el.id}`,
+            elementId: el.id,
+            nodeId: node.id,
+            question: el.question || 'Pergunta sem título',
+            type: el.type,
+          });
+        }
+      }
+    }
+  }
+  return questions;
+}
+
+function FullFunnelSection({ quizId }) {
   const [ghl, setGhl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -315,7 +348,27 @@ function GoHighLevelSection({ quizId }) {
   const [active, setActive] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
 
-  const fetchGHL = useCallback(async () => {
+  // Custom field mappings
+  const [customFieldMappings, setCustomFieldMappings] = useState({});
+  const [questions, setQuestions] = useState([]);
+  const [showMappings, setShowMappings] = useState(false);
+
+  // Fetch quiz canvasData to extract questions
+  const fetchQuizQuestions = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/quizzes/${quizId}`);
+      if (!res.ok) return;
+      const quiz = await res.json();
+      const canvasData = typeof quiz.canvasData === 'string'
+        ? JSON.parse(quiz.canvasData || '{}')
+        : quiz.canvasData || {};
+      setQuestions(extractQuestions(canvasData));
+    } catch (err) {
+      console.error('Error fetching quiz questions:', err);
+    }
+  }, [quizId]);
+
+  const fetchIntegration = useCallback(async () => {
     try {
       const res = await fetch(`/api/quizzes/${quizId}/integrations`);
       const data = await res.json();
@@ -328,18 +381,34 @@ function GoHighLevelSection({ quizId }) {
         setPipelineId(config.pipelineId || '');
         setStageId(config.stageId || '');
         setTags((config.tags || ['quiz-lead']).join(', '));
+        setCustomFieldMappings(config.customFieldMappings || {});
         setActive(existing.active);
       }
     } catch (err) {
-      console.error('Error fetching GHL:', err);
+      console.error('Error fetching Full Funnel integration:', err);
     } finally {
       setLoading(false);
     }
   }, [quizId]);
 
   useEffect(() => {
-    if (quizId) fetchGHL();
-  }, [quizId, fetchGHL]);
+    if (quizId) {
+      fetchIntegration();
+      fetchQuizQuestions();
+    }
+  }, [quizId, fetchIntegration, fetchQuizQuestions]);
+
+  const handleMappingChange = (key, value) => {
+    setCustomFieldMappings((prev) => {
+      const next = { ...prev };
+      if (value.trim()) {
+        next[key] = value.trim();
+      } else {
+        delete next[key];
+      }
+      return next;
+    });
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -351,7 +420,7 @@ function GoHighLevelSection({ quizId }) {
       pipelineId: pipelineId || undefined,
       stageId: stageId || undefined,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      customFields: {},
+      customFieldMappings: Object.keys(customFieldMappings).length > 0 ? customFieldMappings : undefined,
     };
 
     try {
@@ -360,7 +429,7 @@ function GoHighLevelSection({ quizId }) {
         const res = await fetch(`/api/quizzes/${quizId}/integrations/${ghl.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ config, active, name: 'GoHighLevel' }),
+          body: JSON.stringify({ config, active, name: 'Full Funnel' }),
         });
         if (res.ok) {
           const updated = await res.json();
@@ -373,7 +442,7 @@ function GoHighLevelSection({ quizId }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: 'gohighlevel',
-            name: 'GoHighLevel',
+            name: 'Full Funnel',
             config: JSON.stringify(config),
             active,
           }),
@@ -384,7 +453,7 @@ function GoHighLevelSection({ quizId }) {
         }
       }
     } catch (err) {
-      console.error('Error saving GHL:', err);
+      console.error('Error saving Full Funnel integration:', err);
     } finally {
       setSaving(false);
     }
@@ -424,16 +493,16 @@ function GoHighLevelSection({ quizId }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ active: newActive }),
         });
-        fetchGHL();
+        fetchIntegration();
       } catch (err) {
-        console.error('Error toggling GHL:', err);
+        console.error('Error toggling Full Funnel integration:', err);
       }
     }
   };
 
   const handleDelete = async () => {
     if (!ghl) return;
-    if (!confirm('Remover integração GoHighLevel?')) return;
+    if (!confirm('Remover integração Full Funnel?')) return;
     try {
       await fetch(`/api/quizzes/${quizId}/integrations/${ghl.id}`, { method: 'DELETE' });
       setGhl(null);
@@ -442,10 +511,11 @@ function GoHighLevelSection({ quizId }) {
       setPipelineId('');
       setStageId('');
       setTags('quiz-lead');
+      setCustomFieldMappings({});
       setActive(true);
       setTestResult(null);
     } catch (err) {
-      console.error('Error deleting GHL:', err);
+      console.error('Error deleting Full Funnel integration:', err);
     }
   };
 
@@ -461,8 +531,8 @@ function GoHighLevelSection({ quizId }) {
               <Zap className="text-orange-600" size={20} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-800 text-lg">GoHighLevel</h3>
-              <p className="text-gray-500 text-sm">Envie leads automaticamente para seu CRM GoHighLevel</p>
+              <h3 className="font-semibold text-gray-800 text-lg">Full Funnel</h3>
+              <p className="text-gray-500 text-sm">Envie leads automaticamente para seu CRM Full Funnel</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -554,6 +624,130 @@ function GoHighLevelSection({ quizId }) {
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
             />
           </div>
+        </div>
+
+        {/* ── Custom Field Mappings Section ──────────────── */}
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => setShowMappings(!showMappings)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-accent transition-colors"
+          >
+            <Database size={16} />
+            Mapeamento de Respostas para Campos Personalizados
+            <svg
+              className={`w-4 h-4 transition-transform ${showMappings ? 'rotate-180' : ''}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showMappings && (
+            <div className="mt-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <p className="text-xs text-gray-500 mb-4">
+                Associe cada pergunta do quiz a um campo personalizado no Full Funnel.
+                Cole o ID do campo (ex: <code className="bg-gray-200 px-1 py-0.5 rounded text-xs">custom_field_abc123</code>).
+                Encontre os IDs em Full Funnel → Settings → Custom Fields.
+              </p>
+
+              {/* Question mappings */}
+              {questions.length > 0 ? (
+                <div className="space-y-3 mb-4">
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Perguntas do Quiz</h4>
+                  {questions.map((q) => (
+                    <div key={q.id} className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-700 truncate" title={q.question}>
+                          {q.question}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {q.type === 'question-icons' ? 'Ícones' : q.type === 'question-multiple' || q.type === 'multiple-choice' ? 'Múltipla escolha' : 'Escolha única'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      </div>
+                      <div className="w-56">
+                        <input
+                          type="text"
+                          value={customFieldMappings[q.id] || ''}
+                          onChange={(e) => handleMappingChange(q.id, e.target.value)}
+                          placeholder="custom_field_abc123"
+                          className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                        />
+                        {!customFieldMappings[q.id] && (
+                          <p className="text-xs text-gray-400 mt-0.5">Não mapeado</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-400 text-sm mb-4">
+                  <Database size={20} className="mx-auto mb-1 opacity-40" />
+                  Nenhuma pergunta encontrada no quiz.
+                  <br />
+                  <span className="text-xs">Adicione perguntas no Canvas para mapear campos.</span>
+                </div>
+              )}
+
+              {/* Special mappings */}
+              <div className="space-y-3 pt-3 border-t border-gray-200">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Campos Especiais</h4>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700">Pontuação Total</p>
+                    <p className="text-xs text-gray-400">Score final do quiz</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  </div>
+                  <div className="w-56">
+                    <input
+                      type="text"
+                      value={customFieldMappings['_score'] || ''}
+                      onChange={(e) => handleMappingChange('_score', e.target.value)}
+                      placeholder="custom_field_score"
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                    />
+                    {!customFieldMappings['_score'] && (
+                      <p className="text-xs text-gray-400 mt-0.5">Não mapeado</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700">Resultado / Faixa</p>
+                    <p className="text-xs text-gray-400">Categoria do resultado (ex: Excelente, Bom)</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  </div>
+                  <div className="w-56">
+                    <input
+                      type="text"
+                      value={customFieldMappings['_result'] || ''}
+                      onChange={(e) => handleMappingChange('_result', e.target.value)}
+                      placeholder="custom_field_result"
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                    />
+                    {!customFieldMappings['_result'] && (
+                      <p className="text-xs text-gray-400 mt-0.5">Não mapeado</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Test result */}
@@ -788,9 +982,9 @@ export default function IntegrationPage() {
             <WebhooksSection quizId={params.id} />
           </div>
 
-          {/* ── GoHighLevel Section ───────────────────────── */}
+          {/* ── Full Funnel Section ────────────────────────── */}
           <div className="mb-8">
-            <GoHighLevelSection quizId={params.id} />
+            <FullFunnelSection quizId={params.id} />
           </div>
 
           {/* ── Embed Section ─────────────────────────────── */}

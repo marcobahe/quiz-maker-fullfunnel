@@ -367,7 +367,7 @@ const FEATURES = [
   {
     icon: Plug,
     title: 'Integrações',
-    description: 'Conecte com Webhooks, GoHighLevel, e mais. Seus leads direto no CRM.',
+    description: 'Conecte com Webhooks, Full Funnel, e mais. Seus leads direto no CRM.',
     color: 'bg-green-50 text-green-600',
   },
   {

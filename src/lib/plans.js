@@ -41,7 +41,7 @@ export const PLANS = {
       '5.000 leads/mês',
       'Todos os templates',
       'Analytics avançado',
-      'Integrações (Webhook, GHL)',
+      'Integrações (Webhook, Full Funnel)',
       'Embed em sites',
       'Personalização de marca',
     ],
