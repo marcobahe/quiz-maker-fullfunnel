@@ -293,6 +293,52 @@ export default function CanvasArea() {
     [setEdges],
   );
 
+  // ── Drop-on-node snap: create edge when drag lands on a node body ──
+  const onConnectEnd = useCallback(
+    (event, connectionState) => {
+      // If React Flow already snapped to a handle, onConnect handled it
+      if (!connectionState || connectionState.endHandle) return;
+
+      const sourceNodeId = connectionState.startHandle?.nodeId;
+      if (!sourceNodeId) return;
+
+      // Get cursor position (mouse or touch)
+      const { clientX, clientY } = event.changedTouches?.[0] ?? event;
+
+      // Walk up from every element under the cursor to find a .react-flow__node
+      const elementsUnderCursor = document.elementsFromPoint(clientX, clientY);
+      const nodeElement = elementsUnderCursor
+        .map((el) => el.closest('.react-flow__node'))
+        .find(Boolean);
+
+      if (!nodeElement) return;
+
+      const targetNodeId = nodeElement.getAttribute('data-id');
+      if (!targetNodeId || targetNodeId === sourceNodeId) return;
+
+      // Don't connect to the start node (it has no target handle)
+      const targetNode = nodes.find((n) => n.id === targetNodeId);
+      if (!targetNode || targetNode.type === 'start') return;
+
+      // Create the edge — targetHandle left undefined so RF picks the first
+      // target handle (Position.Top on every non-start node)
+      setEdges((eds) =>
+        addEdge(
+          {
+            source: sourceNodeId,
+            sourceHandle: connectionState.startHandle?.id ?? null,
+            target: targetNodeId,
+            type: 'custom-bezier',
+            animated: true,
+            style: { stroke: '#7c3aed', strokeWidth: 2 },
+          },
+          eds,
+        ),
+      );
+    },
+    [nodes, setEdges],
+  );
+
   // Clean connected edges when nodes are removed
   const onNodesDelete = useCallback(
     (deleted) => {
@@ -365,6 +411,7 @@ export default function CanvasArea() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onConnectEnd={onConnectEnd}
         onNodesDelete={onNodesDelete}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
@@ -372,6 +419,8 @@ export default function CanvasArea() {
         onDrop={onDrop}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        connectionRadius={50}
+        connectOnClick
         deleteKeyCode={['Delete', 'Backspace']}
         fitView
         snapToGrid

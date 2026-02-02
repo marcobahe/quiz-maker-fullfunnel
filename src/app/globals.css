@@ -34,6 +34,31 @@ body {
   height: 10px;
   background-color: #7c3aed;
   border: 2px solid white;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Invisible larger hit area around target handles */
+.react-flow__handle[data-handlepos="top"]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+/* Visual feedback: enlarge handles when a connection is being dragged */
+.react-flow.connecting .react-flow__handle.connectingto,
+.react-flow.connecting .react-flow__handle[data-handlepos="top"] {
+  transform: scale(1.6);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2);
+}
+
+/* Glow on the node itself when hovered during connection drag */
+.react-flow.connecting .react-flow__node:hover {
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.35));
 }
 
 .react-flow__minimap {
