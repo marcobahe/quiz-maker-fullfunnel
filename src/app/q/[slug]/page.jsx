@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo, Suspense, useRef } from 'rea
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon } from 'lucide-react';
 import { replaceVariables } from '@/lib/dynamicVariables';
+import { initTracking, trackEvent } from '@/lib/tracking';
 import SpinWheel from '@/components/Player/SpinWheel';
 import ScratchCard from '@/components/Player/ScratchCard';
 
@@ -586,6 +587,11 @@ function QuizPlayer() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(false);
 
+  // Tracking state
+  const [trackingConfig, setTrackingConfig] = useState(null);
+  const trackingInitRef = useRef(false);
+  const quizStartTrackedRef = useRef(false);
+
   // Canvas data
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -607,6 +613,13 @@ function QuizPlayer() {
       try { document.head.removeChild(link); } catch (_) {}
     };
   }, [branding.faviconUrl]);
+
+  // ── Tracking: initialize pixel scripts ───────────────────────
+  useEffect(() => {
+    if (!trackingConfig || trackingInitRef.current) return;
+    trackingInitRef.current = true;
+    initTracking(trackingConfig);
+  }, [trackingConfig]);
 
   // ── Embed: auto-resize via postMessage ───────────────────────
   useEffect(() => {
@@ -728,6 +741,7 @@ function QuizPlayer() {
             if (settings.theme) setTheme((prev) => ({ ...prev, ...settings.theme }));
             if (settings.branding) setBranding((prev) => ({ ...prev, ...settings.branding }));
             if (settings.aiResultConfig) setAiConfig(settings.aiResultConfig);
+            if (settings.tracking) setTrackingConfig(settings.tracking);
           }
         } catch (_e) { /* ignore */ }
       }
@@ -862,9 +876,26 @@ function QuizPlayer() {
     (nextId) => {
       if (!nextId) {
         setShowResult(true);
+        // Track quizCompleted
+        if (trackingConfig) {
+          trackEvent(trackingConfig, 'quizCompleted', {
+            quizTitle: quiz?.name || '',
+            score,
+          });
+        }
         return;
       }
       const nextNode = nodes.find((n) => n.id === nextId);
+
+      // Track quizStart on first advance from start node
+      if (!quizStartTrackedRef.current && currentNode?.type === 'start') {
+        quizStartTrackedRef.current = true;
+        if (trackingConfig) {
+          trackEvent(trackingConfig, 'quizStart', {
+            quizTitle: quiz?.name || '',
+          });
+        }
+      }
 
       const isLeadForm =
         nextNode?.type === 'lead-form' ||
@@ -878,9 +909,18 @@ function QuizPlayer() {
       setCurrentNodeId(nextId);
 
       if (isLeadForm) setShowLeadForm(true);
-      if (isResult) setShowResult(true);
+      if (isResult) {
+        setShowResult(true);
+        // Track quizCompleted when reaching result node
+        if (trackingConfig) {
+          trackEvent(trackingConfig, 'quizCompleted', {
+            quizTitle: quiz?.name || '',
+            score,
+          });
+        }
+      }
     },
-    [nodes, currentNodeId],
+    [nodes, currentNodeId, trackingConfig, quiz?.name, score],
   );
 
   // ── Derived data ────────────────────────────────────────────
@@ -999,6 +1039,15 @@ function QuizPlayer() {
       },
     }));
 
+    // Track questionAnswered
+    if (trackingConfig) {
+      trackEvent(trackingConfig, 'questionAnswered', {
+        quizTitle: quiz?.name || '',
+        questionNumber: answeredCount + 1,
+        questionTotal: totalQuestions,
+      });
+    }
+
     setTimeout(() => {
       setSelectedOption(null);
       advanceToNode(getNextNode(currentNodeId, optionIndex));
@@ -1026,6 +1075,15 @@ function QuizPlayer() {
       },
     }));
 
+    // Track questionAnswered
+    if (trackingConfig) {
+      trackEvent(trackingConfig, 'questionAnswered', {
+        quizTitle: quiz?.name || '',
+        questionNumber: answeredCount + 1,
+        questionTotal: totalQuestions,
+      });
+    }
+
     setTimeout(() => {
       setSelectedOption(null);
       advanceToNode(
@@ -1048,6 +1106,13 @@ function QuizPlayer() {
         }),
       });
       setLeadSaved(true);
+
+      // Track leadCaptured
+      if (trackingConfig) {
+        trackEvent(trackingConfig, 'leadCaptured', {
+          quizTitle: quiz?.name || '',
+        });
+      }
 
       const nextId = getNextNode(currentNodeId);
       setTimeout(() => {

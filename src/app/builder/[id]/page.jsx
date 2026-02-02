@@ -113,6 +113,11 @@ export default function BuilderPage() {
                 theme: { ...defaultQuizSettings.theme, ...(settings.theme || {}) },
                 branding: { ...defaultQuizSettings.branding, ...(settings.branding || {}) },
                 aiResultConfig: { ...defaultQuizSettings.aiResultConfig, ...(settings.aiResultConfig || {}) },
+                tracking: {
+                  ...defaultQuizSettings.tracking,
+                  ...(settings.tracking || {}),
+                  events: { ...defaultQuizSettings.tracking.events, ...(settings.tracking?.events || {}) },
+                },
               };
               useQuizStore.setState({ quizSettings: merged });
             }

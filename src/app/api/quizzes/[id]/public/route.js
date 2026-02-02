@@ -71,21 +71,35 @@ export async function GET(request, { params }) {
     // Clean up — don't leak raw variants array
     delete quiz.variants;
 
-    // Sanitize settings: only expose aiResultConfig.enabled (don't leak prompt)
+    // Sanitize settings: don't leak sensitive data to public API
     if (quiz.settings) {
       try {
         const settings = typeof quiz.settings === 'string'
           ? JSON.parse(quiz.settings)
           : quiz.settings;
+
+        // AI config: only expose enabled + combineWithStatic (not the prompt)
         if (settings?.aiResultConfig) {
           settings.aiResultConfig = {
             enabled: settings.aiResultConfig.enabled || false,
             combineWithStatic: settings.aiResultConfig.combineWithStatic !== false,
           };
-          quiz.settings = typeof quiz.settings === 'string'
-            ? JSON.stringify(settings)
-            : settings;
         }
+
+        // Tracking: expose pixel IDs and events, but strip customHeadCode for security
+        if (settings?.tracking) {
+          settings.tracking = {
+            facebookPixelId: settings.tracking.facebookPixelId || '',
+            googleTagManagerId: settings.tracking.googleTagManagerId || '',
+            googleAnalyticsId: settings.tracking.googleAnalyticsId || '',
+            // customHeadCode intentionally omitted for security
+            events: settings.tracking.events || {},
+          };
+        }
+
+        quiz.settings = typeof quiz.settings === 'string'
+          ? JSON.stringify(settings)
+          : settings;
       } catch (_e) { /* ignore */ }
     }
 

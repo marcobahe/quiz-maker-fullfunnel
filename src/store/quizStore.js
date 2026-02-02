@@ -33,6 +33,18 @@ const defaultQuizSettings = {
     maxTokens: 500,
     combineWithStatic: true,
   },
+  tracking: {
+    facebookPixelId: '',
+    googleTagManagerId: '',
+    googleAnalyticsId: '',
+    customHeadCode: '',
+    events: {
+      quizStart: true,
+      questionAnswered: true,
+      leadCaptured: true,
+      quizCompleted: true,
+    },
+  },
 };
 
 const useQuizStore = create((set, get) => ({
@@ -131,6 +143,18 @@ const useQuizStore = create((set, get) => ({
         ...state.quizSettings,
         aiResultConfig: {
           ...(state.quizSettings.aiResultConfig || defaultQuizSettings.aiResultConfig),
+          ...updates,
+        },
+      },
+      isSaved: false,
+    })),
+
+  updateTracking: (updates) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        tracking: {
+          ...(state.quizSettings.tracking || defaultQuizSettings.tracking),
           ...updates,
         },
       },
@@ -272,6 +296,11 @@ const useQuizStore = create((set, get) => ({
         theme: { ...defaults.theme, ...(settings.theme || {}) },
         branding: { ...defaults.branding, ...(settings.branding || {}) },
         aiResultConfig: { ...defaults.aiResultConfig, ...(settings.aiResultConfig || {}) },
+        tracking: {
+          ...defaults.tracking,
+          ...(settings.tracking || {}),
+          events: { ...defaults.tracking.events, ...(settings.tracking?.events || {}) },
+        },
       },
       isSaved: true,
     });

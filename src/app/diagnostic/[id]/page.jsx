@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 import TopBar from '@/components/Layout/TopBar';
 import ScoreRangesEditor from '@/components/ScoreRanges/ScoreRangesEditor';
 import ThemeEditor from '@/components/Settings/ThemeEditor';
-import { AlertCircle, CheckCircle, AlertTriangle, Info, Palette, Sparkles } from 'lucide-react';
+import { AlertCircle, CheckCircle, AlertTriangle, Info, Palette, Sparkles, Activity } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { defaultQuizSettings } from '@/store/quizStore';
 
@@ -72,6 +72,150 @@ const iconColors = {
   info: 'text-blue-600',
 };
 
+// ── Tracking & Pixels Editor ─────────────────────────────────
+
+function TrackingEditor() {
+  const tracking = useQuizStore((s) => s.quizSettings.tracking) || defaultQuizSettings.tracking;
+  const updateTracking = useQuizStore((s) => s.updateTracking);
+
+  const events = tracking.events || defaultQuizSettings.tracking.events;
+
+  const handleEventToggle = (key) => {
+    updateTracking({
+      events: { ...events, [key]: !events[key] },
+    });
+  };
+
+  const eventList = [
+    { key: 'quizStart', label: 'Início do quiz', desc: 'QuizStart / ViewContent' },
+    { key: 'questionAnswered', label: 'Resposta de pergunta', desc: 'QuestionAnswered' },
+    { key: 'leadCaptured', label: 'Captura de lead', desc: 'Lead / generate_lead' },
+    { key: 'quizCompleted', label: 'Quiz completo', desc: 'CompleteRegistration / quiz_complete' },
+  ];
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+          <Activity size={20} className="text-white" />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-lg font-bold text-gray-800">Rastreamento & Pixels</h2>
+          <p className="text-sm text-gray-500">Configure pixels de conversão e analytics para seu quiz</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+        {/* Facebook Pixel */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Facebook Pixel ID
+          </label>
+          <input
+            type="text"
+            value={tracking.facebookPixelId || ''}
+            onChange={(e) => updateTracking({ facebookPixelId: e.target.value.trim() })}
+            placeholder="Ex: 123456789012345"
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+          />
+          <p className="text-xs text-gray-400 mt-1.5">
+            Eventos disparados: PageView, Lead, CompleteRegistration, ViewContent
+          </p>
+        </div>
+
+        {/* Google Tag Manager */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Google Tag Manager ID
+          </label>
+          <input
+            type="text"
+            value={tracking.googleTagManagerId || ''}
+            onChange={(e) => updateTracking({ googleTagManagerId: e.target.value.trim() })}
+            placeholder="Ex: GTM-XXXXXX"
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+          />
+        </div>
+
+        {/* Google Analytics 4 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Google Analytics 4 ID
+          </label>
+          <input
+            type="text"
+            value={tracking.googleAnalyticsId || ''}
+            onChange={(e) => updateTracking({ googleAnalyticsId: e.target.value.trim() })}
+            placeholder="Ex: G-XXXXXXXXXX"
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+          />
+        </div>
+
+        {/* Custom Head Code */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Código personalizado (Head)
+          </label>
+          <textarea
+            value={tracking.customHeadCode || ''}
+            onChange={(e) => updateTracking({ customHeadCode: e.target.value })}
+            placeholder="Cole aqui scripts adicionais..."
+            rows={4}
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm text-gray-800 font-mono focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-y"
+          />
+          <p className="text-xs text-gray-400 mt-1.5">
+            Será inserido no &lt;head&gt; do quiz. Use para pixels de TikTok, LinkedIn, etc.
+          </p>
+        </div>
+
+        {/* Events checkboxes */}
+        <div className="border-t border-gray-100 pt-5">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Eventos habilitados
+          </label>
+          <div className="space-y-3">
+            {eventList.map((ev) => (
+              <label
+                key={ev.key}
+                className="flex items-center gap-3 cursor-pointer group"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleEventToggle(ev.key)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                    events[ev.key] !== false ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                      events[ev.key] !== false ? 'translate-x-4' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+                <div>
+                  <span className="text-sm text-gray-800 font-medium group-hover:text-purple-700 transition-colors">
+                    {ev.label}
+                  </span>
+                  <span className="text-xs text-gray-400 ml-2">{ev.desc}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Info note */}
+        <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+          <Activity size={18} className="text-green-600 mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-green-700">
+            <p className="font-medium mb-1">Sobre o rastreamento</p>
+            <p>Os pixels são carregados de forma assíncrona para não impactar a performance do quiz. Funcionam tanto no acesso direto quanto em iframes (embed).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DiagnosticPage() {
   const params = useParams();
   const { data: session, status } = useSession();
@@ -128,6 +272,11 @@ export default function DiagnosticPage() {
                 theme: { ...defaultQuizSettings.theme, ...(settings.theme || {}) },
                 branding: { ...defaultQuizSettings.branding, ...(settings.branding || {}) },
                 aiResultConfig: { ...defaultQuizSettings.aiResultConfig, ...(settings.aiResultConfig || {}) },
+                tracking: {
+                  ...defaultQuizSettings.tracking,
+                  ...(settings.tracking || {}),
+                  events: { ...defaultQuizSettings.tracking.events, ...(settings.tracking?.events || {}) },
+                },
               };
               useQuizStore.setState({ quizSettings: merged });
             }
@@ -394,6 +543,9 @@ export default function DiagnosticPage() {
               )}
             </div>
           </div>
+
+          {/* ── Tracking & Pixels Section ──────────────── */}
+          <TrackingEditor />
 
           {/* Theme & Branding Editor */}
           <div className="mt-8">
