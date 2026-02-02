@@ -20,6 +20,7 @@ import {
   Disc,
   Gift,
   MessageSquare,
+  Star,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
@@ -36,6 +37,7 @@ const ICONS = {
   'question-multiple': CheckSquare,
   'question-icons': LayoutGrid,
   'question-open': MessageSquare,
+  'question-rating': Star,
   'lead-form': UserPlus,
   script: FileText,
   'spin-wheel': Disc,
@@ -52,6 +54,7 @@ const COLORS = {
   'question-multiple': { bg: 'bg-accent/10', text: 'text-accent' },
   'question-icons': { bg: 'bg-accent/10', text: 'text-accent' },
   'question-open': { bg: 'bg-accent/10', text: 'text-accent' },
+  'question-rating': { bg: 'bg-amber-100', text: 'text-amber-600' },
   'lead-form': { bg: 'bg-blue-100', text: 'text-blue-600' },
   script: { bg: 'bg-teal-100', text: 'text-teal-600' },
   'spin-wheel': { bg: 'bg-orange-100', text: 'text-orange-600' },
@@ -68,6 +71,7 @@ const ELEMENT_TYPES = [
   { type: 'question-multiple', label: 'Múltipla Escolha' },
   { type: 'question-icons', label: 'Escolha Visual' },
   { type: 'question-open', label: 'Pergunta Aberta' },
+  { type: 'question-rating', label: 'Nota / Avaliação' },
   { type: 'lead-form', label: 'Formulário Lead' },
   { type: 'script', label: 'Script' },
   { type: 'spin-wheel', label: 'Roleta' },
@@ -135,6 +139,24 @@ export function createDefaultElement(type) {
         multiline: true,
         maxLength: 500,
         score: 0,
+      };
+    case 'question-rating':
+      return {
+        id,
+        type: 'question-rating',
+        question: 'Dê sua nota',
+        ratingType: 'number',
+        maxStars: 5,
+        minValue: 0,
+        maxValue: 10,
+        sliderMin: 0,
+        sliderMax: 100,
+        sliderStep: 1,
+        sliderUnit: '',
+        labelMin: '',
+        labelMax: '',
+        scoreMultiplier: 1,
+        required: true,
       };
     case 'lead-form':
       return { id, type: 'lead-form', title: 'Capture seus dados', fields: ['name', 'email', 'phone'] };
@@ -504,6 +526,119 @@ function IconQuestionElement({ element, nodeId }) {
   );
 }
 
+function RatingElement({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const edges = useQuizStore((s) => s.edges);
+
+  const connectedHandles = useMemo(() => {
+    const set = new Set();
+    edges.forEach((e) => {
+      if (e.source === nodeId && e.sourceHandle) set.add(e.sourceHandle);
+    });
+    return set;
+  }, [edges, nodeId]);
+
+  const generalId = `${element.id}-general`;
+  const isGeneralConnected = connectedHandles.has(generalId);
+
+  const renderPreview = () => {
+    const ratingType = element.ratingType || 'number';
+
+    if (ratingType === 'stars') {
+      const max = element.maxStars || 5;
+      const filled = Math.ceil(max / 2);
+      return (
+        <div className="flex items-center gap-0.5">
+          {Array.from({ length: max }).map((_, i) => (
+            <span key={i} className={`text-sm ${i < filled ? 'text-amber-400' : 'text-gray-300'}`}>★</span>
+          ))}
+        </div>
+      );
+    }
+
+    if (ratingType === 'slider') {
+      return (
+        <div className="flex items-center gap-1.5 w-full">
+          <span className="text-[9px] text-gray-400 shrink-0">{element.sliderMin ?? 0}</span>
+          <div className="flex-1 relative h-2 bg-gray-200 rounded-full">
+            <div className="absolute left-0 top-0 h-full w-1/2 bg-amber-400 rounded-full" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-amber-500 rounded-full border-2 border-white shadow-sm" />
+          </div>
+          <span className="text-[9px] text-gray-400 shrink-0">{element.sliderMax ?? 100}</span>
+        </div>
+      );
+    }
+
+    // number (default)
+    const min = element.minValue ?? 0;
+    const max = element.maxValue ?? 10;
+    const count = max - min + 1;
+    const display = count > 11 ? 11 : count;
+    return (
+      <div className="flex items-center gap-0.5 flex-wrap">
+        {Array.from({ length: display }).map((_, i) => {
+          const val = min + i;
+          return (
+            <span
+              key={i}
+              className="w-5 h-5 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-[8px] text-gray-500 font-medium"
+            >
+              {val}
+            </span>
+          );
+        })}
+        {count > 11 && <span className="text-[8px] text-gray-400">…</span>}
+      </div>
+    );
+  };
+
+  return (
+    <div className="p-2">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="w-5 h-5 bg-amber-100 rounded flex items-center justify-center">
+          <Star size={12} className="text-amber-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-amber-600 uppercase tracking-wide">
+          Nota / Avaliação
+        </span>
+      </div>
+      <InlineEdit
+        value={element.question || ''}
+        onSave={(val) => updateNodeElement(nodeId, element.id, { question: val })}
+        className="text-gray-800 font-medium text-sm mb-2 block"
+        placeholder="Digite a pergunta…"
+      />
+      <div className="bg-gray-50 rounded-lg px-2.5 py-2 mb-1">
+        {renderPreview()}
+      </div>
+      {(element.labelMin || element.labelMax) && (
+        <div className="flex justify-between text-[9px] text-gray-400 px-1 mb-1">
+          <span>{element.labelMin}</span>
+          <span>{element.labelMax}</span>
+        </div>
+      )}
+      {element.required && (
+        <span className="text-[9px] text-red-400 mt-0.5 inline-block">* Obrigatório</span>
+      )}
+      {/* General handle — always goes to next node */}
+      <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1.5">
+        <span className="text-[10px] text-purple-400 select-none flex-1">Continuar</span>
+        <Handle
+          type="source"
+          position={Position.Right}
+          id={generalId}
+          className={
+            isGeneralConnected
+              ? '!bg-purple-500 !w-3 !h-3 !right-[-5px] !border-2 !border-white'
+              : '!bg-white !border-2 !border-purple-400 !w-3 !h-3 !right-[-5px]'
+          }
+          title="Continuar → próximo bloco"
+        />
+      </div>
+    </div>
+  );
+}
+
 function OpenQuestionElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const edges = useQuizStore((s) => s.edges);
@@ -734,6 +869,8 @@ function ElementRenderer({ element, nodeId }) {
       return <IconQuestionElement element={element} nodeId={nodeId} />;
     case 'question-open':
       return <OpenQuestionElement element={element} nodeId={nodeId} />;
+    case 'question-rating':
+      return <RatingElement element={element} nodeId={nodeId} />;
     case 'lead-form':
       return <LeadFormElement element={element} nodeId={nodeId} />;
     case 'script':

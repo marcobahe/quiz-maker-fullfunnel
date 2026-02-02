@@ -5,6 +5,7 @@ import {
   X, Plus, Trash2, GripVertical, ChevronDown, ChevronRight,
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
   Type, FileText, UserPlus, PanelRightClose, Disc, Gift, MessageSquare,
+  Star, Info,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { createDefaultElement } from '@/components/Canvas/CompositeNode';
@@ -21,6 +22,7 @@ const ELEMENT_META = {
   'question-multiple':{ label: 'Múltipla Escolha',icon: CheckSquare, color: 'purple' },
   'question-icons':  { label: 'Escolha Visual',  icon: LayoutGrid,  color: 'purple' },
   'question-open':   { label: 'Pergunta Aberta', icon: MessageSquare, color: 'purple' },
+  'question-rating': { label: 'Nota / Avaliação', icon: Star, color: 'amber' },
   'lead-form':       { label: 'Formulário Lead', icon: UserPlus,    color: 'blue' },
   script:            { label: 'Script',          icon: FileText,    color: 'teal' },
   'spin-wheel':      { label: 'Roleta',          icon: Disc,        color: 'orange' },
@@ -37,6 +39,7 @@ const ELEMENT_TYPES = [
   { type: 'question-multiple',  label: 'Múltipla Escolha' },
   { type: 'question-icons',    label: 'Escolha Visual' },
   { type: 'question-open',     label: 'Pergunta Aberta' },
+  { type: 'question-rating',   label: 'Nota / Avaliação' },
   { type: 'lead-form',         label: 'Formulário Lead' },
   { type: 'script',            label: 'Script' },
   { type: 'spin-wheel',        label: 'Roleta' },
@@ -48,6 +51,7 @@ const COLOR_CLASSES = {
   orange: 'bg-orange-100 text-orange-600',
   purple: 'bg-accent/10 text-accent',
   blue:   'bg-blue-100 text-blue-600',
+  amber:  'bg-amber-100 text-amber-600',
   gray:   'bg-gray-100 text-gray-600',
 };
 
@@ -563,6 +567,242 @@ function OpenQuestionElementEditor({ element, nodeId }) {
   );
 }
 
+function RatingElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const ratingType = element.ratingType || 'number';
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      {/* Question */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pergunta</label>
+        <textarea
+          value={element.question || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { question: e.target.value })}
+          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent resize-none text-sm"
+          rows={2}
+          placeholder="Digite a pergunta..."
+        />
+      </div>
+
+      {/* Rating type selector */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de nota</label>
+        <select
+          value={ratingType}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { ratingType: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm bg-white"
+        >
+          <option value="stars">⭐ Estrelas</option>
+          <option value="number">🔢 Número</option>
+          <option value="slider">🎚️ Slider</option>
+        </select>
+      </div>
+
+      {/* Stars options */}
+      {ratingType === 'stars' && (
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Quantidade de estrelas</label>
+            <select
+              value={element.maxStars || 5}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { maxStars: parseInt(e.target.value) })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm bg-white"
+            >
+              <option value={3}>3 estrelas</option>
+              <option value={5}>5 estrelas</option>
+              <option value={7}>7 estrelas</option>
+              <option value={10}>10 estrelas</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Label mínimo</label>
+            <input
+              type="text"
+              value={element.labelMin || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { labelMin: e.target.value })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              placeholder="Péssimo"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Label máximo</label>
+            <input
+              type="text"
+              value={element.labelMax || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { labelMax: e.target.value })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              placeholder="Excelente"
+            />
+          </div>
+        </>
+      )}
+
+      {/* Number options */}
+      {ratingType === 'number' && (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Valor mínimo</label>
+              <input
+                type="number"
+                value={element.minValue ?? 0}
+                onChange={(e) => updateNodeElement(nodeId, element.id, { minValue: parseInt(e.target.value) || 0 })}
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Valor máximo</label>
+              <input
+                type="number"
+                value={element.maxValue ?? 10}
+                onChange={(e) => updateNodeElement(nodeId, element.id, { maxValue: parseInt(e.target.value) || 10 })}
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Label mínimo</label>
+            <input
+              type="text"
+              value={element.labelMin || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { labelMin: e.target.value })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              placeholder="Nada provável"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Label máximo</label>
+            <input
+              type="text"
+              value={element.labelMax || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { labelMax: e.target.value })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              placeholder="Muito provável"
+            />
+          </div>
+        </>
+      )}
+
+      {/* Slider options */}
+      {ratingType === 'slider' && (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Valor mínimo</label>
+              <input
+                type="number"
+                value={element.sliderMin ?? 0}
+                onChange={(e) => updateNodeElement(nodeId, element.id, { sliderMin: parseInt(e.target.value) || 0 })}
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Valor máximo</label>
+              <input
+                type="number"
+                value={element.sliderMax ?? 100}
+                onChange={(e) => updateNodeElement(nodeId, element.id, { sliderMax: parseInt(e.target.value) || 100 })}
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Step</label>
+              <input
+                type="number"
+                value={element.sliderStep ?? 1}
+                onChange={(e) => updateNodeElement(nodeId, element.id, { sliderStep: parseInt(e.target.value) || 1 })}
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+                min="1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Unidade</label>
+              <input
+                type="text"
+                value={element.sliderUnit || ''}
+                onChange={(e) => updateNodeElement(nodeId, element.id, { sliderUnit: e.target.value })}
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+                placeholder="anos, %, R$"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Label mínimo</label>
+            <input
+              type="text"
+              value={element.labelMin || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { labelMin: e.target.value })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              placeholder="Mínimo"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Label máximo</label>
+            <input
+              type="text"
+              value={element.labelMax || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { labelMax: e.target.value })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              placeholder="Máximo"
+            />
+          </div>
+        </>
+      )}
+
+      {/* Required toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-700">Obrigatório</p>
+          <p className="text-xs text-gray-400">Exigir resposta para continuar</p>
+        </div>
+        <button
+          onClick={() => updateNodeElement(nodeId, element.id, { required: !element.required })}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            element.required ? 'bg-accent' : 'bg-gray-200'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              element.required ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+
+      {/* Score multiplier */}
+      <div className="relative">
+        <div className="flex items-center gap-1 mb-2">
+          <label className="text-sm font-medium text-gray-700">Multiplicador de score</label>
+          <button
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <Info size={14} />
+          </button>
+          {showTooltip && (
+            <div className="absolute left-0 top-full mt-1 bg-gray-800 text-white text-xs rounded-lg px-3 py-2 z-50 whitespace-nowrap shadow-lg">
+              O valor selecionado × multiplicador = pontuação
+            </div>
+          )}
+        </div>
+        <input
+          type="number"
+          value={element.scoreMultiplier ?? 1}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { scoreMultiplier: parseFloat(e.target.value) || 1 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          step="0.1"
+          min="0"
+        />
+      </div>
+    </div>
+  );
+}
+
 function LeadFormElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   return (
@@ -817,6 +1057,8 @@ function ElementEditor({ element, nodeId }) {
       return <IconQuestionElementEditor element={element} nodeId={nodeId} />;
     case 'question-open':
       return <OpenQuestionElementEditor element={element} nodeId={nodeId} />;
+    case 'question-rating':
+      return <RatingElementEditor element={element} nodeId={nodeId} />;
     case 'lead-form':
       return <LeadFormElementEditor element={element} nodeId={nodeId} />;
     case 'script':
@@ -1058,7 +1300,7 @@ export default function PropertiesPanel({ onClose }) {
 
             {/* Gamification toggle (if composite has question elements) */}
             {(data.elements || []).some(
-              (el) => el.type === 'question-single' || el.type === 'question-multiple' || el.type === 'question-icons',
+              (el) => el.type === 'question-single' || el.type === 'question-multiple' || el.type === 'question-icons' || el.type === 'question-rating',
             ) && (
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">

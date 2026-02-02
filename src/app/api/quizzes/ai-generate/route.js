@@ -40,7 +40,7 @@ function validateQuizData(data) {
 
   for (const q of data.questions) {
     if (!q.type || !q.question) return false;
-    if (q.type !== 'question-open' && (!Array.isArray(q.options) || q.options.length === 0)) return false;
+    if (q.type !== 'question-open' && q.type !== 'question-rating' && (!Array.isArray(q.options) || q.options.length === 0)) return false;
   }
 
   if (!Array.isArray(data.scoreRanges) || data.scoreRanges.length === 0) return false;
@@ -53,6 +53,7 @@ const TYPE_MAP = {
   'Escolha única': 'question-single',
   'Escolha visual': 'question-icons',
   'Pergunta aberta': 'question-open',
+  'Nota / Avaliação': 'question-rating',
 };
 
 export async function POST(request) {
@@ -124,6 +125,8 @@ Para perguntas do tipo "question-icons": crie opções com "label", "icon" (emoj
 
 Para perguntas do tipo "question-open": inclua "placeholder", "required": true, e "multiline": true. Não incluir "options".
 
+Para perguntas do tipo "question-rating": inclua "ratingType" ("stars", "number" ou "slider"), "maxValue" (ex: 10), "minValue" (ex: 0), "scoreMultiplier" (ex: 1). Não incluir "options".
+
 Crie faixas de resultado (scoreRanges) coerentes com a pontuação total possível.
 
 Responda APENAS com JSON válido no seguinte formato exato:
@@ -154,6 +157,14 @@ Responda APENAS com JSON válido no seguinte formato exato:
       "placeholder": "Digite sua resposta...",
       "required": true,
       "multiline": true
+    },
+    {
+      "type": "question-rating",
+      "question": "De 0 a 10, quanto você recomendaria?",
+      "ratingType": "number",
+      "minValue": 0,
+      "maxValue": 10,
+      "scoreMultiplier": 1
     }
   ],
   "scoreRanges": [
@@ -238,7 +249,7 @@ Responda APENAS com JSON válido no seguinte formato exato:
       const normalized = { ...q };
 
       // Ensure type is valid
-      if (!['question-single', 'question-multiple', 'question-icons', 'question-open'].includes(normalized.type)) {
+      if (!['question-single', 'question-multiple', 'question-icons', 'question-open', 'question-rating'].includes(normalized.type)) {
         normalized.type = 'question-single';
       }
 
@@ -264,6 +275,16 @@ Responda APENAS com JSON válido no seguinte formato exato:
         normalized.placeholder = normalized.placeholder || 'Digite sua resposta...';
         normalized.required = normalized.required !== false;
         normalized.multiline = normalized.multiline !== false;
+        delete normalized.options;
+      }
+
+      // For rating questions
+      if (normalized.type === 'question-rating') {
+        normalized.ratingType = normalized.ratingType || 'number';
+        normalized.minValue = typeof normalized.minValue === 'number' ? normalized.minValue : 0;
+        normalized.maxValue = typeof normalized.maxValue === 'number' ? normalized.maxValue : 10;
+        normalized.scoreMultiplier = typeof normalized.scoreMultiplier === 'number' ? normalized.scoreMultiplier : 1;
+        normalized.required = normalized.required !== false;
         delete normalized.options;
       }
 

@@ -135,6 +135,7 @@ function QuestionPreview({ question, index, onChange }) {
     'question-multiple': '☑️ Múltipla Escolha',
     'question-icons': '🖼️ Escolha Visual',
     'question-open': '💬 Pergunta Aberta',
+    'question-rating': '⭐ Nota / Avaliação',
   };
 
   return (
@@ -509,7 +510,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
                   Tipo de perguntas
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {['Múltipla escolha', 'Escolha única', 'Escolha visual', 'Pergunta aberta'].map((tipo) => (
+                  {['Múltipla escolha', 'Escolha única', 'Escolha visual', 'Pergunta aberta', 'Nota / Avaliação'].map((tipo) => (
                     <button
                       key={tipo}
                       onClick={() => toggleTipoPergunta(tipo)}
@@ -850,6 +851,26 @@ function transformToCanvasData(quizData) {
           multiline: q.multiline !== false,
           maxLength: 500,
           score: 0,
+        };
+        break;
+
+      case 'question-rating':
+        element = {
+          id: elementId,
+          type: 'question-rating',
+          question: q.question,
+          ratingType: q.ratingType || 'number',
+          maxStars: 5,
+          minValue: typeof q.minValue === 'number' ? q.minValue : 0,
+          maxValue: typeof q.maxValue === 'number' ? q.maxValue : 10,
+          sliderMin: 0,
+          sliderMax: 100,
+          sliderStep: 1,
+          sliderUnit: '',
+          labelMin: '',
+          labelMax: '',
+          scoreMultiplier: q.scoreMultiplier || 1,
+          required: q.required !== false,
         };
         break;
 

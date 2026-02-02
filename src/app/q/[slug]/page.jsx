@@ -72,6 +72,401 @@ function setAbCookie(quizId, variantSlug) {
   document.cookie = `qm_ab_${quizId}=${variantSlug};path=/;expires=${expires};SameSite=Lax`;
 }
 
+// ── Rating Player Components ─────────────────────────────────
+
+function StarsRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
+  const [hovered, setHovered] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const maxStars = element.maxStars || 5;
+  const isRequired = element.required !== false;
+  const canSubmit = !isRequired || selected !== null;
+
+  const handleSelect = (starIdx) => {
+    setSelected(starIdx);
+  };
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    const val = selected;
+    const scoreVal = val * (element.scoreMultiplier || 1);
+    onSubmit({
+      answer: `${val} de ${maxStars}`,
+      score: scoreVal,
+      rawValue: val,
+    });
+  };
+
+  return (
+    <div className="mb-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        {rv(element.question || 'Dê sua nota')}
+        {isRequired && <span className="text-red-500 ml-1">*</span>}
+      </h2>
+      <div className="flex flex-col items-center gap-3">
+        {(element.labelMin || element.labelMax) && (
+          <div className="flex justify-between w-full text-xs text-gray-400 px-1">
+            <span>{element.labelMin}</span>
+            <span>{element.labelMax}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-1" onMouseLeave={() => setHovered(null)}>
+          {Array.from({ length: maxStars }).map((_, i) => {
+            const starNum = i + 1;
+            const isFilled = starNum <= (hovered ?? selected ?? 0);
+            return (
+              <button
+                key={i}
+                onMouseEnter={() => setHovered(starNum)}
+                onClick={() => handleSelect(starNum)}
+                className="transition-all duration-150 focus:outline-none"
+                style={{
+                  transform: hovered === starNum ? 'scale(1.2)' : 'scale(1)',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill={isFilled ? '#f59e0b' : 'none'}
+                  stroke={isFilled ? '#f59e0b' : '#d1d5db'}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </button>
+            );
+          })}
+        </div>
+        {selected !== null && (
+          <span className="text-sm text-gray-500 font-medium">{selected} de {maxStars}</span>
+        )}
+      </div>
+      <button
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-4"
+        style={{
+          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
+          borderRadius: btnRadius,
+          cursor: canSubmit ? 'pointer' : 'not-allowed',
+          opacity: canSubmit ? 1 : 0.7,
+        }}
+      >
+        Continuar <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+}
+
+function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
+  const [selected, setSelected] = useState(null);
+  const minVal = element.minValue ?? 0;
+  const maxVal = element.maxValue ?? 10;
+  const isRequired = element.required !== false;
+  const canSubmit = !isRequired || selected !== null;
+  const isNps = minVal === 0 && maxVal === 10;
+
+  const getColor = (val) => {
+    if (isNps) {
+      if (val <= 6) return { bg: '#fecaca', border: '#f87171', text: '#dc2626', selectedBg: '#ef4444' };
+      if (val <= 8) return { bg: '#fef3c7', border: '#fbbf24', text: '#d97706', selectedBg: '#f59e0b' };
+      return { bg: '#d1fae5', border: '#34d399', text: '#059669', selectedBg: '#10b981' };
+    }
+    return { bg: `${theme.primaryColor}15`, border: `${theme.primaryColor}40`, text: theme.primaryColor, selectedBg: theme.primaryColor };
+  };
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    const scoreVal = selected * (element.scoreMultiplier || 1);
+    onSubmit({ answer: String(selected), score: scoreVal, rawValue: selected });
+  };
+
+  const numbers = [];
+  for (let i = minVal; i <= maxVal; i++) numbers.push(i);
+
+  return (
+    <div className="mb-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        {rv(element.question || 'Dê sua nota')}
+        {isRequired && <span className="text-red-500 ml-1">*</span>}
+      </h2>
+      {(element.labelMin || element.labelMax) && (
+        <div className="flex justify-between w-full text-xs text-gray-400 mb-2 px-1">
+          <span>{element.labelMin}</span>
+          <span>{element.labelMax}</span>
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2 justify-center">
+        {numbers.map((num) => {
+          const colors = getColor(num);
+          const isSel = selected === num;
+          return (
+            <button
+              key={num}
+              onClick={() => setSelected(num)}
+              className="w-11 h-11 rounded-lg flex items-center justify-center text-sm font-semibold transition-all duration-150 border-2"
+              style={{
+                backgroundColor: isSel ? colors.selectedBg : colors.bg,
+                borderColor: isSel ? colors.selectedBg : colors.border,
+                color: isSel ? '#ffffff' : colors.text,
+                transform: isSel ? 'scale(1.1)' : 'scale(1)',
+                boxShadow: isSel ? `0 4px 12px ${colors.selectedBg}40` : 'none',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSel) {
+                  e.currentTarget.style.transform = 'scale(1.08)';
+                  e.currentTarget.style.boxShadow = `0 2px 8px ${colors.selectedBg}20`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSel) {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
+            >
+              {num}
+            </button>
+          );
+        })}
+      </div>
+      {isNps && (
+        <div className="flex justify-between text-[10px] text-gray-300 mt-2 px-1">
+          <span>Detratores</span>
+          <span>Neutros</span>
+          <span>Promotores</span>
+        </div>
+      )}
+      <button
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-4"
+        style={{
+          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
+          borderRadius: btnRadius,
+          cursor: canSubmit ? 'pointer' : 'not-allowed',
+          opacity: canSubmit ? 1 : 0.7,
+        }}
+      >
+        Continuar <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+}
+
+function SliderRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
+  const sliderMin = element.sliderMin ?? 0;
+  const sliderMax = element.sliderMax ?? 100;
+  const sliderStep = element.sliderStep ?? 1;
+  const unit = element.sliderUnit || '';
+  const isRequired = element.required !== false;
+  const midpoint = Math.round((sliderMin + sliderMax) / 2);
+  const [value, setValue] = useState(midpoint);
+  const [touched, setTouched] = useState(false);
+  const canSubmit = !isRequired || touched;
+
+  const pct = ((value - sliderMin) / (sliderMax - sliderMin)) * 100;
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    const scoreVal = value * (element.scoreMultiplier || 1);
+    onSubmit({ answer: String(value), score: scoreVal, rawValue: value });
+  };
+
+  return (
+    <div className="mb-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        {rv(element.question || 'Dê sua nota')}
+        {isRequired && <span className="text-red-500 ml-1">*</span>}
+      </h2>
+      <div className="flex flex-col items-center gap-2">
+        {/* Value badge */}
+        <div
+          className="text-white px-4 py-1.5 rounded-full text-lg font-bold shadow-md"
+          style={{ backgroundColor: theme.primaryColor }}
+        >
+          {value}{unit ? ` ${unit}` : ''}
+        </div>
+
+        {/* Slider */}
+        <div className="w-full relative mt-2">
+          <div className="relative">
+            {/* Background track with fill */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-2 rounded-full bg-gray-200 pointer-events-none" />
+            <div
+              className="absolute top-1/2 -translate-y-1/2 left-0 h-2 rounded-full pointer-events-none"
+              style={{
+                width: `${pct}%`,
+                background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+              }}
+            />
+            <input
+              type="range"
+              min={sliderMin}
+              max={sliderMax}
+              step={sliderStep}
+              value={value}
+              onChange={(e) => { setValue(parseInt(e.target.value)); setTouched(true); }}
+              className="quiz-slider relative z-10 w-full"
+              style={{ '--slider-color': theme.primaryColor }}
+            />
+          </div>
+        </div>
+
+        {/* Labels */}
+        <div className="flex justify-between w-full text-xs text-gray-400 px-1">
+          <span>{element.labelMin || sliderMin}</span>
+          <span>{element.labelMax || sliderMax}</span>
+        </div>
+      </div>
+      <button
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-4"
+        style={{
+          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
+          borderRadius: btnRadius,
+          cursor: canSubmit ? 'pointer' : 'not-allowed',
+          opacity: canSubmit ? 1 : 0.7,
+        }}
+      >
+        Continuar <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+}
+
+function RatingPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit }) {
+  const ratingType = element.ratingType || 'number';
+
+  const handleResult = (result) => {
+    onSubmit(result);
+  };
+
+  if (ratingType === 'stars') {
+    return <StarsRatingPlayer element={element} theme={theme} btnRadius={btnRadius} rv={rv} onSubmit={handleResult} />;
+  }
+  if (ratingType === 'slider') {
+    return <SliderRatingPlayer element={element} theme={theme} btnRadius={btnRadius} rv={rv} onSubmit={handleResult} />;
+  }
+  return <NumberRatingPlayer element={element} theme={theme} btnRadius={btnRadius} rv={rv} onSubmit={handleResult} />;
+}
+
+// ── Rating Question Player Component ─────────────────────────
+function RatingQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit }) {
+  const [value, setValue] = useState(null);
+  const isRequired = element.required !== false;
+  const canSubmit = !isRequired || value !== null;
+
+  const ratingType = element.ratingType || 'number';
+  const maxStars = element.maxStars || 5;
+  const minValue = element.minValue ?? 0;
+  const maxValue = element.maxValue ?? 10;
+  const sliderMin = element.sliderMin ?? 0;
+  const sliderMax = element.sliderMax ?? 100;
+  const sliderStep = element.sliderStep || 1;
+  const sliderUnit = element.sliderUnit || '';
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    onSubmit(value);
+  };
+
+  return (
+    <div className="mb-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        {rv(element.question || 'Dê sua nota')}
+        {isRequired && <span className="text-red-500 ml-1">*</span>}
+      </h2>
+
+      {ratingType === 'stars' && (
+        <div className="flex items-center justify-center gap-2 mb-4">
+          {Array.from({ length: maxStars }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setValue(i + 1)}
+              className="transition-transform hover:scale-110"
+              style={{ fontSize: '2.5rem', lineHeight: 1 }}
+            >
+              <span style={{ color: value !== null && i < value ? '#f59e0b' : '#d1d5db' }}>★</span>
+            </button>
+          ))}
+          {value !== null && (
+            <span className="text-sm text-gray-500 ml-2">{value}/{maxStars}</span>
+          )}
+        </div>
+      )}
+
+      {ratingType === 'number' && (
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+          {Array.from({ length: maxValue - minValue + 1 }, (_, i) => {
+            const num = minValue + i;
+            const isSelected = value === num;
+            return (
+              <button
+                key={num}
+                onClick={() => setValue(num)}
+                className="w-10 h-10 rounded-full border-2 text-sm font-bold transition-all"
+                style={{
+                  borderColor: isSelected ? theme.primaryColor : '#e5e7eb',
+                  backgroundColor: isSelected ? theme.primaryColor : 'transparent',
+                  color: isSelected ? '#ffffff' : '#374151',
+                  transform: isSelected ? 'scale(1.15)' : 'scale(1)',
+                }}
+              >
+                {num}
+              </button>
+            );
+          })}
+          <div className="w-full flex justify-between text-xs text-gray-400 mt-1 px-1">
+            {element.labelMin && <span>{element.labelMin}</span>}
+            {element.labelMax && <span className="ml-auto">{element.labelMax}</span>}
+          </div>
+        </div>
+      )}
+
+      {ratingType === 'slider' && (
+        <div className="mb-4 px-2">
+          <input
+            type="range"
+            min={sliderMin}
+            max={sliderMax}
+            step={sliderStep}
+            value={value ?? Math.round((sliderMin + sliderMax) / 2)}
+            onChange={(e) => setValue(Number(e.target.value))}
+            className="w-full accent-current"
+            style={{ accentColor: theme.primaryColor }}
+          />
+          <div className="flex justify-between items-center mt-2">
+            <span className="text-xs text-gray-400">{element.labelMin || sliderMin}</span>
+            <span className="text-lg font-bold" style={{ color: theme.primaryColor }}>
+              {value !== null ? `${value}${sliderUnit}` : '—'}
+            </span>
+            <span className="text-xs text-gray-400">{element.labelMax || sliderMax}</span>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-3"
+        style={{
+          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
+          borderRadius: btnRadius,
+          cursor: canSubmit ? 'pointer' : 'not-allowed',
+          opacity: canSubmit ? 1 : 0.7,
+        }}
+      >
+        Continuar <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+}
+
 // ── Open Question Player Component ───────────────────────────
 function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit }) {
   const [text, setText] = useState('');
@@ -1319,6 +1714,33 @@ function QuizPlayer() {
                   );
                 }
 
+                if (el.type === 'question-rating') {
+                  return (
+                    <RatingPlayer
+                      key={el.id}
+                      element={el}
+                      nodeId={currentNodeId}
+                      theme={theme}
+                      btnRadius={btnRadius}
+                      rv={rv}
+                      onSubmit={(result) => {
+                        const elScore = result.score || 0;
+                        if (elScore > 0) setScore((prev) => prev + elScore);
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [`${currentNodeId}__${el.id}`]: {
+                            question: el.question,
+                            answer: result.answer,
+                            score: elScore,
+                            elementId: el.id,
+                          },
+                        }));
+                        advanceToNode(getNextNode(currentNodeId, null, el.id));
+                      }}
+                    />
+                  );
+                }
+
                 if (el.type.startsWith('question-')) {
                   return (
                     <div key={el.id} className="mb-4">
@@ -1437,6 +1859,39 @@ function QuizPlayer() {
                             answer: text,
                             score: elScore,
                             elementId: el.id,
+                          },
+                        }));
+                        advanceToNode(getNextNode(currentNodeId, null, el.id));
+                      }}
+                    />
+                  );
+                }
+
+                if (el.type === 'question-rating') {
+                  return (
+                    <RatingQuestionPlayer
+                      key={el.id}
+                      element={el}
+                      nodeId={currentNodeId}
+                      theme={theme}
+                      btnRadius={btnRadius}
+                      rv={rv}
+                      onSubmit={(ratingValue) => {
+                        const multiplier = el.scoreMultiplier || 1;
+                        const elScore = Math.round(ratingValue * multiplier);
+                        if (elScore > 0) setScore((prev) => prev + elScore);
+
+                        const ratingType = el.ratingType || 'number';
+                        const maxVal = ratingType === 'stars' ? (el.maxStars || 5) : ratingType === 'slider' ? (el.sliderMax || 100) : (el.maxValue || 10);
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [`${currentNodeId}__${el.id}`]: {
+                            question: el.question,
+                            answer: `${ratingValue}/${maxVal}`,
+                            score: elScore,
+                            elementId: el.id,
+                            ratingValue,
+                            ratingMax: maxVal,
                           },
                         }));
                         advanceToNode(getNextNode(currentNodeId, null, el.id));
