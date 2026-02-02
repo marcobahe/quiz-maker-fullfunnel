@@ -901,7 +901,7 @@ function transformToCanvasData(quizData) {
     nodes.push({
       id: nodeId,
       type: 'composite',
-      position: { x: 400, y: 50 + (idx + 1) * 300 },
+      position: { x: 400, y: 50 + (idx + 1) * 500 },
       data: {
         label: `Pergunta ${idx + 1}`,
         elements: [element],
@@ -914,7 +914,7 @@ function transformToCanvasData(quizData) {
   nodes.push({
     id: resultNodeId,
     type: 'result',
-    position: { x: 400, y: 50 + (quizData.questions.length + 1) * 300 },
+    position: { x: 400, y: 50 + (quizData.questions.length + 1) * 500 },
     data: { title: 'Resultado' },
   });
 

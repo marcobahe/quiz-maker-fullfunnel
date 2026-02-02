@@ -1741,7 +1741,7 @@ function QuizPlayer() {
                   );
                 }
 
-                if (el.type.startsWith('question-')) {
+                if (el.type.startsWith('question-') && el.type !== 'question-open' && el.type !== 'question-rating' && el.type !== 'question-icons') {
                   return (
                     <div key={el.id} className="mb-4">
                       <h2 className="text-xl font-bold text-gray-800 mb-4">

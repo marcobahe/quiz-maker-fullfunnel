@@ -131,7 +131,7 @@ async function main() {
     nodes.push({
       id: nodeId,
       type: 'composite',
-      position: { x: 400, y: 350 + i * 300 },
+      position: { x: 400, y: 350 + i * 500 },
       data: {
         label: `Pergunta ${i + 1}`,
         elements: [
@@ -152,7 +152,7 @@ async function main() {
   nodes.push({
     id: leadNodeId,
     type: 'composite',
-    position: { x: 400, y: 350 + questions.length * 300 },
+    position: { x: 400, y: 350 + questions.length * 500 },
     data: {
       label: 'Formulário',
       elements: [
@@ -176,7 +176,7 @@ async function main() {
   nodes.push({
     id: resultNodeId,
     type: 'result',
-    position: { x: 400, y: 350 + (questions.length + 1) * 300 },
+    position: { x: 400, y: 350 + (questions.length + 1) * 500 },
     data: { title: 'Seu Diagnóstico' },
   });
 
