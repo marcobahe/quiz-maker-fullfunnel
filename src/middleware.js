@@ -15,5 +15,6 @@ export const config = {
     '/analytics/:path*',
     '/templates/:path*',
     '/settings/:path*',
+    '/quiz/:path*',
   ],
 };

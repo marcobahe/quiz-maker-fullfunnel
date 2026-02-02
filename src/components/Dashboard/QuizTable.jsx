@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreVertical, Edit2, Trash2, Copy, BarChart2, ExternalLink } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2, Copy, BarChart2, ExternalLink, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -73,7 +73,15 @@ export default function QuizTable({ quizzes, onRefresh }) {
                       {quiz.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-800 font-medium">{quiz.leads}</td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => router.push(`/quiz/${quiz.id}/leads`)}
+                      className="text-gray-800 font-medium hover:text-accent transition-colors"
+                      title="Ver leads"
+                    >
+                      {quiz.leads}
+                    </button>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -111,6 +119,13 @@ export default function QuizTable({ quizzes, onRefresh }) {
                             Ver Quiz
                           </button>
                         )}
+                        <button 
+                          onClick={() => { router.push(`/quiz/${quiz.id}/leads`); setOpenMenu(null); }}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          <Users size={16} />
+                          Ver Leads
+                        </button>
                         <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                           <BarChart2 size={16} />
                           Analytics
