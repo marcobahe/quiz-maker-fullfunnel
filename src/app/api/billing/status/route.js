@@ -5,6 +5,8 @@ import { getUsageStats } from '@/lib/planLimits';
 import { getPlan } from '@/lib/plans';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
