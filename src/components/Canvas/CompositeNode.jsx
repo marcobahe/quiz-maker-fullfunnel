@@ -17,6 +17,8 @@ import {
   UserPlus,
   FileText,
   Info,
+  Disc,
+  Gift,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
@@ -34,6 +36,8 @@ const ICONS = {
   'question-icons': LayoutGrid,
   'lead-form': UserPlus,
   script: FileText,
+  'spin-wheel': Disc,
+  'scratch-card': Gift,
 };
 
 const COLORS = {
@@ -47,6 +51,8 @@ const COLORS = {
   'question-icons': { bg: 'bg-accent/10', text: 'text-accent' },
   'lead-form': { bg: 'bg-blue-100', text: 'text-blue-600' },
   script: { bg: 'bg-teal-100', text: 'text-teal-600' },
+  'spin-wheel': { bg: 'bg-orange-100', text: 'text-orange-600' },
+  'scratch-card': { bg: 'bg-orange-100', text: 'text-orange-600' },
 };
 
 const ELEMENT_TYPES = [
@@ -60,6 +66,8 @@ const ELEMENT_TYPES = [
   { type: 'question-icons', label: 'Escolha Visual' },
   { type: 'lead-form', label: 'Formulário Lead' },
   { type: 'script', label: 'Script' },
+  { type: 'spin-wheel', label: 'Roleta' },
+  { type: 'scratch-card', label: 'Raspadinha' },
 ];
 
 // ── Factory ─────────────────────────────────────────────────────
@@ -117,6 +125,32 @@ export function createDefaultElement(type) {
       return { id, type: 'lead-form', title: 'Capture seus dados', fields: ['name', 'email', 'phone'] };
     case 'script':
       return { id, type: 'script', content: '// Seu script aqui' };
+    case 'spin-wheel':
+      return {
+        id,
+        type: 'spin-wheel',
+        title: 'Gire a roleta e descubra seu prêmio!',
+        buttonText: 'GIRAR!',
+        segments: [
+          { text: '10% OFF', color: '#7c3aed', probability: 30 },
+          { text: '20% OFF', color: '#ec4899', probability: 20 },
+          { text: '30% OFF', color: '#f59e0b', probability: 10 },
+          { text: 'Frete Grátis', color: '#10b981', probability: 25 },
+          { text: 'Tente novamente', color: '#6b7280', probability: 15 },
+        ],
+        score: 0,
+      };
+    case 'scratch-card':
+      return {
+        id,
+        type: 'scratch-card',
+        title: 'Raspe e descubra!',
+        instruction: 'Passe o dedo para revelar seu prêmio',
+        revealText: '🎉 20% de desconto!',
+        coverColor: '#7c3aed',
+        coverPattern: 'dots',
+        score: 0,
+      };
     default:
       return { id, type, content: '' };
   }
@@ -501,6 +535,91 @@ function ScriptElement({ element, nodeId }) {
   );
 }
 
+function SpinWheelPreview({ element }) {
+  const segments = element.segments || [];
+  const total = segments.reduce((s, seg) => s + (seg.probability || 0), 0);
+  return (
+    <div className="p-2">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
+          <Disc size={12} className="text-orange-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Roleta</span>
+      </div>
+      <p className="text-gray-800 font-medium text-sm mb-2">{element.title || 'Gire a roleta!'}</p>
+      <div className="flex items-center justify-center mb-2">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          {segments.map((seg, i) => {
+            const startAngle = segments.slice(0, i).reduce((a, s) => a + ((s.probability || 0) / (total || 1)) * 360, 0);
+            const sweepAngle = ((seg.probability || 0) / (total || 1)) * 360;
+            const startRad = (startAngle - 90) * (Math.PI / 180);
+            const endRad = (startAngle + sweepAngle - 90) * (Math.PI / 180);
+            const largeArc = sweepAngle > 180 ? 1 : 0;
+            const x1 = 40 + 35 * Math.cos(startRad);
+            const y1 = 40 + 35 * Math.sin(startRad);
+            const x2 = 40 + 35 * Math.cos(endRad);
+            const y2 = 40 + 35 * Math.sin(endRad);
+            return (
+              <path
+                key={i}
+                d={`M40,40 L${x1},${y1} A35,35 0 ${largeArc},1 ${x2},${y2} Z`}
+                fill={seg.color || '#ccc'}
+                stroke="white"
+                strokeWidth="1"
+              />
+            );
+          })}
+          <circle cx="40" cy="40" r="6" fill="white" stroke="#e5e7eb" strokeWidth="1" />
+        </svg>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {segments.map((seg, i) => (
+          <span key={i} className="inline-flex items-center gap-1 text-[9px] text-gray-500">
+            <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: seg.color }} />
+            {seg.text}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScratchCardPreview({ element }) {
+  return (
+    <div className="p-2">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
+          <Gift size={12} className="text-orange-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Raspadinha</span>
+      </div>
+      <p className="text-gray-800 font-medium text-sm mb-2">{element.title || 'Raspe e descubra!'}</p>
+      <div
+        className="rounded-lg h-16 flex items-center justify-center relative overflow-hidden"
+        style={{ backgroundColor: element.coverColor || '#7c3aed' }}
+      >
+        {element.coverPattern === 'dots' && (
+          <div className="absolute inset-0 opacity-20">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-2 h-2 rounded-full bg-white"
+                style={{ left: `${(i * 17) % 90}%`, top: `${(i * 23) % 80}%` }}
+              />
+            ))}
+          </div>
+        )}
+        {element.coverPattern === 'stars' && (
+          <div className="absolute inset-0 opacity-20 text-white text-xs flex flex-wrap justify-center items-center gap-2">
+            {'⭐✨⭐✨⭐✨'.split('').map((s, i) => <span key={i}>{s}</span>)}
+          </div>
+        )}
+        <span className="text-white font-bold text-sm z-10">Raspe aqui ✨</span>
+      </div>
+    </div>
+  );
+}
+
 function ElementRenderer({ element, nodeId }) {
   switch (element.type) {
     case 'text':
@@ -519,6 +638,10 @@ function ElementRenderer({ element, nodeId }) {
       return <LeadFormElement element={element} nodeId={nodeId} />;
     case 'script':
       return <ScriptElement element={element} nodeId={nodeId} />;
+    case 'spin-wheel':
+      return <SpinWheelPreview element={element} />;
+    case 'scratch-card':
+      return <ScratchCardPreview element={element} />;
     default:
       return <div className="p-2 text-gray-400 text-xs">Elemento: {element.type}</div>;
   }

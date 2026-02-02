@@ -12,6 +12,8 @@ import {
   UserPlus,
   Trophy,
   Grid2X2,
+  Disc,
+  Gift,
 } from 'lucide-react';
 
 const elements = [
@@ -43,6 +45,13 @@ const elements = [
     category: 'Captura',
     items: [
       { type: 'lead-form', icon: UserPlus, label: 'Formulário Lead' },
+    ]
+  },
+  {
+    category: 'Gamificação',
+    items: [
+      { type: 'spin-wheel', icon: Disc, label: 'Roleta' },
+      { type: 'scratch-card', icon: Gift, label: 'Raspadinha' },
     ]
   },
   {

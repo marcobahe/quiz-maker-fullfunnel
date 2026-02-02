@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   X, Plus, Trash2, GripVertical, ChevronDown, ChevronRight,
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
-  Type, FileText, UserPlus, PanelRightClose,
+  Type, FileText, UserPlus, PanelRightClose, Disc, Gift,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { createDefaultElement } from '@/components/Canvas/CompositeNode';
@@ -22,6 +22,8 @@ const ELEMENT_META = {
   'question-icons':  { label: 'Escolha Visual',  icon: LayoutGrid,  color: 'purple' },
   'lead-form':       { label: 'Formulário Lead', icon: UserPlus,    color: 'blue' },
   script:            { label: 'Script',          icon: FileText,    color: 'teal' },
+  'spin-wheel':      { label: 'Roleta',          icon: Disc,        color: 'orange' },
+  'scratch-card':    { label: 'Raspadinha',       icon: Gift,        color: 'orange' },
 };
 
 const ELEMENT_TYPES = [
@@ -35,6 +37,8 @@ const ELEMENT_TYPES = [
   { type: 'question-icons',    label: 'Escolha Visual' },
   { type: 'lead-form',         label: 'Formulário Lead' },
   { type: 'script',            label: 'Script' },
+  { type: 'spin-wheel',        label: 'Roleta' },
+  { type: 'scratch-card',      label: 'Raspadinha' },
 ];
 
 const COLOR_CLASSES = {
@@ -349,6 +353,211 @@ function ScriptElementEditor({ element, nodeId }) {
   );
 }
 
+const SEGMENT_COLORS = [
+  '#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#6b7280',
+  '#ef4444', '#3b82f6', '#8b5cf6', '#14b8a6', '#f97316',
+];
+
+function SpinWheelElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const segments = element.segments || [];
+  const totalProb = segments.reduce((s, seg) => s + (seg.probability || 0), 0);
+
+  const handleSegmentChange = (index, field, value) => {
+    const segs = [...segments];
+    segs[index] = { ...segs[index], [field]: field === 'probability' ? (parseInt(value) || 0) : value };
+    updateNodeElement(nodeId, element.id, { segments: segs });
+  };
+
+  const addSegment = () => {
+    const segs = [
+      ...segments,
+      { text: `Prêmio ${segments.length + 1}`, color: SEGMENT_COLORS[segments.length % SEGMENT_COLORS.length], probability: 10 },
+    ];
+    updateNodeElement(nodeId, element.id, { segments: segs });
+  };
+
+  const removeSegment = (index) => {
+    const segs = segments.filter((_, i) => i !== index);
+    updateNodeElement(nodeId, element.id, { segments: segs });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+        <input
+          type="text"
+          value={element.title || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { title: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Título da roleta..."
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Texto do Botão</label>
+        <input
+          type="text"
+          value={element.buttonText || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { buttonText: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="GIRAR!"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação (por girar)</label>
+        <input
+          type="number"
+          value={element.score || 0}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { score: parseInt(e.target.value) || 0 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+      </div>
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-700">Segmentos</label>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-medium ${totalProb === 100 ? 'text-green-600' : 'text-red-500'}`}>
+              Total: {totalProb}%{totalProb !== 100 && ' ⚠️'}
+            </span>
+            <button
+              onClick={addSegment}
+              className="text-accent hover:text-accent-hover text-sm font-medium flex items-center gap-1"
+            >
+              <Plus size={14} /> Adicionar
+            </button>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {segments.map((seg, index) => (
+            <div key={index} className="bg-gray-50 rounded-lg p-2.5 space-y-2">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-5 h-5 rounded-full shrink-0 border border-gray-200 cursor-pointer"
+                  style={{ backgroundColor: seg.color }}
+                  title="Cor do segmento"
+                />
+                <input
+                  type="text"
+                  value={seg.text}
+                  onChange={(e) => handleSegmentChange(index, 'text', e.target.value)}
+                  className="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
+                  placeholder="Texto do prêmio..."
+                />
+                <button onClick={() => removeSegment(index)} className="text-gray-400 hover:text-red-500 p-0.5">
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={seg.color}
+                  onChange={(e) => handleSegmentChange(index, 'color', e.target.value)}
+                  className="w-8 h-6 rounded border border-gray-200 cursor-pointer"
+                />
+                <div className="flex items-center gap-1 flex-1">
+                  <input
+                    type="number"
+                    value={seg.probability || 0}
+                    onChange={(e) => handleSegmentChange(index, 'probability', e.target.value)}
+                    className="w-16 bg-white border border-gray-200 rounded px-2 py-1 text-sm text-center focus:ring-1 focus:ring-accent focus:border-transparent"
+                    min="0"
+                    max="100"
+                  />
+                  <span className="text-xs text-gray-400">%</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScratchCardElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const patterns = [
+    { value: 'solid', label: 'Sólido' },
+    { value: 'dots', label: 'Pontos' },
+    { value: 'stars', label: 'Estrelas' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+        <input
+          type="text"
+          value={element.title || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { title: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Título..."
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Instrução</label>
+        <input
+          type="text"
+          value={element.instruction || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { instruction: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Passe o dedo para revelar..."
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Texto Revelado</label>
+        <textarea
+          value={element.revealText || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { revealText: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm resize-none"
+          rows={2}
+          placeholder="🎉 Seu prêmio aqui!"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cor da Cobertura</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={element.coverColor || '#7c3aed'}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { coverColor: e.target.value })}
+            className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
+          />
+          <span className="text-sm text-gray-500">{element.coverColor || '#7c3aed'}</span>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Padrão da Cobertura</label>
+        <div className="flex gap-1">
+          {patterns.map((p) => (
+            <button
+              key={p.value}
+              onClick={() => updateNodeElement(nodeId, element.id, { coverPattern: p.value })}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                (element.coverPattern || 'dots') === p.value
+                  ? 'bg-accent text-white border-accent'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-accent/40'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação</label>
+        <input
+          type="number"
+          value={element.score || 0}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { score: parseInt(e.target.value) || 0 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
 function ElementEditor({ element, nodeId }) {
   switch (element.type) {
     case 'text':
@@ -367,6 +576,10 @@ function ElementEditor({ element, nodeId }) {
       return <LeadFormElementEditor element={element} nodeId={nodeId} />;
     case 'script':
       return <ScriptElementEditor element={element} nodeId={nodeId} />;
+    case 'spin-wheel':
+      return <SpinWheelElementEditor element={element} nodeId={nodeId} />;
+    case 'scratch-card':
+      return <ScratchCardElementEditor element={element} nodeId={nodeId} />;
     default:
       return <div className="text-gray-400 text-sm">Editor não disponível para {element.type}</div>;
   }

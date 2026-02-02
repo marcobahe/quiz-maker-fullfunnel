@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useMemo, Suspense, useRef } from 'rea
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon } from 'lucide-react';
 import { replaceVariables } from '@/lib/dynamicVariables';
+import SpinWheel from '@/components/Player/SpinWheel';
+import ScratchCard from '@/components/Player/ScratchCard';
 
 // ── Default theme (matches store defaults) ───────────────────
 const DEFAULT_THEME = {
@@ -609,6 +611,13 @@ function QuizPlayer() {
     );
   }, [currentNode]);
 
+  const compositeHasGamification = useMemo(() => {
+    if (currentNode?.type !== 'composite') return false;
+    return (currentNode.data.elements || []).some(
+      (el) => el.type === 'spin-wheel' || el.type === 'scratch-card',
+    );
+  }, [currentNode]);
+
   // ── Render ──────────────────────────────────────────────────
 
   const embedClass = isEmbed ? 'min-h-0 h-full' : 'min-h-screen';
@@ -1135,10 +1144,48 @@ function QuizPlayer() {
                   );
                 }
 
+                if (el.type === 'spin-wheel') {
+                  return (
+                    <div key={el.id} className="mb-4">
+                      <SpinWheel
+                        element={el}
+                        theme={theme}
+                        btnRadius={btnRadius}
+                        onComplete={(result) => {
+                          // Add score if defined
+                          if (el.score > 0) {
+                            setScore((prev) => prev + el.score);
+                          }
+                          // Auto-advance to next node
+                          advanceToNode(getNextNode(currentNodeId));
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                if (el.type === 'scratch-card') {
+                  return (
+                    <div key={el.id} className="mb-4">
+                      <ScratchCard
+                        element={el}
+                        theme={theme}
+                        btnRadius={btnRadius}
+                        onComplete={(result) => {
+                          if (el.score > 0) {
+                            setScore((prev) => prev + el.score);
+                          }
+                          advanceToNode(getNextNode(currentNodeId));
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
                 return null;
               })}
 
-              {!compositeQuestionEl && !compositeHasLeadForm && (
+              {!compositeQuestionEl && !compositeHasLeadForm && !compositeHasGamification && (
                 <button
                   onClick={() =>
                     advanceToNode(getNextNode(currentNodeId))
