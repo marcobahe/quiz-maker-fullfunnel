@@ -340,18 +340,18 @@ function FullFunnelSection({ quizId }) {
   const [testResult, setTestResult] = useState(null);
 
   // Form state
-  const [apiKey, setApiKey] = useState('');
-  const [locationId, setLocationId] = useState('');
+  const [privateToken, setPrivateToken] = useState('');
   const [pipelineId, setPipelineId] = useState('');
   const [stageId, setStageId] = useState('');
   const [tags, setTags] = useState('quiz-lead');
   const [active, setActive] = useState(true);
-  const [showApiKey, setShowApiKey] = useState(false);
+  const [showToken, setShowToken] = useState(false);
 
   // Custom field mappings
   const [customFieldMappings, setCustomFieldMappings] = useState({});
   const [questions, setQuestions] = useState([]);
   const [showMappings, setShowMappings] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   // Fetch quiz canvasData to extract questions
   const fetchQuizQuestions = useCallback(async () => {
@@ -376,8 +376,8 @@ function FullFunnelSection({ quizId }) {
       if (existing) {
         setGhl(existing);
         const config = JSON.parse(existing.config || '{}');
-        setApiKey(config.apiKey || '');
-        setLocationId(config.locationId || '');
+        // Backward compat: use privateToken, fallback to apiKey
+        setPrivateToken(config.privateToken || config.apiKey || '');
         setPipelineId(config.pipelineId || '');
         setStageId(config.stageId || '');
         setTags((config.tags || ['quiz-lead']).join(', '));
@@ -415,8 +415,7 @@ function FullFunnelSection({ quizId }) {
     setTestResult(null);
 
     const config = {
-      apiKey,
-      locationId,
+      privateToken,
       pipelineId: pipelineId || undefined,
       stageId: stageId || undefined,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
@@ -506,8 +505,7 @@ function FullFunnelSection({ quizId }) {
     try {
       await fetch(`/api/quizzes/${quizId}/integrations/${ghl.id}`, { method: 'DELETE' });
       setGhl(null);
-      setApiKey('');
-      setLocationId('');
+      setPrivateToken('');
       setPipelineId('');
       setStageId('');
       setTags('quiz-lead');
@@ -561,36 +559,96 @@ function FullFunnelSection({ quizId }) {
 
       {/* Form */}
       <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">API Key *</label>
-            <div className="relative">
-              <input
-                type={showApiKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="pit-xxxxxxxx-xxxx-xxxx..."
-                className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+        {/* Setup Instructions Card */}
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => setShowInstructions(!showInstructions)}
+            className="flex items-center gap-2 text-sm font-medium text-orange-700 hover:text-orange-800 transition-colors"
+          >
+            <span className="text-base">📋</span>
+            Como configurar a Integração Privada
+            <svg
+              className={`w-4 h-4 transition-transform ${showInstructions ? 'rotate-180' : ''}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showInstructions && (
+            <div className="mt-3 p-5 bg-orange-50 border border-orange-200 rounded-xl">
+              <ol className="space-y-2.5 text-sm text-gray-700">
+                <li className="flex gap-2">
+                  <span className="font-semibold text-orange-600 shrink-0">1.</span>
+                  <span>No Full Funnel, vá em <strong>Configurações → Integrações → Integrações Privadas</strong></span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-orange-600 shrink-0">2.</span>
+                  <span>Clique em <strong>&quot;Criar Nova Integração&quot;</strong></span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-orange-600 shrink-0">3.</span>
+                  <span>Dê um nome (ex: <strong>&quot;Quiz Maker&quot;</strong>)</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-orange-600 shrink-0">4.</span>
+                  <div>
+                    <span>Marque os escopos necessários:</span>
+                    <ul className="mt-1.5 ml-2 space-y-1">
+                      <li className="flex items-center gap-1.5 text-gray-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
+                        <code className="bg-orange-100 px-1.5 py-0.5 rounded text-xs font-mono">contacts.write</code>
+                      </li>
+                      <li className="flex items-center gap-1.5 text-gray-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
+                        <code className="bg-orange-100 px-1.5 py-0.5 rounded text-xs font-mono">contacts.readonly</code>
+                      </li>
+                      <li className="flex items-center gap-1.5 text-gray-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
+                        <code className="bg-orange-100 px-1.5 py-0.5 rounded text-xs font-mono">locations.readonly</code>
+                      </li>
+                      <li className="flex items-center gap-1.5 text-gray-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
+                        <code className="bg-orange-100 px-1.5 py-0.5 rounded text-xs font-mono">opportunities.write</code>
+                        <span className="text-xs text-gray-400 italic">(opcional, só se usar pipelines)</span>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-orange-600 shrink-0">5.</span>
+                  <span>Clique em <strong>&quot;Criar&quot;</strong> e copie o token gerado</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold text-orange-600 shrink-0">6.</span>
+                  <span>Cole o token abaixo</span>
+                </li>
+              </ol>
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location ID *</label>
+          )}
+        </div>
+
+        {/* Token field - full width */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Token da Integração Privada *</label>
+          <div className="relative">
             <input
-              type="text"
-              value={locationId}
-              onChange={(e) => setLocationId(e.target.value)}
-              placeholder="xxxxxxxxxxxxxxxxxx"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+              type={showToken ? 'text' : 'password'}
+              value={privateToken}
+              onChange={(e) => setPrivateToken(e.target.value)}
+              placeholder="pit-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
             />
+            <button
+              type="button"
+              onClick={() => setShowToken(!showToken)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
+          <p className="text-xs text-gray-400 mt-1">O token já é vinculado à sua sub-account — não é necessário informar Location ID.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -764,7 +822,7 @@ function FullFunnelSection({ quizId }) {
         <div className="flex gap-2">
           <button
             onClick={handleSave}
-            disabled={saving || !apiKey || !locationId}
+            disabled={saving || !privateToken}
             className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg font-medium text-sm hover:bg-accent-hover transition-colors disabled:opacity-50"
           >
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}

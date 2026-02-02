@@ -91,25 +91,32 @@ async function sendWebhook(integration, payload) {
 async function sendToGHL(integration, payload) {
   try {
     const config = JSON.parse(integration.config);
-    const { apiKey, locationId, pipelineId, stageId, tags, customFieldMappings } = config;
+    // Backward compat: use privateToken, fallback to apiKey from old configs
+    const token = config.privateToken || config.apiKey;
+    const { pipelineId, stageId, tags, customFieldMappings } = config;
 
-    if (!apiKey || !locationId) {
-      console.error('[FullFunnel] Missing apiKey or locationId');
+    if (!token) {
+      console.error('[FullFunnel] Missing privateToken (or apiKey fallback)');
       return;
     }
 
-    // 1. Create/update contact
+    const ghlHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'Version': '2021-07-28',
+    };
+
+    // 1. Create/update contact (v2 API — no locationId needed with private token)
     const contactBody = {
       firstName: payload.lead.name?.split(' ')[0] || '',
       lastName: payload.lead.name?.split(' ').slice(1).join(' ') || '',
       email: payload.lead.email || undefined,
       phone: payload.lead.phone || undefined,
-      locationId,
       tags: tags || ['quiz-lead'],
       source: `Quiz: ${payload.quiz.name}`,
     };
 
-    // Build custom fields from mappings + answers
+    // Build custom fields from mappings + answers (v2 uses field_value instead of value)
     if (customFieldMappings && typeof customFieldMappings === 'object') {
       contactBody.customFields = [];
 
@@ -145,18 +152,14 @@ async function sendToGHL(integration, payload) {
         }
 
         if (value) {
-          contactBody.customFields.push({ id: cleanFieldId, value });
+          contactBody.customFields.push({ id: cleanFieldId, field_value: value });
         }
       }
     }
 
     const contactRes = await fetch('https://services.leadconnectorhq.com/contacts/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'Version': '2021-07-28',
-      },
+      headers: ghlHeaders,
       body: JSON.stringify(contactBody),
       signal: AbortSignal.timeout(15000),
     });
@@ -164,11 +167,10 @@ async function sendToGHL(integration, payload) {
     const contactData = await contactRes.json();
     console.log(`[FullFunnel] Contact created/updated: ${contactRes.status}`, contactData?.contact?.id || '');
 
-    // 2. Create opportunity if pipeline configured
+    // 2. Create opportunity if pipeline configured (v2 — no locationId needed)
     if (pipelineId && contactData?.contact?.id) {
       const oppBody = {
         pipelineId,
-        locationId,
         name: `Quiz Lead: ${payload.lead.name || payload.lead.email || 'Unknown'}`,
         stageId: stageId || undefined,
         contactId: contactData.contact.id,
@@ -178,11 +180,7 @@ async function sendToGHL(integration, payload) {
 
       const oppRes = await fetch('https://services.leadconnectorhq.com/opportunities/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'Version': '2021-07-28',
-        },
+        headers: ghlHeaders,
         body: JSON.stringify(oppBody),
         signal: AbortSignal.timeout(15000),
       });
@@ -225,20 +223,24 @@ export async function testWebhook(integration) {
 
 export async function testGHL(integration) {
   const config = JSON.parse(integration.config);
-  const { apiKey, locationId } = config;
+  // Backward compat: use privateToken, fallback to apiKey
+  const token = config.privateToken || config.apiKey;
 
-  if (!apiKey) throw new Error('API Key não configurada');
-  if (!locationId) throw new Error('Location ID não configurado');
+  if (!token) throw new Error('Token da Integração Privada não configurado');
 
-  // Test by fetching location info
-  const res = await fetch(`https://services.leadconnectorhq.com/locations/${locationId}`, {
+  // Test by searching locations (v2 private integration — token is scoped to sub-account)
+  const res = await fetch('https://services.leadconnectorhq.com/locations/search', {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      'Authorization': `Bearer ${token}`,
       'Version': '2021-07-28',
     },
     signal: AbortSignal.timeout(10000),
   });
+
+  if (res.status === 401) {
+    throw new Error('Token inválido ou expirado. Verifique o token da Integração Privada.');
+  }
 
   if (!res.ok) {
     const body = await res.text();
@@ -246,5 +248,7 @@ export async function testGHL(integration) {
   }
 
   const data = await res.json();
-  return { status: res.status, locationName: data?.location?.name || 'OK' };
+  // The locations/search endpoint returns an array of locations
+  const locationName = data?.locations?.[0]?.name || data?.location?.name || 'OK';
+  return { status: res.status, locationName };
 }
