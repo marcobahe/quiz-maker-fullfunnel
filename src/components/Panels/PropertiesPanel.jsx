@@ -235,15 +235,29 @@ export default function PropertiesPanel({ onClose }) {
 
   if (!freshNode) {
     return (
-      <div className="w-80 bg-white border-l border-gray-200 h-full flex items-center justify-center">
-        <div className="text-center text-gray-400 p-6">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-            </svg>
+      <div className="w-80 bg-white border-l border-gray-200 h-full flex flex-col">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-800">Propriedades</h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              title="Fechar painel"
+            >
+              <PanelRightClose size={18} />
+            </button>
+          )}
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center text-gray-400 p-6">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+              </svg>
+            </div>
+            <p className="font-medium">Nenhum elemento selecionado</p>
+            <p className="text-sm mt-1">Clique em um elemento no canvas para editar suas propriedades</p>
           </div>
-          <p className="font-medium">Nenhum elemento selecionado</p>
-          <p className="text-sm mt-1">Clique em um elemento no canvas para editar suas propriedades</p>
         </div>
       </div>
     );

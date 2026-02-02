@@ -15,12 +15,29 @@ import {
 import '@xyflow/react/dist/style.css';
 import {
   Play, CircleDot, CheckSquare, UserPlus, Trophy,
-  Video, Image, Type, FileText, Music, LayoutGrid,
+  Video, Image, Type, FileText, Music, LayoutGrid, Trash2,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
 import CustomBezierEdge from './CustomBezierEdge';
 import CompositeNode, { createDefaultElement } from './CompositeNode';
+
+// ── Delete button for nodes ──────────────────────────────────────
+function NodeDeleteButton({ nodeId }) {
+  const removeNode = useQuizStore((s) => s.removeNode);
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        removeNode(nodeId);
+      }}
+      className="nodrag absolute -top-2 -right-2 z-10 w-6 h-6 bg-red-50 hover:bg-red-500 text-red-400 hover:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm border border-red-200 hover:border-red-500"
+      title="Excluir node"
+    >
+      <Trash2 size={12} />
+    </button>
+  );
+}
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -61,10 +78,11 @@ const QuestionNode = ({ id, data, selected }) => {
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-lg border-2 min-w-[280px] transition-all ${
+      className={`group relative bg-white rounded-xl shadow-lg border-2 min-w-[280px] transition-all ${
         selected ? 'border-accent ring-2 ring-accent/20' : 'border-gray-200'
       }`}
     >
+      <NodeDeleteButton nodeId={id} />
       <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3" />
 
       <div className="p-4 border-b border-gray-100">
@@ -134,10 +152,11 @@ const LeadFormNode = ({ id, data, selected }) => {
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-lg border-2 min-w-[250px] transition-all ${
+      className={`group relative bg-white rounded-xl shadow-lg border-2 min-w-[250px] transition-all ${
         selected ? 'border-accent ring-2 ring-accent/20' : 'border-gray-200'
       }`}
     >
+      <NodeDeleteButton nodeId={id} />
       <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3" />
 
       <div className="p-4">
@@ -170,10 +189,11 @@ const ResultNode = ({ id, data, selected }) => {
 
   return (
     <div
-      className={`bg-gradient-to-br from-accent to-purple-700 text-white rounded-xl shadow-lg border-2 border-accent min-w-[220px] transition-all ${
+      className={`group relative bg-gradient-to-br from-accent to-purple-700 text-white rounded-xl shadow-lg border-2 border-accent min-w-[220px] transition-all ${
         selected ? 'ring-2 ring-accent/40' : ''
       }`}
     >
+      <NodeDeleteButton nodeId={id} />
       <Handle type="target" position={Position.Top} className="!bg-white !w-3 !h-3" />
 
       <div className="p-4 text-center">
@@ -192,16 +212,17 @@ const ResultNode = ({ id, data, selected }) => {
   );
 };
 
-const MediaNode = ({ data, selected }) => {
+const MediaNode = ({ id, data, selected }) => {
   const icons = { video: Video, audio: Music, image: Image, carousel: LayoutGrid };
   const Icon = icons[data.mediaType] || Image;
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-lg border-2 min-w-[200px] transition-all ${
+      className={`group relative bg-white rounded-xl shadow-lg border-2 min-w-[200px] transition-all ${
         selected ? 'border-accent ring-2 ring-accent/20' : 'border-gray-200'
       }`}
     >
+      <NodeDeleteButton nodeId={id} />
       <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3" />
       <div className="p-4 text-center">
         <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2">
@@ -214,15 +235,16 @@ const MediaNode = ({ data, selected }) => {
   );
 };
 
-const ContentNode = ({ data, selected }) => {
+const ContentNode = ({ id, data, selected }) => {
   const Icon = data.contentType === 'script' ? FileText : Type;
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-lg border-2 min-w-[200px] transition-all ${
+      className={`group relative bg-white rounded-xl shadow-lg border-2 min-w-[200px] transition-all ${
         selected ? 'border-accent ring-2 ring-accent/20' : 'border-gray-200'
       }`}
     >
+      <NodeDeleteButton nodeId={id} />
       <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3" />
       <div className="p-4 text-center">
         <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-2">

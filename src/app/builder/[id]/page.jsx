@@ -58,14 +58,105 @@ export default function BuilderPage() {
             typeof quiz.canvasData === 'string'
               ? JSON.parse(quiz.canvasData)
               : quiz.canvasData;
-          if (canvasData.nodes) setNodes(canvasData.nodes);
+          if (canvasData.nodes) {
+            // Migrate legacy nodes to composite format
+            const migratedNodes = canvasData.nodes.map((node) => {
+              // Keep start and result as-is
+              if (node.type === 'start' || node.type === 'result' || node.type === 'composite') {
+                return node;
+              }
+              // Convert single-choice / multiple-choice to composite
+              if (node.type === 'single-choice' || node.type === 'multiple-choice') {
+                const elType = node.type === 'multiple-choice' ? 'question-multiple' : 'question-single';
+                return {
+                  ...node,
+                  type: 'composite',
+                  data: {
+                    label: node.data.question || 'Pergunta',
+                    elements: [{
+                      id: `el-migrated-${node.id}`,
+                      type: elType,
+                      question: node.data.question || 'Nova Pergunta',
+                      options: node.data.options || [],
+                    }],
+                  },
+                };
+              }
+              // Convert lead-form to composite
+              if (node.type === 'lead-form') {
+                return {
+                  ...node,
+                  type: 'composite',
+                  data: {
+                    label: node.data.title || 'Formulário Lead',
+                    elements: [{
+                      id: `el-migrated-${node.id}`,
+                      type: 'lead-form',
+                      title: node.data.title || 'Capture seus dados',
+                      fields: ['name', 'email', 'phone'],
+                    }],
+                  },
+                };
+              }
+              // Convert media nodes to composite
+              if (node.type === 'media') {
+                return {
+                  ...node,
+                  type: 'composite',
+                  data: {
+                    label: node.data.mediaType || 'Mídia',
+                    elements: [{
+                      id: `el-migrated-${node.id}`,
+                      type: node.data.mediaType || 'image',
+                      title: node.data.mediaType || 'Mídia',
+                      url: '',
+                    }],
+                  },
+                };
+              }
+              // Convert content nodes to composite
+              if (node.type === 'content') {
+                return {
+                  ...node,
+                  type: 'composite',
+                  data: {
+                    label: node.data.contentType || 'Conteúdo',
+                    elements: [{
+                      id: `el-migrated-${node.id}`,
+                      type: node.data.contentType === 'script' ? 'script' : 'text',
+                      content: '',
+                    }],
+                  },
+                };
+              }
+              return node;
+            });
+            setNodes(migratedNodes);
+          }
           if (canvasData.edges) {
-            // Migrate old edge types to custom-bezier
-            const migratedEdges = canvasData.edges.map((edge) => ({
-              ...edge,
-              type: 'custom-bezier',
-              style: { stroke: '#7c3aed', strokeWidth: 2 },
-            }));
+            // Migrate old edge types to custom-bezier + fix handles for composite nodes
+            const migratedEdges = canvasData.edges.map((edge) => {
+              const newEdge = {
+                ...edge,
+                type: 'custom-bezier',
+                style: { stroke: '#7c3aed', strokeWidth: 2 },
+              };
+              // Migrate option handles: option-0 → el-migrated-{nodeId}-option-0
+              if (edge.sourceHandle && edge.sourceHandle.startsWith('option-')) {
+                const sourceNode = canvasData.nodes.find(n => n.id === edge.source);
+                if (sourceNode && sourceNode.type !== 'composite') {
+                  newEdge.sourceHandle = `el-migrated-${edge.source}-${edge.sourceHandle}`;
+                }
+              }
+              // Migrate general handle
+              if (edge.sourceHandle === 'general') {
+                const sourceNode = canvasData.nodes.find(n => n.id === edge.source);
+                if (sourceNode && sourceNode.type !== 'composite') {
+                  newEdge.sourceHandle = `el-migrated-${edge.source}-general`;
+                }
+              }
+              return newEdge;
+            });
             setEdges(migratedEdges);
           }
         }
