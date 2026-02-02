@@ -1,3 +1,5 @@
+'use client';
+
 export default function PointsBalloon({ points, x, y }) {
   return (
     <div 

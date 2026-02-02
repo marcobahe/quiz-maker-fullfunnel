@@ -11,6 +11,7 @@ const initialNodes = [
 
 const useQuizStore = create((set, get) => ({
   // Quiz metadata
+  quizId: null,
   quizName: 'Meu Novo Quiz',
   quizStatus: 'Rascunho',
   isSaved: true,
@@ -26,19 +27,28 @@ const useQuizStore = create((set, get) => ({
   gamificationEnabled: true,
   pointsToShow: [],
   
-  // Quiz list for dashboard
-  quizzes: [
-    { id: 1, name: 'Quiz de Perfil de Investidor', createdAt: '2024-01-15', status: 'Publicado', leads: 342, conversion: 68 },
-    { id: 2, name: 'Descubra seu Estilo', createdAt: '2024-01-20', status: 'Publicado', leads: 156, conversion: 45 },
-    { id: 3, name: 'Quiz de Produtos', createdAt: '2024-02-01', status: 'Rascunho', leads: 0, conversion: 0 },
-  ],
-  
   // Actions
+  setQuizId: (id) => set({ quizId: id }),
+  
   setQuizName: (name) => set({ quizName: name, isSaved: false }),
   
-  setNodes: (nodes) => set({ nodes, isSaved: false }),
+  setQuizStatus: (status) => set({ quizStatus: status }),
   
-  setEdges: (edges) => set({ edges, isSaved: false }),
+  setNodes: (nodesOrUpdater) => {
+    if (typeof nodesOrUpdater === 'function') {
+      set((state) => ({ nodes: nodesOrUpdater(state.nodes), isSaved: false }));
+    } else {
+      set({ nodes: nodesOrUpdater, isSaved: false });
+    }
+  },
+  
+  setEdges: (edgesOrUpdater) => {
+    if (typeof edgesOrUpdater === 'function') {
+      set((state) => ({ edges: edgesOrUpdater(state.edges), isSaved: false }));
+    } else {
+      set({ edges: edgesOrUpdater, isSaved: false });
+    }
+  },
   
   addNode: (node) => set((state) => ({ 
     nodes: [...state.nodes, node],
@@ -80,6 +90,17 @@ const useQuizStore = create((set, get) => ({
   saveQuiz: () => set({ isSaved: true }),
   
   publishQuiz: () => set({ quizStatus: 'Publicado', isSaved: true }),
+  
+  // Reset store for new quiz
+  resetQuiz: () => set({
+    quizId: null,
+    quizName: 'Meu Novo Quiz',
+    quizStatus: 'Rascunho',
+    isSaved: true,
+    nodes: initialNodes,
+    edges: [],
+    selectedNode: null,
+  }),
 }));
 
 export default useQuizStore;

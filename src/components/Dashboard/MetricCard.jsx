@@ -1,3 +1,5 @@
+'use client';
+
 export default function MetricCard({ icon: Icon, label, value, change, changeType }) {
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">

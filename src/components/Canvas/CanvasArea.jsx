@@ -1,18 +1,20 @@
+'use client';
+
 import { useCallback, useRef, useMemo } from 'react';
 import {
   ReactFlow,
   MiniMap,
   Controls,
   Background,
-  useNodesState,
-  useEdgesState,
   addEdge,
   Handle,
   Position,
+  applyNodeChanges,
+  applyEdgeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Play, CircleDot, CheckSquare, UserPlus, Trophy, Video, Image, Type, FileText, Music, LayoutGrid } from 'lucide-react';
-import useQuizStore from '../../store/quizStore';
+import useQuizStore from '@/store/quizStore';
 
 // Custom Node Components
 const StartNode = ({ data }) => (
@@ -138,7 +140,8 @@ const MediaNode = ({ data, selected }) => {
 };
 
 const ContentNode = ({ data, selected }) => {
-  constIcon = data.contentType === 'script' ? FileText : Type;
+  // BUG FIX: was "constIcon" — now "const Icon"
+  const Icon = data.contentType === 'script' ? FileText : Type;
   
   return (
     <div className={`bg-white rounded-xl shadow-lg border-2 min-w-[200px] transition-all ${
@@ -170,23 +173,39 @@ const nodeTypes = {
 
 export default function CanvasArea() {
   const reactFlowWrapper = useRef(null);
-  const { nodes: storeNodes, edges: storeEdges, setNodes, setEdges, selectNode, addNode } = useQuizStore();
   
-  const [nodes, setLocalNodes, onNodesChange] = useNodesState(storeNodes);
-  const [edges, setLocalEdges, onEdgesChange] = useEdgesState(storeEdges);
+  // Use Zustand as single source of truth
+  const nodes = useQuizStore((s) => s.nodes);
+  const edges = useQuizStore((s) => s.edges);
+  const setNodes = useQuizStore((s) => s.setNodes);
+  const setEdges = useQuizStore((s) => s.setEdges);
+  const selectNode = useQuizStore((s) => s.selectNode);
+
+  // Apply React Flow changes to Zustand store directly
+  const onNodesChange = useCallback(
+    (changes) => {
+      setNodes((nds) => applyNodeChanges(changes, nds));
+    },
+    [setNodes]
+  );
+
+  const onEdgesChange = useCallback(
+    (changes) => {
+      setEdges((eds) => applyEdgeChanges(changes, eds));
+    },
+    [setEdges]
+  );
 
   const onConnect = useCallback(
     (params) => {
-      const newEdges = addEdge({
+      setEdges((eds) => addEdge({
         ...params,
         type: 'smoothstep',
         animated: true,
         style: { stroke: '#7c3aed', strokeWidth: 2 },
-      }, edges);
-      setLocalEdges(newEdges);
-      setEdges(newEdges);
+      }, eds));
     },
-    [edges, setLocalEdges, setEdges]
+    [setEdges]
   );
 
   const onNodeClick = useCallback((event, node) => {
@@ -247,12 +266,10 @@ export default function CanvasArea() {
         data: nodeData,
       };
 
-      const updatedNodes = [...nodes, newNode];
-      setLocalNodes(updatedNodes);
-      setNodes(updatedNodes);
-      addNode(newNode);
+      // BUG FIX: Only add via setNodes (no duplicate addNode call)
+      setNodes((nds) => [...nds, newNode]);
     },
-    [nodes, setLocalNodes, setNodes, addNode]
+    [setNodes]
   );
 
   return (

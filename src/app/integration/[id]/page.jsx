@@ -1,5 +1,10 @@
-import { useParams } from 'react-router-dom';
-import TopBar from '../components/Layout/TopBar';
+'use client';
+
+import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import TopBar from '@/components/Layout/TopBar';
 import { Mail, MessageSquare, Database, Webhook, Check } from 'lucide-react';
 
 const integrations = [
@@ -8,7 +13,7 @@ const integrations = [
     icon: Mail, 
     name: 'Email Marketing', 
     description: 'Mailchimp, ActiveCampaign, ConvertKit',
-    connected: true,
+    connected: false,
     color: 'bg-blue-500'
   },
   { 
@@ -24,7 +29,7 @@ const integrations = [
     icon: MessageSquare, 
     name: 'Comunicação', 
     description: 'WhatsApp, Telegram, Slack',
-    connected: true,
+    connected: false,
     color: 'bg-green-500'
   },
   { 
@@ -37,22 +42,28 @@ const integrations = [
   },
 ];
 
-export default function Integration() {
-  const { id } = useParams();
+export default function IntegrationPage() {
+  const params = useParams();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <TopBar quizId={id} />
+      <TopBar quizId={params.id} />
       
       <div className="flex-1 overflow-auto p-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Integrações</h1>
             <p className="text-gray-500">Conecte seu quiz com suas ferramentas favoritas para automatizar o fluxo de leads.</p>
           </div>
 
-          {/* Integrations Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {integrations.map((integration) => {
               const Icon = integration.icon;
@@ -88,17 +99,19 @@ export default function Integration() {
             })}
           </div>
 
-          {/* Webhook URL */}
           <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
             <h3 className="font-semibold text-gray-800 mb-4">Webhook URL</h3>
             <div className="flex gap-3">
               <input 
                 type="text"
                 readOnly
-                value="https://api.quizmaker.com/webhook/abc123xyz"
+                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/quizzes/${params.id}/webhook`}
                 className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-gray-600 text-sm"
-/>
-              <button className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover transition-colors">
+              />
+              <button 
+                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/api/quizzes/${params.id}/webhook`)}
+                className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover transition-colors"
+              >
                 Copiar
               </button>
             </div>

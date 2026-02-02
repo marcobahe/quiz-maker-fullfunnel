@@ -1,0 +1,72 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String?
+  image     String?
+  quizzes   Quiz[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Quiz {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id])
+  name         String
+  slug         String           @unique
+  description  String?
+  status       String           @default("draft")
+  canvasData   String?
+  settings     String           @default("{}")
+  leads        Lead[]
+  integrations Integration[]
+  analytics    AnalyticsEvent[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model Lead {
+  id             String   @id @default(cuid())
+  quizId         String
+  quiz           Quiz     @relation(fields: [quizId], references: [id])
+  name           String?
+  email          String?
+  phone          String?
+  answers        String?
+  score          Int      @default(0)
+  resultCategory String?
+  metadata       String   @default("{}")
+  createdAt      DateTime @default(now())
+}
+
+model Integration {
+  id        String   @id @default(cuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  type      String
+  config    String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  quizId     String
+  quiz       Quiz     @relation(fields: [quizId], references: [id])
+  event      String
+  questionId String?
+  data       String   @default("{}")
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+}

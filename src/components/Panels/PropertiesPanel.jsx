@@ -1,5 +1,7 @@
+'use client';
+
 import { X, Plus, Trash2, GripVertical } from 'lucide-react';
-import useQuizStore from '../../store/quizStore';
+import useQuizStore from '@/store/quizStore';
 
 export default function PropertiesPanel() {
   const { selectedNode, updateNode, removeNode, gamificationEnabled, toggleGamification } = useQuizStore();
@@ -35,7 +37,7 @@ export default function PropertiesPanel() {
   const handleScoreChange = (index, value) => {
     const newOptions = [...(data.options || [])];
     newOptions[index] = { ...newOptions[index], score: parseInt(value) || 0 };
-    updateNode(selectedNode.id, { options:newOptions });
+    updateNode(selectedNode.id, { options: newOptions });
   };
 
   const addOption = () => {
@@ -49,7 +51,7 @@ export default function PropertiesPanel() {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja excluir este elemento?')) {
+    if (typeof window !== 'undefined' && window.confirm('Tem certeza que deseja excluir este elemento?')) {
       removeNode(selectedNode.id);
     }
   };
