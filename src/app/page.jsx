@@ -11,6 +11,7 @@ import TemplateGallery from '@/components/Templates/TemplateGallery';
 import LandingPage from '@/components/Landing/LandingPage';
 import OnboardingTour from '@/components/Onboarding/OnboardingTour';
 import HelpButton from '@/components/Help/HelpButton';
+import AIWizardModal from '@/components/AIWizard/AIWizardModal';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -38,6 +39,7 @@ function Dashboard({ session }) {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showAIWizard, setShowAIWizard] = useState(false);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('activeWorkspaceId') || null;
@@ -107,7 +109,7 @@ function Dashboard({ session }) {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar onCreateQuiz={handleCreateQuiz} onOpenTemplates={() => setShowTemplates(true)} userName={session?.user?.name || session?.user?.email} activeWorkspaceId={activeWorkspaceId} onWorkspaceChange={handleWorkspaceChange} />
+      <Sidebar onCreateQuiz={handleCreateQuiz} onOpenTemplates={() => setShowTemplates(true)} onOpenAIWizard={() => setShowAIWizard(true)} userName={session?.user?.name || session?.user?.email} activeWorkspaceId={activeWorkspaceId} onWorkspaceChange={handleWorkspaceChange} />
       
       <main className="flex-1 p-8">
         <div className="mb-8">
@@ -140,6 +142,12 @@ function Dashboard({ session }) {
         isOpen={showTemplates}
         onClose={() => setShowTemplates(false)}
         onCreateBlank={handleCreateQuiz}
+      />
+
+      <AIWizardModal
+        isOpen={showAIWizard}
+        onClose={() => setShowAIWizard(false)}
+        activeWorkspaceId={activeWorkspaceId}
       />
 
       <OnboardingTour />

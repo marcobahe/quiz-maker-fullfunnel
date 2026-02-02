@@ -38,7 +38,7 @@ const PLAN_BADGES = {
   business: { label: 'Business', className: 'bg-amber-500/20 text-amber-400' },
 };
 
-export default function Sidebar({ onCreateQuiz, onOpenTemplates, userName, activeWorkspaceId, onWorkspaceChange }) {
+export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard, userName, activeWorkspaceId, onWorkspaceChange }) {
   const pathname = usePathname();
   const [userPlan, setUserPlan] = useState('free');
   const [workspaces, setWorkspaces] = useState([]);
@@ -189,6 +189,15 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, userName, activ
           <Plus size={20} />
           Criar Quiz
         </button>
+        {onOpenAIWizard && (
+          <button 
+            onClick={onOpenAIWizard}
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all font-medium text-sm shadow-lg shadow-purple-500/20"
+          >
+            <Sparkles size={16} />
+            ✨ Criar com IA
+          </button>
+        )}
         {onOpenTemplates && (
           <button 
             onClick={onOpenTemplates}
