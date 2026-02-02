@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle } from 'lucide-react';
 
 export default function QuizPlayerPage() {
@@ -25,6 +25,9 @@ export default function QuizPlayerPage() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
 
+  const searchParams = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
+
   useEffect(() => {
     fetchQuiz();
   }, [params.slug]);
@@ -32,7 +35,8 @@ export default function QuizPlayerPage() {
   const fetchQuiz = async () => {
     try {
       // Try finding by slug via the public endpoint
-      const res = await fetch(`/api/quizzes/${params.slug}/public`);
+      const previewParam = isPreview ? '?preview=true' : '';
+      const res = await fetch(`/api/quizzes/${params.slug}/public${previewParam}`);
       if (!res.ok) {
         setError('Quiz não encontrado');
         setLoading(false);

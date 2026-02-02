@@ -4,16 +4,24 @@ import prisma from '@/lib/prisma';
 export async function GET(request, { params }) {
   try {
     const { id: slug } = await params;
+    const { searchParams } = new URL(request.url);
+    const isPreview = searchParams.get('preview') === 'true';
 
     // Try to find by slug first, then by id
+    const whereClause = {
+      OR: [
+        { slug },
+        { id: slug },
+      ],
+    };
+
+    // Only require published status if not in preview mode
+    if (!isPreview) {
+      whereClause.status = 'published';
+    }
+
     let quiz = await prisma.quiz.findFirst({
-      where: {
-        OR: [
-          { slug },
-          { id: slug },
-        ],
-        status: 'published',
-      },
+      where: whereClause,
       select: {
         id: true,
         name: true,
@@ -21,6 +29,7 @@ export async function GET(request, { params }) {
         description: true,
         canvasData: true,
         settings: true,
+        status: true,
       },
     });
 

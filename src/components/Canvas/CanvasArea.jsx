@@ -200,7 +200,7 @@ export default function CanvasArea() {
     (params) => {
       setEdges((eds) => addEdge({
         ...params,
-        type: 'smoothstep',
+        type: 'default',
         animated: true,
         style: { stroke: '#7c3aed', strokeWidth: 2 },
       }, eds));
@@ -288,9 +288,11 @@ export default function CanvasArea() {
         fitView
         snapToGrid
         snapGrid={[20, 20]}
+        deleteKeyCode={['Backspace', 'Delete']}
         defaultEdgeOptions={{
-          type: 'smoothstep',
+          type: 'default',
           animated: true,
+          style: { stroke: '#7c3aed', strokeWidth: 2 },
         }}
       >
         <Background color="#e5e7eb" gap={20} size={1} />

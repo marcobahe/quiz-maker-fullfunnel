@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { PanelRightOpen, PanelRightClose } from 'lucide-react';
 import TopBar from '@/components/Layout/TopBar';
 import ElementsPanel from '@/components/Panels/ElementsPanel';
 import PropertiesPanel from '@/components/Panels/PropertiesPanel';
@@ -15,8 +16,9 @@ export default function BuilderPage() {
   const params = useParams();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { pointsToShow, setQuizId, setQuizName, setNodes, setEdges, setQuizStatus } = useQuizStore();
+  const { pointsToShow, selectedNode, setQuizId, setQuizName, setNodes, setEdges, setQuizStatus } = useQuizStore();
   const [loading, setLoading] = useState(true);
+  const [showProperties, setShowProperties] = useState(true);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -29,6 +31,13 @@ export default function BuilderPage() {
       loadQuiz(params.id);
     }
   }, [status, params.id]);
+
+  // Auto-open properties panel when a node is selected
+  useEffect(() => {
+    if (selectedNode) {
+      setShowProperties(true);
+    }
+  }, [selectedNode]);
 
   const loadQuiz = async (id) => {
     try {
@@ -77,9 +86,32 @@ export default function BuilderPage() {
           {pointsToShow.map((p) => (
             <PointsBalloon key={p.id} points={p.points} x={p.x} y={p.y} />
           ))}
+          
+          {/* Toggle properties panel button */}
+          {!showProperties && (
+            <button
+              onClick={() => setShowProperties(true)}
+              className="absolute top-4 right-4 z-10 bg-white shadow-lg rounded-lg p-2 hover:bg-gray-50 transition-colors border border-gray-200"
+              title="Abrir propriedades"
+            >
+              <PanelRightOpen size={20} className="text-gray-600" />
+            </button>
+          )}
         </div>
         
-        <PropertiesPanel />
+        {/* Properties panel with close button */}
+        {showProperties && (
+          <div className="relative">
+            <button
+              onClick={() => setShowProperties(false)}
+              className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors"
+              title="Fechar propriedades"
+            >
+              <PanelRightClose size={18} />
+            </button>
+            <PropertiesPanel />
+          </div>
+        )}
       </div>
     </div>
   );

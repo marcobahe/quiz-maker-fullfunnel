@@ -4,9 +4,12 @@ import { X, Plus, Trash2, GripVertical } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 
 export default function PropertiesPanel() {
-  const { selectedNode, updateNode, removeNode, gamificationEnabled, toggleGamification } = useQuizStore();
+  const { selectedNode, nodes, updateNode, removeNode, gamificationEnabled, toggleGamification } = useQuizStore();
 
-  if (!selectedNode) {
+  // Read fresh data from the store (selectedNode is a stale snapshot from click)
+  const freshNode = selectedNode ? nodes.find(n => n.id === selectedNode.id) : null;
+
+  if (!freshNode) {
     return (
       <div className="w-80 bg-white border-l border-gray-200 h-full flex items-center justify-center">
         <div className="text-center text-gray-400 p-6">
@@ -22,37 +25,39 @@ export default function PropertiesPanel() {
     );
   }
 
-  const { data, type } = selectedNode;
+  const { data, type } = freshNode;
+
+  const nodeId = freshNode.id;
 
   const handleQuestionChange = (value) => {
-    updateNode(selectedNode.id, { question: value });
+    updateNode(nodeId, { question: value });
   };
 
   const handleOptionChange = (index, value) => {
     const newOptions = [...(data.options || [])];
     newOptions[index] = { ...newOptions[index], text: value };
-    updateNode(selectedNode.id, { options: newOptions });
+    updateNode(nodeId, { options: newOptions });
   };
 
   const handleScoreChange = (index, value) => {
     const newOptions = [...(data.options || [])];
     newOptions[index] = { ...newOptions[index], score: parseInt(value) || 0 };
-    updateNode(selectedNode.id, { options: newOptions });
+    updateNode(nodeId, { options: newOptions });
   };
 
   const addOption = () => {
     const newOptions = [...(data.options || []), { text: `Opção ${(data.options?.length || 0) + 1}`, score: 0 }];
-    updateNode(selectedNode.id, { options: newOptions });
+    updateNode(nodeId, { options: newOptions });
   };
 
   const removeOption = (index) => {
     const newOptions = (data.options || []).filter((_, i) => i !== index);
-    updateNode(selectedNode.id, { options: newOptions });
+    updateNode(nodeId, { options: newOptions });
   };
 
   const handleDelete = () => {
     if (typeof window !== 'undefined' && window.confirm('Tem certeza que deseja excluir este elemento?')) {
-      removeNode(selectedNode.id);
+      removeNode(nodeId);
     }
   };
 
@@ -171,7 +176,7 @@ export default function PropertiesPanel() {
             <input
               type="text"
               value={data.title || 'Capture seus dados'}
-              onChange={(e) => updateNode(selectedNode.id, { title: e.target.value })}
+              onChange={(e) => updateNode(nodeId, { title: e.target.value })}
               className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </div>
@@ -186,7 +191,7 @@ export default function PropertiesPanel() {
             <input
               type="text"
               value={data.title || 'Seu Resultado'}
-              onChange={(e) => updateNode(selectedNode.id, { title: e.target.value })}
+              onChange={(e) => updateNode(nodeId, { title: e.target.value })}
               className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </div>

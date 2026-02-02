@@ -72,7 +72,7 @@ export default function TopBar({ quizId }) {
 
   const handlePreview = () => {
     if (quizId) {
-      window.open(`/q/preview-${quizId}`, '_blank');
+      window.open(`/q/${quizId}?preview=true`, '_blank');
     }
   };
 
