@@ -95,6 +95,95 @@ function MediaElementEditor({ element, nodeId }) {
   );
 }
 
+function CarouselElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const slides = element.slides || [];
+
+  const addSlide = () => {
+    const newSlides = [...slides, { url: '', caption: '' }];
+    updateNodeElement(nodeId, element.id, { slides: newSlides });
+  };
+  const updateSlide = (index, field, value) => {
+    const newSlides = [...slides];
+    newSlides[index] = { ...newSlides[index], [field]: value };
+    updateNodeElement(nodeId, element.id, { slides: newSlides });
+  };
+  const removeSlide = (index) => {
+    const newSlides = slides.filter((_, i) => i !== index);
+    updateNodeElement(nodeId, element.id, { slides: newSlides });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+        <input
+          type="text"
+          value={element.title || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { title: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Título do carrossel..."
+        />
+      </div>
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-700">
+            Imagens ({slides.length})
+          </label>
+          <button
+            onClick={addSlide}
+            className="text-accent hover:text-accent-hover text-sm font-medium flex items-center gap-1"
+          >
+            <Plus size={16} /> Adicionar
+          </button>
+        </div>
+        <div className="space-y-2">
+          {slides.map((slide, index) => (
+            <div key={index} className="bg-gray-50 rounded-lg p-2.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-500">Slide {index + 1}</span>
+                <button
+                  onClick={() => removeSlide(index)}
+                  className="text-gray-400 hover:text-red-500 p-0.5"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <input
+                type="text"
+                value={slide.url || ''}
+                onChange={(e) => updateSlide(index, 'url', e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
+                placeholder="URL da imagem..."
+              />
+              <input
+                type="text"
+                value={slide.caption || ''}
+                onChange={(e) => updateSlide(index, 'caption', e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
+                placeholder="Legenda (opcional)..."
+              />
+              {slide.url && (
+                <img
+                  src={slide.url}
+                  alt={slide.caption || `Slide ${index + 1}`}
+                  className="w-full h-20 object-cover rounded border border-gray-200"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              )}
+            </div>
+          ))}
+          {slides.length === 0 && (
+            <div className="text-center py-4 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+              Nenhuma imagem adicionada
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function QuestionElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
 
@@ -565,8 +654,9 @@ function ElementEditor({ element, nodeId }) {
     case 'video':
     case 'audio':
     case 'image':
-    case 'carousel':
       return <MediaElementEditor element={element} nodeId={nodeId} />;
+    case 'carousel':
+      return <CarouselElementEditor element={element} nodeId={nodeId} />;
     case 'question-single':
     case 'question-multiple':
       return <QuestionElementEditor element={element} nodeId={nodeId} />;

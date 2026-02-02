@@ -84,7 +84,7 @@ export function createDefaultElement(type) {
     case 'image':
       return { id, type: 'image', url: '', title: 'Imagem' };
     case 'carousel':
-      return { id, type: 'carousel', items: [], title: 'Carrossel' };
+      return { id, type: 'carousel', slides: [], title: 'Carrossel' };
     case 'single-choice':
     case 'question-single':
       return {
@@ -627,8 +627,27 @@ function ElementRenderer({ element, nodeId }) {
     case 'video':
     case 'audio':
     case 'image':
-    case 'carousel':
       return <MediaElement element={element} nodeId={nodeId} />;
+    case 'carousel':
+      return (
+        <div className="px-3 py-2 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            {(element.slides || []).length > 0 ? (
+              (element.slides || []).slice(0, 4).map((_, i) => (
+                <div key={i} className="w-6 h-6 bg-orange-100 rounded border border-orange-200 flex items-center justify-center">
+                  <LayoutGrid size={10} className="text-orange-400" />
+                </div>
+              ))
+            ) : (
+              <span className="text-xs text-gray-400">Sem imagens</span>
+            )}
+            {(element.slides || []).length > 4 && (
+              <span className="text-xs text-gray-400">+{element.slides.length - 4}</span>
+            )}
+          </div>
+          <span className="text-xs text-gray-500">{(element.slides || []).length} slides</span>
+        </div>
+      );
     case 'question-single':
     case 'question-multiple':
       return <QuestionElement element={element} nodeId={nodeId} />;
