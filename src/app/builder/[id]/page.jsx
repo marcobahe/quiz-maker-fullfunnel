@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -28,6 +28,43 @@ export default function BuilderPage() {
   const setQuizStatus = useQuizStore((s) => s.setQuizStatus);
 
   const [loading, setLoading] = useState(true);
+  const autoSaveTimer = useRef(null);
+  const isFirstLoad = useRef(true);
+
+  // ── Auto-save (debounced 2s after any change) ─────────────────
+  const nodes = useQuizStore((s) => s.nodes);
+  const edges = useQuizStore((s) => s.edges);
+  const isSaved = useQuizStore((s) => s.isSaved);
+  const quizName = useQuizStore((s) => s.quizName);
+
+  const autoSave = useCallback(async () => {
+    if (!params.id || isFirstLoad.current) return;
+    try {
+      const { nodes: n, edges: e, quizName: name } = useQuizStore.getState();
+      const res = await fetch(`/api/quizzes/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          canvasData: JSON.stringify({ nodes: n, edges: e }),
+        }),
+      });
+      if (res.ok) {
+        useQuizStore.getState().saveQuiz();
+      }
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    if (isFirstLoad.current || loading || isSaved) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(autoSave, 2000);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [nodes, edges, quizName, isSaved, loading, autoSave]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -167,6 +204,8 @@ export default function BuilderPage() {
       console.error('Failed to load quiz:', err);
     } finally {
       setLoading(false);
+      // Allow auto-save after initial load completes
+      setTimeout(() => { isFirstLoad.current = false; }, 500);
     }
   };
 
