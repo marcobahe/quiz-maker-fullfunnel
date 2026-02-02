@@ -6,8 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import TopBar from '@/components/Layout/TopBar';
 import ScoreRangesEditor from '@/components/ScoreRanges/ScoreRangesEditor';
-import { AlertCircle, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import ThemeEditor from '@/components/Settings/ThemeEditor';
+import { AlertCircle, CheckCircle, AlertTriangle, Info, Palette } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
+import { defaultQuizSettings } from '@/store/quizStore';
 
 const getDiagnosticItems = (nodes, edges) => {
   const items = [];
@@ -67,8 +69,9 @@ export default function DiagnosticPage() {
   const params = useParams();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { nodes, edges, scoreRanges, isSaved } = useQuizStore();
+  const { nodes, edges, scoreRanges, quizSettings, isSaved } = useQuizStore();
   const setScoreRanges = useQuizStore((s) => s.setScoreRanges);
+  const setQuizSettings = useQuizStore((s) => s.setQuizSettings);
   const setQuizId = useQuizStore((s) => s.setQuizId);
   const setQuizName = useQuizStore((s) => s.setQuizName);
   const setNodes = useQuizStore((s) => s.setNodes);
@@ -107,6 +110,22 @@ export default function DiagnosticPage() {
           useQuizStore.setState({ scoreRanges: ranges });
         }
 
+        // Load settings
+        if (quiz.settings) {
+          try {
+            const settings = typeof quiz.settings === 'string'
+              ? JSON.parse(quiz.settings)
+              : quiz.settings;
+            if (settings && typeof settings === 'object' && Object.keys(settings).length > 0) {
+              const merged = {
+                theme: { ...defaultQuizSettings.theme, ...(settings.theme || {}) },
+                branding: { ...defaultQuizSettings.branding, ...(settings.branding || {}) },
+              };
+              useQuizStore.setState({ quizSettings: merged });
+            }
+          } catch (_e) { /* ignore parse errors */ }
+        }
+
         if (quiz.canvasData) {
           const canvasData = typeof quiz.canvasData === 'string'
             ? JSON.parse(quiz.canvasData)
@@ -124,13 +143,13 @@ export default function DiagnosticPage() {
     }
   };
 
-  // Auto-save debounced when scoreRanges change
+  // Auto-save debounced when scoreRanges or quizSettings change
   useEffect(() => {
     if (isFirstLoad.current || !params.id || isSaved) return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(async () => {
       try {
-        const { nodes: n, edges: e, quizName: name, scoreRanges: sr } = useQuizStore.getState();
+        const { nodes: n, edges: e, quizName: name, scoreRanges: sr, quizSettings: qs } = useQuizStore.getState();
         const res = await fetch(`/api/quizzes/${params.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -138,6 +157,7 @@ export default function DiagnosticPage() {
             name,
             canvasData: JSON.stringify({ nodes: n, edges: e }),
             scoreRanges: sr,
+            settings: qs,
           }),
         });
         if (res.ok) {
@@ -150,7 +170,7 @@ export default function DiagnosticPage() {
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [scoreRanges, isSaved, params.id]);
+  }, [scoreRanges, quizSettings, isSaved, params.id]);
 
   const diagnosticItems = getDiagnosticItems(nodes, edges);
   const successCount = diagnosticItems.filter(i => i.type === 'success').length;
@@ -195,6 +215,20 @@ export default function DiagnosticPage() {
 
           {/* Score Ranges Editor */}
           <ScoreRangesEditor />
+
+          {/* Theme & Branding Editor */}
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
+                <Palette size={20} className="text-accent" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Aparência</h2>
+                <p className="text-sm text-gray-500">Personalize cores, fontes e branding do seu quiz</p>
+              </div>
+            </div>
+            <ThemeEditor />
+          </div>
 
           <div className="space-y-4 mt-8">
             {diagnosticItems.map((item, index) => {

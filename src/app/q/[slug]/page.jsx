@@ -4,6 +4,55 @@ import { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon } from 'lucide-react';
 
+// ── Default theme (matches store defaults) ───────────────────
+const DEFAULT_THEME = {
+  primaryColor: '#7c3aed',
+  secondaryColor: '#5b21b6',
+  backgroundColor: '#1e1b4b',
+  backgroundType: 'gradient',
+  backgroundGradient: 'from-purple-900 via-purple-800 to-indigo-900',
+  textColor: '#ffffff',
+  buttonStyle: 'rounded',
+  fontFamily: 'Inter',
+};
+
+const DEFAULT_BRANDING = {
+  logoUrl: '',
+  showBranding: true,
+};
+
+// ── Gradient CSS map ─────────────────────────────────────────
+const GRADIENT_CSS = {
+  'from-purple-900 via-purple-800 to-indigo-900': 'linear-gradient(135deg, #581c87, #6b21a8, #312e81)',
+  'from-blue-900 via-blue-800 to-cyan-900': 'linear-gradient(135deg, #1e3a5f, #1e40af, #164e63)',
+  'from-emerald-900 via-green-800 to-teal-900': 'linear-gradient(135deg, #064e3b, #166534, #134e4a)',
+  'from-orange-900 via-red-800 to-pink-900': 'linear-gradient(135deg, #7c2d12, #991b1b, #831843)',
+  'from-gray-900 via-slate-800 to-zinc-900': 'linear-gradient(135deg, #111827, #1e293b, #18181b)',
+  'from-rose-900 via-pink-800 to-fuchsia-900': 'linear-gradient(135deg, #881337, #9d174d, #701a75)',
+};
+
+// ── Google Fonts loader ──────────────────────────────────────
+function GoogleFontLink({ fontFamily }) {
+  if (!fontFamily || fontFamily === 'Inter') return null;
+  const fontName = fontFamily.replace(/ /g, '+');
+  return (
+    // eslint-disable-next-line @next/next/no-page-custom-font
+    <link
+      rel="stylesheet"
+      href={`https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;600;700&display=swap`}
+    />
+  );
+}
+
+// ── Button radius helper ─────────────────────────────────────
+function getButtonRadius(style) {
+  switch (style) {
+    case 'pill': return '9999px';
+    case 'square': return '0.25rem';
+    default: return '0.75rem';
+  }
+}
+
 // Wrap in Suspense because useSearchParams requires it in Next 14
 function QuizPlayer() {
   const params = useParams();
@@ -13,6 +62,10 @@ function QuizPlayer() {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Theme settings
+  const [theme, setTheme] = useState(DEFAULT_THEME);
+  const [branding, setBranding] = useState(DEFAULT_BRANDING);
 
   // Player state
   const [currentNodeId, setCurrentNodeId] = useState(null);
@@ -30,6 +83,17 @@ function QuizPlayer() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [scoreRanges, setScoreRanges] = useState([]);
+
+  // ── Derived styles ──────────────────────────────────────────
+
+  const btnRadius = getButtonRadius(theme.buttonStyle);
+
+  const bgStyle = useMemo(() => {
+    if (theme.backgroundType === 'gradient' && GRADIENT_CSS[theme.backgroundGradient]) {
+      return { background: GRADIENT_CSS[theme.backgroundGradient] };
+    }
+    return { backgroundColor: theme.backgroundColor };
+  }, [theme.backgroundType, theme.backgroundGradient, theme.backgroundColor]);
 
   // ── Fetch quiz ──────────────────────────────────────────────
 
@@ -49,6 +113,19 @@ function QuizPlayer() {
 
       const data = await res.json();
       setQuiz(data);
+
+      // Load settings (theme & branding)
+      if (data.settings) {
+        try {
+          const settings = typeof data.settings === 'string'
+            ? JSON.parse(data.settings)
+            : data.settings;
+          if (settings && typeof settings === 'object') {
+            if (settings.theme) setTheme((prev) => ({ ...prev, ...settings.theme }));
+            if (settings.branding) setBranding((prev) => ({ ...prev, ...settings.branding }));
+          }
+        } catch (_e) { /* ignore */ }
+      }
 
       // Load score ranges
       if (data.scoreRanges) {
@@ -105,7 +182,6 @@ function QuizPlayer() {
       const nodeEdges = edges.filter((e) => e.source === fromNodeId);
 
       if (optionIndex !== null) {
-        // 1. Composite handle: elementId-option-N
         if (elementId) {
           const compEdge = nodeEdges.find(
             (e) => e.sourceHandle === `${elementId}-option-${optionIndex}`,
@@ -113,13 +189,11 @@ function QuizPlayer() {
           if (compEdge) return compEdge.target;
         }
 
-        // 2. Legacy handle: option-N
         const legacyEdge = nodeEdges.find(
           (e) => e.sourceHandle === `option-${optionIndex}`,
         );
         if (legacyEdge) return legacyEdge.target;
 
-        // 3. Catch-all: any handle ending with -option-N
         const anyEdge = nodeEdges.find(
           (e) =>
             e.sourceHandle &&
@@ -128,7 +202,6 @@ function QuizPlayer() {
         if (anyEdge) return anyEdge.target;
       }
 
-      // 4. Default: first available edge
       if (nodeEdges.length > 0) return nodeEdges[0].target;
       return null;
     },
@@ -143,7 +216,6 @@ function QuizPlayer() {
       }
       const nextNode = nodes.find((n) => n.id === nextId);
 
-      // Check if next node (or composite with lead-form element) triggers lead form
       const isLeadForm =
         nextNode?.type === 'lead-form' ||
         (nextNode?.type === 'composite' &&
@@ -165,7 +237,6 @@ function QuizPlayer() {
 
   const currentNode = nodes.find((n) => n.id === currentNodeId);
 
-  // Count ALL question items (legacy + composite elements) for progress
   const totalQuestions = useMemo(() => {
     let count = 0;
     for (const n of nodes) {
@@ -185,7 +256,6 @@ function QuizPlayer() {
       ? Math.round((answeredCount / totalQuestions) * 100)
       : 0;
 
-  // For result category calculation, gather max possible score from all questions
   const maxPossibleScore = useMemo(() => {
     let total = 0;
     for (const n of nodes) {
@@ -209,7 +279,6 @@ function QuizPlayer() {
 
   // ── Handlers ────────────────────────────────────────────────
 
-  /** Show points balloon */
   const showPointsBalloon = (points, event) => {
     if (points <= 0) return;
     const id = Date.now();
@@ -222,7 +291,6 @@ function QuizPlayer() {
     }, 1500);
   };
 
-  /** Legacy question node option click */
   const handleOptionSelect = (optionIndex, event) => {
     if (!currentNode) return;
     setSelectedOption(optionIndex);
@@ -249,7 +317,6 @@ function QuizPlayer() {
     }, 500);
   };
 
-  /** Composite question element option click */
   const handleCompositeOptionSelect = (element, optionIndex, event) => {
     if (!currentNode) return;
     setSelectedOption(`${element.id}-${optionIndex}`);
@@ -319,7 +386,6 @@ function QuizPlayer() {
     setShowLeadForm(false);
     setShowResult(false);
 
-    // Undo last answer(s) from the node we're leaving
     const keysToRemove = Object.keys(answers).filter(
       (k) => k === currentNodeId || k.startsWith(`${currentNodeId}__`),
     );
@@ -337,20 +403,16 @@ function QuizPlayer() {
     }
   };
 
-  /** Find the matching score range for a given score */
   const getMatchingRange = (finalScore) => {
     if (!scoreRanges || scoreRanges.length === 0) return null;
-    // Sort by min ascending and find the first matching range
     const sorted = [...scoreRanges].sort((a, b) => a.min - b.min);
     return sorted.find((r) => finalScore >= r.min && finalScore <= r.max) || null;
   };
 
   const getResultCategory = (finalScore) => {
-    // If score ranges are configured, use them
     const matchedRange = getMatchingRange(finalScore);
     if (matchedRange) return matchedRange.title;
 
-    // Fallback to generic categories
     const percentage =
       maxPossibleScore > 0 ? (finalScore / maxPossibleScore) * 100 : 0;
     if (percentage >= 80) return 'Excelente';
@@ -362,8 +424,6 @@ function QuizPlayer() {
   const getResultEmoji = (cat) =>
     ({ Excelente: '🏆', Bom: '⭐', Regular: '👍', Iniciante: '📚' })[cat] ||
     '🎯';
-
-  // ── Helper: detect what the current composite node contains ─
 
   const compositeQuestionEl = useMemo(() => {
     if (currentNode?.type !== 'composite') return null;
@@ -383,15 +443,15 @@ function QuizPlayer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center">
-        <Loader2 className="animate-spin text-white" size={48} />
+      <div className="min-h-screen flex items-center justify-center" style={bgStyle}>
+        <Loader2 className="animate-spin" size={48} style={{ color: theme.textColor }} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
         <div className="bg-white rounded-2xl p-8 max-w-md text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Oops!</h1>
           <p className="text-gray-500">{error}</p>
@@ -400,7 +460,7 @@ function QuizPlayer() {
     );
   }
 
-  // Determine what to render based on flags & current node type
+  // Determine what to render
   const nodeType = currentNode?.type;
   const isLegacyQuestion =
     nodeType === 'single-choice' || nodeType === 'multiple-choice';
@@ -417,7 +477,13 @@ function QuizPlayer() {
     !!currentNode;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex flex-col">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ ...bgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}
+    >
+      {/* Google Font */}
+      <GoogleFontLink fontFamily={theme.fontFamily} />
+
       {/* Preview badge */}
       {isPreview && (
         <div className="bg-amber-500 text-white text-center text-xs py-1 font-medium">
@@ -428,15 +494,27 @@ function QuizPlayer() {
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-            <span className="text-white text-sm font-bold">Q</span>
-          </div>
-          <span className="text-white/80 text-sm font-medium">
+          {branding.logoUrl ? (
+            <img
+              src={branding.logoUrl}
+              alt="Logo"
+              className="w-8 h-8 rounded-lg object-cover"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          ) : (
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+            >
+              <span className="text-sm font-bold" style={{ color: theme.textColor }}>Q</span>
+            </div>
+          )}
+          <span className="text-sm font-medium" style={{ color: theme.textColor, opacity: 0.8 }}>
             {quiz?.name}
           </span>
         </div>
         {!showResult && (
-          <span className="text-white/60 text-sm">
+          <span className="text-sm" style={{ color: theme.textColor, opacity: 0.6 }}>
             {answeredCount}/{totalQuestions}
           </span>
         )}
@@ -445,10 +523,10 @@ function QuizPlayer() {
       {/* Progress Bar */}
       {!showResult && (
         <div className="px-4 mb-6">
-          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+          <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
             <div
-              className="h-full bg-white rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${progress}%`, backgroundColor: theme.textColor }}
             />
           </div>
         </div>
@@ -461,8 +539,7 @@ function QuizPlayer() {
           {showResult && (() => {
             const matchedRange = getMatchingRange(score);
             return (
-              <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-                {/* Range image (if configured) */}
+              <div className="bg-white rounded-2xl shadow-xl p-8 text-center" style={{ fontFamily: theme.fontFamily }}>
                 {matchedRange?.image ? (
                   <img
                     src={matchedRange.image}
@@ -470,7 +547,10 @@ function QuizPlayer() {
                     className="w-full h-48 object-cover rounded-xl mb-6"
                   />
                 ) : (
-                  <div className="w-20 h-20 bg-gradient-to-br from-accent to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div
+                    className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+                    style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
+                  >
                     <Trophy className="text-white" size={40} />
                   </div>
                 )}
@@ -489,11 +569,14 @@ function QuizPlayer() {
                   </div>
                 )}
 
-                <div className="bg-gradient-to-br from-accent/10 to-purple-100 rounded-xl p-6 mb-6">
+                <div
+                  className="rounded-xl p-6 mb-6"
+                  style={{ backgroundColor: `${theme.primaryColor}10` }}
+                >
                   <p className="text-sm text-gray-500 mb-1">Sua pontuação</p>
-                  <p className="text-4xl font-bold text-accent">{score} pts</p>
+                  <p className="text-4xl font-bold" style={{ color: theme.primaryColor }}>{score} pts</p>
                   {!matchedRange && (
-                    <p className="text-lg font-medium text-purple-700 mt-2">
+                    <p className="text-lg font-medium mt-2" style={{ color: theme.secondaryColor }}>
                       {getResultCategory(score)}
                     </p>
                   )}
@@ -508,7 +591,7 @@ function QuizPlayer() {
                       <p className="text-sm text-gray-500">{answer.question}</p>
                       <p className="font-medium text-gray-800 flex items-center justify-between">
                         {answer.answer}
-                        <span className="text-accent text-sm">
+                        <span className="text-sm" style={{ color: theme.primaryColor }}>
                           +{answer.score}
                         </span>
                       </p>
@@ -516,13 +599,13 @@ function QuizPlayer() {
                   ))}
                 </div>
 
-                {/* CTA button from matched range */}
                 {matchedRange?.ctaText && matchedRange?.ctaUrl ? (
                   <a
                     href={matchedRange.ctaUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-block bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-medium transition-colors mb-3 text-center"
+                    className="w-full inline-block text-white py-3 font-medium transition-opacity hover:opacity-90 mb-3 text-center"
+                    style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
                   >
                     {matchedRange.ctaText}
                   </a>
@@ -530,7 +613,12 @@ function QuizPlayer() {
 
                 <button
                   onClick={() => window.location.reload()}
-                  className={`w-full ${matchedRange?.ctaText ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' : 'bg-accent hover:bg-accent-hover text-white'} py-3 rounded-xl font-medium transition-colors`}
+                  className={`w-full py-3 font-medium transition-opacity hover:opacity-90`}
+                  style={{
+                    backgroundColor: matchedRange?.ctaText ? '#f3f4f6' : theme.primaryColor,
+                    color: matchedRange?.ctaText ? '#374151' : '#ffffff',
+                    borderRadius: btnRadius,
+                  }}
                 >
                   Refazer Quiz
                 </button>
@@ -540,10 +628,10 @@ function QuizPlayer() {
 
           {/* ── Lead Form ─────────────────────────────────── */}
           {showLeadForm && !showResult && (
-            <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="bg-white rounded-2xl shadow-xl p-8" style={{ fontFamily: theme.fontFamily }}>
               {leadSaved ? (
                 <div className="text-center py-8">
-                  <CheckCircle className="text-success mx-auto mb-4" size={48} />
+                  <CheckCircle className="mx-auto mb-4" size={48} style={{ color: '#10b981' }} />
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">
                     Obrigado!
                   </h2>
@@ -576,7 +664,8 @@ function QuizPlayer() {
                         onChange={(e) =>
                           setLeadForm((p) => ({ ...p, name: e.target.value }))
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                        className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:border-transparent outline-none"
+                        style={{ borderRadius: btnRadius, '--tw-ring-color': theme.primaryColor }}
                         placeholder="Seu nome"
                         required
                       />
@@ -591,7 +680,8 @@ function QuizPlayer() {
                         onChange={(e) =>
                           setLeadForm((p) => ({ ...p, email: e.target.value }))
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                        className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:border-transparent outline-none"
+                        style={{ borderRadius: btnRadius }}
                         placeholder="seu@email.com"
                         required
                       />
@@ -606,13 +696,15 @@ function QuizPlayer() {
                         onChange={(e) =>
                           setLeadForm((p) => ({ ...p, phone: e.target.value }))
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                        className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:border-transparent outline-none"
+                        style={{ borderRadius: btnRadius }}
                         placeholder="(11) 99999-9999"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+                      className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+                      style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
                     >
                       Ver Meu Resultado
                       <ChevronRight size={20} />
@@ -625,7 +717,7 @@ function QuizPlayer() {
 
           {/* ── Legacy Question Node ──────────────────────── */}
           {!showLeadForm && !showResult && isLegacyQuestion && (
-            <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="bg-white rounded-2xl shadow-xl p-8" style={{ fontFamily: theme.fontFamily }}>
               {history.length > 0 && (
                 <button
                   onClick={handleGoBack}
@@ -643,20 +735,32 @@ function QuizPlayer() {
                     key={index}
                     onClick={(e) => handleOptionSelect(index, e)}
                     disabled={selectedOption !== null}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                      selectedOption === index
-                        ? 'border-accent bg-accent/10 ring-2 ring-accent/20'
-                        : selectedOption !== null
-                          ? 'border-gray-200 opacity-50'
-                          : 'border-gray-200 hover:border-accent/50 hover:bg-accent/5'
-                    }`}
+                    className="w-full text-left p-4 border-2 transition-all flex items-center gap-3"
+                    style={{
+                      borderRadius: btnRadius,
+                      borderColor:
+                        selectedOption === index
+                          ? theme.primaryColor
+                          : selectedOption !== null
+                            ? '#e5e7eb'
+                            : '#e5e7eb',
+                      backgroundColor:
+                        selectedOption === index ? `${theme.primaryColor}10` : 'transparent',
+                      opacity: selectedOption !== null && selectedOption !== index ? 0.5 : 1,
+                      boxShadow:
+                        selectedOption === index
+                          ? `0 0 0 3px ${theme.primaryColor}20`
+                          : 'none',
+                    }}
                   >
                     <span
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0 ${
-                        selectedOption === index
-                          ? 'bg-accent text-white'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0"
+                      style={{
+                        backgroundColor:
+                          selectedOption === index ? theme.primaryColor : '#f3f4f6',
+                        color:
+                          selectedOption === index ? '#ffffff' : '#6b7280',
+                      }}
                     >
                       {String.fromCharCode(65 + index)}
                     </span>
@@ -671,7 +775,7 @@ function QuizPlayer() {
 
           {/* ── Composite Node ────────────────────────────── */}
           {!showLeadForm && !showResult && isComposite && currentNode && (
-            <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="bg-white rounded-2xl shadow-xl p-8" style={{ fontFamily: theme.fontFamily }}>
               {history.length > 0 && (
                 <button
                   onClick={handleGoBack}
@@ -681,9 +785,7 @@ function QuizPlayer() {
                 </button>
               )}
 
-              {/* Render each element */}
               {(currentNode.data.elements || []).map((el) => {
-                // ─ Text ─
                 if (el.type === 'text') {
                   return (
                     <p
@@ -695,7 +797,6 @@ function QuizPlayer() {
                   );
                 }
 
-                // ─ Media ─
                 if (['video', 'audio', 'image', 'carousel'].includes(el.type)) {
                   const MediaIcon =
                     el.type === 'video'
@@ -735,7 +836,6 @@ function QuizPlayer() {
                   );
                 }
 
-                // ─ Question ─
                 if (el.type.startsWith('question-')) {
                   return (
                     <div key={el.id} className="mb-4">
@@ -752,20 +852,37 @@ function QuizPlayer() {
                                 handleCompositeOptionSelect(el, idx, e)
                               }
                               disabled={selectedOption !== null}
-                              className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                                selectedOption === selKey
-                                  ? 'border-accent bg-accent/10 ring-2 ring-accent/20'
-                                  : selectedOption !== null
-                                    ? 'border-gray-200 opacity-50'
-                                    : 'border-gray-200 hover:border-accent/50 hover:bg-accent/5'
-                              }`}
+                              className="w-full text-left p-4 border-2 transition-all flex items-center gap-3"
+                              style={{
+                                borderRadius: btnRadius,
+                                borderColor:
+                                  selectedOption === selKey
+                                    ? theme.primaryColor
+                                    : '#e5e7eb',
+                                backgroundColor:
+                                  selectedOption === selKey
+                                    ? `${theme.primaryColor}10`
+                                    : 'transparent',
+                                opacity:
+                                  selectedOption !== null && selectedOption !== selKey ? 0.5 : 1,
+                                boxShadow:
+                                  selectedOption === selKey
+                                    ? `0 0 0 3px ${theme.primaryColor}20`
+                                    : 'none',
+                              }}
                             >
                               <span
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0 ${
-                                  selectedOption === selKey
-                                    ? 'bg-accent text-white'
-                                    : 'bg-gray-100 text-gray-600'
-                                }`}
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0"
+                                style={{
+                                  backgroundColor:
+                                    selectedOption === selKey
+                                      ? theme.primaryColor
+                                      : '#f3f4f6',
+                                  color:
+                                    selectedOption === selKey
+                                      ? '#ffffff'
+                                      : '#6b7280',
+                                }}
                               >
                                 {String.fromCharCode(65 + idx)}
                               </span>
@@ -780,18 +897,16 @@ function QuizPlayer() {
                   );
                 }
 
-                // ─ Lead form (rendered via showLeadForm flag) ─
-                // ─ Script (invisible) ─
                 return null;
               })}
 
-              {/* If no question elements, show Continue */}
               {!compositeQuestionEl && !compositeHasLeadForm && (
                 <button
                   onClick={() =>
                     advanceToNode(getNextNode(currentNodeId))
                   }
-                  className="w-full bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors mt-2"
+                  className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-opacity hover:opacity-90 mt-2"
+                  style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
                 >
                   Continuar <ChevronRight size={20} />
                 </button>
@@ -801,7 +916,7 @@ function QuizPlayer() {
 
           {/* ── Content / Media legacy nodes ──────────────── */}
           {!showLeadForm && !showResult && isContentOrMedia && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="bg-white rounded-2xl shadow-xl p-8 text-center" style={{ fontFamily: theme.fontFamily }}>
               <p className="text-gray-800 font-medium mb-4">
                 {currentNode.data?.contentType ||
                   currentNode.data?.mediaType ||
@@ -811,7 +926,8 @@ function QuizPlayer() {
                 onClick={() =>
                   advanceToNode(getNextNode(currentNodeId))
                 }
-                className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-xl font-medium transition-colors"
+                className="text-white px-6 py-3 font-medium transition-opacity hover:opacity-90"
+                style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
               >
                 Continuar
               </button>
@@ -820,9 +936,21 @@ function QuizPlayer() {
 
           {/* ── Start node ────────────────────────────────── */}
           {!showLeadForm && !showResult && isStart && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-white text-2xl font-bold">Q</span>
+            <div className="bg-white rounded-2xl shadow-xl p-8 text-center" style={{ fontFamily: theme.fontFamily }}>
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
+              >
+                {branding.logoUrl ? (
+                  <img
+                    src={branding.logoUrl}
+                    alt="Logo"
+                    className="w-10 h-10 rounded-full object-cover"
+                    onError={(e) => { e.target.outerHTML = '<span class="text-white text-2xl font-bold">Q</span>'; }}
+                  />
+                ) : (
+                  <span className="text-white text-2xl font-bold">Q</span>
+                )}
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 {quiz?.name}
@@ -834,7 +962,8 @@ function QuizPlayer() {
                 onClick={() =>
                   advanceToNode(getNextNode(currentNodeId))
                 }
-                className="bg-accent hover:bg-accent-hover text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 mx-auto transition-colors"
+                className="text-white px-8 py-3 font-medium flex items-center gap-2 mx-auto transition-opacity hover:opacity-90"
+                style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
               >
                 Começar <ChevronRight size={20} />
               </button>
@@ -850,7 +979,10 @@ function QuizPlayer() {
           className="fixed pointer-events-none z-50"
           style={{ left: b.x - 40, top: b.y - 20 }}
         >
-          <div className="animate-balloon bg-accent text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg flex items-center gap-1">
+          <div
+            className="animate-balloon text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg flex items-center gap-1"
+            style={{ backgroundColor: theme.primaryColor }}
+          >
             <span>+{b.points}</span>
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -860,9 +992,13 @@ function QuizPlayer() {
       ))}
 
       {/* Footer */}
-      <div className="p-4 text-center">
-        <span className="text-white/40 text-xs">Feito com Quiz Maker</span>
-      </div>
+      {branding.showBranding && (
+        <div className="p-4 text-center">
+          <span className="text-xs" style={{ color: theme.textColor, opacity: 0.4 }}>
+            Feito com Quiz Maker
+          </span>
+        </div>
+      )}
     </div>
   );
 }

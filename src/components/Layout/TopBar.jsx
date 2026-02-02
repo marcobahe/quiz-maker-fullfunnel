@@ -8,7 +8,7 @@ import { useState, useCallback } from 'react';
 
 export default function TopBar({ quizId }) {
   const pathname = usePathname();
-  const { quizName, setQuizName, isSaved, nodes, edges, quizStatus, scoreRanges } = useQuizStore();
+  const { quizName, setQuizName, isSaved, nodes, edges, quizStatus, scoreRanges, quizSettings } = useQuizStore();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -33,6 +33,7 @@ export default function TopBar({ quizId }) {
           name: quizName,
           canvasData: JSON.stringify({ nodes, edges }),
           scoreRanges,
+          settings: quizSettings,
         }),
       });
       if (res.ok) {
@@ -43,7 +44,7 @@ export default function TopBar({ quizId }) {
     } finally {
       setSaving(false);
     }
-  }, [quizId, quizName, nodes, edges, scoreRanges, saving]);
+  }, [quizId, quizName, nodes, edges, scoreRanges, quizSettings, saving]);
 
   const handlePublish = useCallback(async () => {
     if (!quizId) return;
@@ -60,6 +61,7 @@ export default function TopBar({ quizId }) {
           name: quizName,
           canvasData: JSON.stringify({ nodes, edges }),
           scoreRanges,
+          settings: quizSettings,
         }),
       });
       if (res.ok) {

@@ -11,6 +11,7 @@ import PropertiesPanel from '@/components/Panels/PropertiesPanel';
 import CanvasArea from '@/components/Canvas/CanvasArea';
 import PointsBalloon from '@/components/Gamification/PointsBalloon';
 import useQuizStore from '@/store/quizStore';
+import { defaultQuizSettings } from '@/store/quizStore';
 
 export default function BuilderPage() {
   const params = useParams();
@@ -41,7 +42,7 @@ export default function BuilderPage() {
   const autoSave = useCallback(async () => {
     if (!params.id || isFirstLoad.current) return;
     try {
-      const { nodes: n, edges: e, quizName: name, scoreRanges: sr } = useQuizStore.getState();
+      const { nodes: n, edges: e, quizName: name, scoreRanges: sr, quizSettings: qs } = useQuizStore.getState();
       const res = await fetch(`/api/quizzes/${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -49,6 +50,7 @@ export default function BuilderPage() {
           name,
           canvasData: JSON.stringify({ nodes: n, edges: e }),
           scoreRanges: sr,
+          settings: qs,
         }),
       });
       if (res.ok) {
@@ -98,6 +100,22 @@ export default function BuilderPage() {
             ? JSON.parse(quiz.scoreRanges)
             : quiz.scoreRanges;
           setScoreRanges(ranges);
+        }
+
+        // Load settings
+        if (quiz.settings) {
+          try {
+            const settings = typeof quiz.settings === 'string'
+              ? JSON.parse(quiz.settings)
+              : quiz.settings;
+            if (settings && typeof settings === 'object' && Object.keys(settings).length > 0) {
+              const merged = {
+                theme: { ...defaultQuizSettings.theme, ...(settings.theme || {}) },
+                branding: { ...defaultQuizSettings.branding, ...(settings.branding || {}) },
+              };
+              useQuizStore.setState({ quizSettings: merged });
+            }
+          } catch (_e) { /* ignore parse errors */ }
         }
 
         if (quiz.canvasData) {

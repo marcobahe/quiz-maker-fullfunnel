@@ -9,6 +9,23 @@ const initialNodes = [
   },
 ];
 
+const defaultQuizSettings = {
+  theme: {
+    primaryColor: '#7c3aed',
+    secondaryColor: '#5b21b6',
+    backgroundColor: '#1e1b4b',
+    backgroundType: 'gradient',
+    backgroundGradient: 'from-purple-900 via-purple-800 to-indigo-900',
+    textColor: '#ffffff',
+    buttonStyle: 'rounded',
+    fontFamily: 'Inter',
+  },
+  branding: {
+    logoUrl: '',
+    showBranding: true,
+  },
+};
+
 const useQuizStore = create((set, get) => ({
   // Quiz metadata
   quizId: null,
@@ -25,6 +42,9 @@ const useQuizStore = create((set, get) => ({
 
   // Score Ranges
   scoreRanges: [],
+
+  // Quiz Settings (theme & branding)
+  quizSettings: JSON.parse(JSON.stringify(defaultQuizSettings)),
 
   // Gamification
   gamificationEnabled: true,
@@ -60,6 +80,28 @@ const useQuizStore = create((set, get) => ({
   removeScoreRange: (id) =>
     set((state) => ({
       scoreRanges: state.scoreRanges.filter((r) => r.id !== id),
+      isSaved: false,
+    })),
+
+  // ── Quiz Settings actions ──────────────────────────────────
+
+  setQuizSettings: (settings) => set({ quizSettings: settings, isSaved: false }),
+
+  updateTheme: (themeUpdates) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        theme: { ...state.quizSettings.theme, ...themeUpdates },
+      },
+      isSaved: false,
+    })),
+
+  updateBranding: (brandingUpdates) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        branding: { ...state.quizSettings.branding, ...brandingUpdates },
+      },
       isSaved: false,
     })),
 
@@ -189,7 +231,9 @@ const useQuizStore = create((set, get) => ({
       edges: [],
       selectedNodeId: null,
       scoreRanges: [],
+      quizSettings: JSON.parse(JSON.stringify(defaultQuizSettings)),
     }),
 }));
 
+export { defaultQuizSettings };
 export default useQuizStore;
