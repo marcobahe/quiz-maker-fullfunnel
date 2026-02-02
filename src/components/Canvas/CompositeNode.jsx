@@ -19,6 +19,7 @@ import {
   Info,
   Disc,
   Gift,
+  MessageSquare,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
@@ -34,6 +35,7 @@ const ICONS = {
   'question-single': CircleDot,
   'question-multiple': CheckSquare,
   'question-icons': LayoutGrid,
+  'question-open': MessageSquare,
   'lead-form': UserPlus,
   script: FileText,
   'spin-wheel': Disc,
@@ -49,6 +51,7 @@ const COLORS = {
   'question-single': { bg: 'bg-accent/10', text: 'text-accent' },
   'question-multiple': { bg: 'bg-accent/10', text: 'text-accent' },
   'question-icons': { bg: 'bg-accent/10', text: 'text-accent' },
+  'question-open': { bg: 'bg-accent/10', text: 'text-accent' },
   'lead-form': { bg: 'bg-blue-100', text: 'text-blue-600' },
   script: { bg: 'bg-teal-100', text: 'text-teal-600' },
   'spin-wheel': { bg: 'bg-orange-100', text: 'text-orange-600' },
@@ -64,6 +67,7 @@ const ELEMENT_TYPES = [
   { type: 'question-single', label: 'Escolha Única' },
   { type: 'question-multiple', label: 'Múltipla Escolha' },
   { type: 'question-icons', label: 'Escolha Visual' },
+  { type: 'question-open', label: 'Pergunta Aberta' },
   { type: 'lead-form', label: 'Formulário Lead' },
   { type: 'script', label: 'Script' },
   { type: 'spin-wheel', label: 'Roleta' },
@@ -120,6 +124,17 @@ export function createDefaultElement(type) {
           { text: 'Sim', icon: '✅', image: '', score: 10 },
           { text: 'Não', icon: '❌', image: '', score: 0 },
         ],
+      };
+    case 'question-open':
+      return {
+        id,
+        type: 'question-open',
+        question: 'Pergunta aberta',
+        placeholder: 'Digite sua resposta...',
+        required: true,
+        multiline: true,
+        maxLength: 500,
+        score: 0,
       };
     case 'lead-form':
       return { id, type: 'lead-form', title: 'Capture seus dados', fields: ['name', 'email', 'phone'] };
@@ -489,6 +504,70 @@ function IconQuestionElement({ element, nodeId }) {
   );
 }
 
+function OpenQuestionElement({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const edges = useQuizStore((s) => s.edges);
+
+  const connectedHandles = useMemo(() => {
+    const set = new Set();
+    edges.forEach((e) => {
+      if (e.source === nodeId && e.sourceHandle) set.add(e.sourceHandle);
+    });
+    return set;
+  }, [edges, nodeId]);
+
+  const generalId = `${element.id}-general`;
+  const isGeneralConnected = connectedHandles.has(generalId);
+
+  return (
+    <div className="p-2">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="w-5 h-5 bg-accent/10 rounded flex items-center justify-center">
+          <MessageSquare size={12} className="text-accent" />
+        </div>
+        <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">
+          Pergunta Aberta
+        </span>
+      </div>
+      <InlineEdit
+        value={element.question || ''}
+        onSave={(val) => updateNodeElement(nodeId, element.id, { question: val })}
+        className="text-gray-800 font-medium text-sm mb-2 block"
+        placeholder="Digite a pergunta…"
+      />
+      <div className="bg-gray-100 rounded-lg px-3 py-2 text-xs text-gray-400 border border-gray-200">
+        {element.multiline ? (
+          <div className="space-y-1">
+            <div>{element.placeholder || 'Digite sua resposta...'}</div>
+            <div className="border-t border-gray-200" />
+            <div className="opacity-50">↵</div>
+          </div>
+        ) : (
+          <div>{element.placeholder || 'Digite sua resposta...'}</div>
+        )}
+      </div>
+      {element.required && (
+        <span className="text-[9px] text-red-400 mt-1 inline-block">* Obrigatório</span>
+      )}
+      {/* General handle — always goes to next node */}
+      <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1.5">
+        <span className="text-[10px] text-purple-400 select-none flex-1">Continuar</span>
+        <Handle
+          type="source"
+          position={Position.Right}
+          id={generalId}
+          className={
+            isGeneralConnected
+              ? '!bg-purple-500 !w-3 !h-3 !right-[-5px] !border-2 !border-white'
+              : '!bg-white !border-2 !border-purple-400 !w-3 !h-3 !right-[-5px]'
+          }
+          title="Continuar → próximo bloco"
+        />
+      </div>
+    </div>
+  );
+}
+
 function LeadFormElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   return (
@@ -653,6 +732,8 @@ function ElementRenderer({ element, nodeId }) {
       return <QuestionElement element={element} nodeId={nodeId} />;
     case 'question-icons':
       return <IconQuestionElement element={element} nodeId={nodeId} />;
+    case 'question-open':
+      return <OpenQuestionElement element={element} nodeId={nodeId} />;
     case 'lead-form':
       return <LeadFormElement element={element} nodeId={nodeId} />;
     case 'script':

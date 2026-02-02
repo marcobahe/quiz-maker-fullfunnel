@@ -72,6 +72,81 @@ function setAbCookie(quizId, variantSlug) {
   document.cookie = `qm_ab_${quizId}=${variantSlug};path=/;expires=${expires};SameSite=Lax`;
 }
 
+// ── Open Question Player Component ───────────────────────────
+function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit }) {
+  const [text, setText] = useState('');
+  const maxLen = element.maxLength || 500;
+  const isRequired = element.required !== false;
+  const canSubmit = !isRequired || text.trim().length > 0;
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    onSubmit(text.trim());
+  };
+
+  return (
+    <div className="mb-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        {rv(element.question || 'Pergunta')}
+        {isRequired && <span className="text-red-500 ml-1">*</span>}
+      </h2>
+      {element.multiline ? (
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value.slice(0, maxLen))}
+          placeholder={element.placeholder || 'Digite sua resposta...'}
+          rows={4}
+          className="w-full px-4 py-3 border-2 border-gray-200 focus:border-transparent outline-none resize-none text-gray-800 text-sm transition-all"
+          style={{
+            borderRadius: btnRadius,
+            '--tw-ring-color': theme.primaryColor,
+          }}
+          onFocus={(e) => { e.target.style.borderColor = theme.primaryColor; e.target.style.boxShadow = `0 0 0 3px ${theme.primaryColor}20`; }}
+          onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; }}
+          maxLength={maxLen}
+        />
+      ) : (
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value.slice(0, maxLen))}
+          placeholder={element.placeholder || 'Digite sua resposta...'}
+          className="w-full px-4 py-3 border-2 border-gray-200 focus:border-transparent outline-none text-gray-800 text-sm transition-all"
+          style={{
+            borderRadius: btnRadius,
+            '--tw-ring-color': theme.primaryColor,
+          }}
+          onFocus={(e) => { e.target.style.borderColor = theme.primaryColor; e.target.style.boxShadow = `0 0 0 3px ${theme.primaryColor}20`; }}
+          onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; }}
+          maxLength={maxLen}
+          onKeyDown={(e) => { if (e.key === 'Enter' && canSubmit) handleSubmit(); }}
+        />
+      )}
+      <div className="flex items-center justify-between mt-2">
+        <span className="text-xs text-gray-400">
+          {text.length}/{maxLen}
+        </span>
+        {isRequired && text.trim().length === 0 && (
+          <span className="text-xs text-red-400">Resposta obrigatória</span>
+        )}
+      </div>
+      <button
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-3"
+        style={{
+          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
+          borderRadius: btnRadius,
+          cursor: canSubmit ? 'pointer' : 'not-allowed',
+          opacity: canSubmit ? 1 : 0.7,
+        }}
+      >
+        Continuar <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+}
+
 function QuizPlayer() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -1179,6 +1254,33 @@ function QuizPlayer() {
                         }}
                       />
                     </div>
+                  );
+                }
+
+                if (el.type === 'question-open') {
+                  return (
+                    <OpenQuestionPlayer
+                      key={el.id}
+                      element={el}
+                      nodeId={currentNodeId}
+                      theme={theme}
+                      btnRadius={btnRadius}
+                      rv={rv}
+                      onSubmit={(text) => {
+                        const elScore = el.score || 0;
+                        if (elScore > 0) setScore((prev) => prev + elScore);
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [`${currentNodeId}__${el.id}`]: {
+                            question: el.question,
+                            answer: text,
+                            score: elScore,
+                            elementId: el.id,
+                          },
+                        }));
+                        advanceToNode(getNextNode(currentNodeId, null, el.id));
+                      }}
+                    />
                   );
                 }
 

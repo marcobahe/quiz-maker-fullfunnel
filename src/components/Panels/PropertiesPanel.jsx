@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
   X, Plus, Trash2, GripVertical, ChevronDown, ChevronRight,
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
-  Type, FileText, UserPlus, PanelRightClose, Disc, Gift,
+  Type, FileText, UserPlus, PanelRightClose, Disc, Gift, MessageSquare,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { createDefaultElement } from '@/components/Canvas/CompositeNode';
@@ -20,6 +20,7 @@ const ELEMENT_META = {
   'question-single': { label: 'Escolha Única',   icon: CircleDot,   color: 'purple' },
   'question-multiple':{ label: 'Múltipla Escolha',icon: CheckSquare, color: 'purple' },
   'question-icons':  { label: 'Escolha Visual',  icon: LayoutGrid,  color: 'purple' },
+  'question-open':   { label: 'Pergunta Aberta', icon: MessageSquare, color: 'purple' },
   'lead-form':       { label: 'Formulário Lead', icon: UserPlus,    color: 'blue' },
   script:            { label: 'Script',          icon: FileText,    color: 'teal' },
   'spin-wheel':      { label: 'Roleta',          icon: Disc,        color: 'orange' },
@@ -35,6 +36,7 @@ const ELEMENT_TYPES = [
   { type: 'question-single',   label: 'Escolha Única' },
   { type: 'question-multiple',  label: 'Múltipla Escolha' },
   { type: 'question-icons',    label: 'Escolha Visual' },
+  { type: 'question-open',     label: 'Pergunta Aberta' },
   { type: 'lead-form',         label: 'Formulário Lead' },
   { type: 'script',            label: 'Script' },
   { type: 'spin-wheel',        label: 'Roleta' },
@@ -477,6 +479,90 @@ function IconQuestionElementEditor({ element, nodeId }) {
   );
 }
 
+function OpenQuestionElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pergunta</label>
+        <textarea
+          value={element.question || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { question: e.target.value })}
+          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent resize-none text-sm"
+          rows={2}
+          placeholder="Digite a pergunta..."
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Placeholder</label>
+        <input
+          type="text"
+          value={element.placeholder || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { placeholder: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Texto de exemplo no campo..."
+        />
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-700">Obrigatório</p>
+          <p className="text-xs text-gray-400">Exigir resposta para continuar</p>
+        </div>
+        <button
+          onClick={() => updateNodeElement(nodeId, element.id, { required: !element.required })}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            element.required ? 'bg-accent' : 'bg-gray-200'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              element.required ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-700">Multilinha</p>
+          <p className="text-xs text-gray-400">Textarea vs input simples</p>
+        </div>
+        <button
+          onClick={() => updateNodeElement(nodeId, element.id, { multiline: !element.multiline })}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            element.multiline ? 'bg-accent' : 'bg-gray-200'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              element.multiline ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Máx. caracteres</label>
+        <input
+          type="number"
+          value={element.maxLength || 500}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { maxLength: parseInt(e.target.value) || 500 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          min="1"
+          max="5000"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação (por responder)</label>
+        <input
+          type="number"
+          value={element.score || 0}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { score: parseInt(e.target.value) || 0 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
 function LeadFormElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   return (
@@ -729,6 +815,8 @@ function ElementEditor({ element, nodeId }) {
       return <QuestionElementEditor element={element} nodeId={nodeId} />;
     case 'question-icons':
       return <IconQuestionElementEditor element={element} nodeId={nodeId} />;
+    case 'question-open':
+      return <OpenQuestionElementEditor element={element} nodeId={nodeId} />;
     case 'lead-form':
       return <LeadFormElementEditor element={element} nodeId={nodeId} />;
     case 'script':
