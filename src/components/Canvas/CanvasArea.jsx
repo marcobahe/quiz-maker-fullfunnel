@@ -340,12 +340,17 @@ export default function CanvasArea() {
   );
 
   // ── Drop-on-node snap: create edge when drag lands on a node body ──
+  // Works with @xyflow/react v12 — connectionState uses fromHandle/toHandle
   const onConnectEnd = useCallback(
     (event, connectionState) => {
-      // If React Flow already snapped to a handle, onConnect handled it
-      if (!connectionState || connectionState.endHandle) return;
+      if (!connectionState) return;
 
-      const sourceNodeId = connectionState.startHandle?.nodeId;
+      // v12 uses toHandle/fromHandle; v11 used endHandle/startHandle
+      const hasTarget = connectionState.toHandle || connectionState.endHandle;
+      if (hasTarget) return; // RF already connected via handle snap
+
+      const fromHandle = connectionState.fromHandle || connectionState.startHandle;
+      const sourceNodeId = fromHandle?.nodeId || connectionState.fromNode?.id;
       if (!sourceNodeId) return;
 
       // Get cursor position (mouse or touch)
@@ -372,7 +377,7 @@ export default function CanvasArea() {
         addEdge(
           {
             source: sourceNodeId,
-            sourceHandle: connectionState.startHandle?.id ?? null,
+            sourceHandle: fromHandle?.id ?? null,
             target: targetNodeId,
             type: 'custom-bezier',
             animated: true,
@@ -471,7 +476,7 @@ export default function CanvasArea() {
         onDrop={onDrop}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        connectionRadius={50}
+        connectionRadius={80}
         connectOnClick
         deleteKeyCode={['Delete', 'Backspace']}
         fitView
