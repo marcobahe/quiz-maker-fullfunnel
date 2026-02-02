@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import {
   Plus,
@@ -16,9 +16,11 @@ import {
   CheckSquare,
   UserPlus,
   FileText,
+  Info,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
+import { AVAILABLE_VARIABLES, parseVariableSegments } from '@/lib/dynamicVariables';
 
 // ── Shared lookups ──────────────────────────────────────────────
 const ICONS = {
@@ -105,6 +107,72 @@ export function createDefaultElement(type) {
   }
 }
 
+// ── Variable Text Renderer (shows {{var}} as badges) ────────────
+
+function VariableText({ text }) {
+  const segments = parseVariableSegments(text);
+  const hasVars = segments.some((s) => s.type === 'variable');
+
+  if (!hasVars) return <>{text}</>;
+
+  return (
+    <>
+      {segments.map((seg, i) => {
+        if (seg.type === 'variable') {
+          return (
+            <span
+              key={i}
+              className="inline-flex items-center px-1.5 py-0.5 bg-accent/10 text-accent text-[10px] font-mono rounded-md border border-accent/20 mx-0.5 align-middle"
+              title={`Variável: ${seg.key}`}
+            >
+              {seg.value}
+            </span>
+          );
+        }
+        return <span key={i}>{seg.value}</span>;
+      })}
+    </>
+  );
+}
+
+// ── Variable Hint Tooltip ───────────────────────────────────────
+
+function VariableHint() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mt-1 relative">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
+        className="nodrag text-[10px] text-gray-400 hover:text-accent flex items-center gap-0.5 transition-colors"
+      >
+        <Info size={10} /> Variáveis disponíveis
+      </button>
+      {open && (
+        <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2.5 z-50 min-w-[220px]">
+          <p className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
+            Variáveis disponíveis
+          </p>
+          {AVAILABLE_VARIABLES.map((v) => (
+            <div key={v.key} className="flex items-center gap-1.5 py-0.5">
+              <code className="text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
+                {`{{${v.key}}}`}
+              </code>
+              <span className="text-[10px] text-gray-400">{v.description}</span>
+            </div>
+          ))}
+          <p className="text-[9px] text-gray-300 mt-1.5 border-t border-gray-100 pt-1">
+            Duplo clique no texto para editar e inserir variáveis
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Element Renderers ───────────────────────────────────────────
 
 function TextElement({ element, nodeId }) {
@@ -117,7 +185,9 @@ function TextElement({ element, nodeId }) {
         className="text-gray-700 text-sm"
         multiline
         placeholder="Digite o texto…"
+        renderValue={(val) => <VariableText text={val} />}
       />
+      <VariableHint />
     </div>
   );
 }
@@ -151,8 +221,18 @@ function MediaElement({ element, nodeId }) {
 
 function QuestionElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const edges = useQuizStore((s) => s.edges);
   const isMultiple = element.type === 'question-multiple';
   const Icon = isMultiple ? CheckSquare : CircleDot;
+
+  // Track which handles are connected
+  const connectedHandles = useMemo(() => {
+    const set = new Set();
+    edges.forEach((e) => {
+      if (e.source === nodeId && e.sourceHandle) set.add(e.sourceHandle);
+    });
+    return set;
+  }, [edges, nodeId]);
 
   const handleOptionText = (idx, text) => {
     const opts = [...(element.options || [])];
@@ -183,31 +263,40 @@ function QuestionElement({ element, nodeId }) {
         placeholder="Digite a pergunta…"
       />
       <div className="space-y-1.5">
-        {(element.options || []).map((opt, idx) => (
-          <div
-            key={idx}
-            className="relative flex items-center gap-1.5 bg-gray-50 rounded-lg px-2.5 py-1.5 text-sm text-gray-600"
-          >
-            <span className="w-4 h-4 bg-white border border-gray-300 rounded-full flex items-center justify-center text-[10px] shrink-0">
-              {String.fromCharCode(65 + idx)}
-            </span>
-            <span className="flex-1">
-              <InlineEdit
-                value={opt.text}
-                onSave={(val) => handleOptionText(idx, val)}
-                className="text-sm"
-                placeholder="Opção…"
+        {(element.options || []).map((opt, idx) => {
+          const handleId = `${element.id}-option-${idx}`;
+          const isConnected = connectedHandles.has(handleId);
+          return (
+            <div
+              key={idx}
+              className="relative flex items-center gap-1.5 bg-gray-50 rounded-lg px-2.5 py-1.5 text-sm text-gray-600"
+            >
+              <span className="w-4 h-4 bg-white border border-gray-300 rounded-full flex items-center justify-center text-[10px] shrink-0">
+                {String.fromCharCode(65 + idx)}
+              </span>
+              <span className="flex-1">
+                <InlineEdit
+                  value={opt.text}
+                  onSave={(val) => handleOptionText(idx, val)}
+                  className="text-sm"
+                  placeholder="Opção…"
+                />
+              </span>
+              {opt.score > 0 && <span className="text-xs text-accent font-medium">+{opt.score}</span>}
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={handleId}
+                className={
+                  isConnected
+                    ? '!bg-accent !w-2.5 !h-2.5 !right-[-5px] !border !border-white'
+                    : '!bg-white !border-2 !border-accent/40 !w-2.5 !h-2.5 !right-[-5px]'
+                }
+                title="Conecte a uma pergunta ou resultado"
               />
-            </span>
-            {opt.score > 0 && <span className="text-xs text-accent font-medium">+{opt.score}</span>}
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={`${element.id}-option-${idx}`}
-              className="!bg-accent !w-2 !h-2 !right-[-5px]"
-            />
-          </div>
-        ))}
+            </div>
+          );
+        })}
         <button
           onClick={addOption}
           className="nodrag text-xs text-accent hover:text-accent-hover flex items-center gap-1 px-2 py-1"
@@ -216,16 +305,26 @@ function QuestionElement({ element, nodeId }) {
         </button>
 
         {/* General "all options" handle */}
-        <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1">
-          <span className="text-[10px] text-purple-400 select-none flex-1">Todas as respostas</span>
-          <Handle
-            type="source"
-            position={Position.Right}
-            id={`${element.id}-general`}
-            className="!bg-purple-400 !w-3 !h-3 !right-[-5px] !border !border-white"
-            title="Todas as respostas → mesmo destino"
-          />
-        </div>
+        {(() => {
+          const generalId = `${element.id}-general`;
+          const isGeneralConnected = connectedHandles.has(generalId);
+          return (
+            <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1">
+              <span className="text-[10px] text-purple-400 select-none flex-1">Todas as respostas</span>
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={generalId}
+                className={
+                  isGeneralConnected
+                    ? '!bg-purple-500 !w-3 !h-3 !right-[-5px] !border-2 !border-white'
+                    : '!bg-white !border-2 !border-purple-400 !w-3 !h-3 !right-[-5px]'
+                }
+                title="Todas as respostas → mesmo destino"
+              />
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

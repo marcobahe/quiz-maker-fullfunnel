@@ -11,7 +11,8 @@ import {
   Settings,
   Plus,
   User,
-  LogOut
+  LogOut,
+  Sparkles
 } from 'lucide-react';
 
 const menuItems = [
@@ -22,7 +23,7 @@ const menuItems = [
   { icon: Settings, label: 'Configurações', path: '/settings' },
 ];
 
-export default function Sidebar({ onCreateQuiz, userName }) {
+export default function Sidebar({ onCreateQuiz, onOpenTemplates, userName }) {
   const pathname = usePathname();
 
   return (
@@ -37,8 +38,8 @@ export default function Sidebar({ onCreateQuiz, userName }) {
         </h1>
       </div>
 
-      {/* Create Button */}
-      <div className="p-4">
+      {/* Create Buttons */}
+      <div className="p-4 space-y-2">
         <button 
           onClick={onCreateQuiz}
           className="w-full bg-accent hover:bg-accent-hover text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium"
@@ -46,6 +47,15 @@ export default function Sidebar({ onCreateQuiz, userName }) {
           <Plus size={20} />
           Criar Quiz
         </button>
+        {onOpenTemplates && (
+          <button 
+            onClick={onOpenTemplates}
+            className="w-full bg-sidebar-hover hover:bg-accent/20 text-gray-300 hover:text-white py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium text-sm"
+          >
+            <Sparkles size={16} />
+            Usar Template
+          </button>
+        )}
       </div>
 
       {/* Navigation */}

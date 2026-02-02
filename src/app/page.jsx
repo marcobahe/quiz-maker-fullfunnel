@@ -7,12 +7,14 @@ import { FileQuestion, Users, Eye, TrendingUp } from 'lucide-react';
 import Sidebar from '@/components/Layout/Sidebar';
 import MetricCard from '@/components/Dashboard/MetricCard';
 import QuizTable from '@/components/Dashboard/QuizTable';
+import TemplateGallery from '@/components/Templates/TemplateGallery';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -78,7 +80,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar onCreateQuiz={handleCreateQuiz} userName={session?.user?.name || session?.user?.email} />
+      <Sidebar onCreateQuiz={handleCreateQuiz} onOpenTemplates={() => setShowTemplates(true)} userName={session?.user?.name || session?.user?.email} />
       
       <main className="flex-1 p-8">
         <div className="mb-8">
@@ -92,16 +94,26 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <QuizTable quizzes={quizzes.map(q => ({
-          id: q.id,
-          name: q.name,
-          createdAt: q.createdAt,
-          status: q.status === 'published' ? 'Publicado' : 'Rascunho',
-          leads: q._count?.leads || 0,
-          conversion: 0,
-          slug: q.slug,
-        }))} onRefresh={fetchQuizzes} />
+        <QuizTable
+          quizzes={quizzes.map(q => ({
+            id: q.id,
+            name: q.name,
+            createdAt: q.createdAt,
+            status: q.status === 'published' ? 'Publicado' : 'Rascunho',
+            leads: q._count?.leads || 0,
+            conversion: 0,
+            slug: q.slug,
+          }))}
+          onRefresh={fetchQuizzes}
+          onOpenTemplates={() => setShowTemplates(true)}
+        />
       </main>
+
+      <TemplateGallery
+        isOpen={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onCreateBlank={handleCreateQuiz}
+      />
     </div>
   );
 }

@@ -44,22 +44,26 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { name, description } = await request.json();
+    const body = await request.json();
+    const { name, description, canvasData, scoreRanges, settings } = body;
     const quizName = name || 'Meu Novo Quiz';
     
     const slug = generateSlug(quizName);
     
-    const initialCanvasData = JSON.stringify({
-      nodes: [
-        {
-          id: 'start',
-          type: 'start',
-          position: { x: 250, y: 50 },
-          data: { label: 'Início' },
-        },
-      ],
-      edges: [],
-    });
+    // Use template canvasData if provided, otherwise default blank canvas
+    const finalCanvasData = canvasData
+      ? JSON.stringify(canvasData)
+      : JSON.stringify({
+          nodes: [
+            {
+              id: 'start',
+              type: 'start',
+              position: { x: 250, y: 50 },
+              data: { label: 'Início' },
+            },
+          ],
+          edges: [],
+        });
 
     const quiz = await prisma.quiz.create({
       data: {
@@ -67,7 +71,9 @@ export async function POST(request) {
         name: quizName,
         slug,
         description: description || null,
-        canvasData: initialCanvasData,
+        canvasData: finalCanvasData,
+        scoreRanges: scoreRanges ? JSON.stringify(scoreRanges) : '[]',
+        settings: settings ? JSON.stringify(settings) : '{}',
       },
     });
 

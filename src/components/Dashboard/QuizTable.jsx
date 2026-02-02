@@ -1,10 +1,10 @@
 'use client';
 
-import { MoreVertical, Edit2, Trash2, Copy, BarChart2, ExternalLink, Users } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2, Copy, BarChart2, ExternalLink, Users, Sparkles, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function QuizTable({ quizzes, onRefresh }) {
+export default function QuizTable({ quizzes, onRefresh, onOpenTemplates }) {
   const router = useRouter();
   const [openMenu, setOpenMenu] = useState(null);
 
@@ -28,14 +28,37 @@ export default function QuizTable({ quizzes, onRefresh }) {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100">
+      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-800">Meus Quizzes</h2>
+        {onOpenTemplates && (
+          <button
+            onClick={onOpenTemplates}
+            className="flex items-center gap-2 px-4 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg transition-colors text-sm font-medium"
+          >
+            <Sparkles size={16} />
+            Usar Template
+          </button>
+        )}
       </div>
       
       {quizzes.length === 0 ? (
         <div className="p-12 text-center">
-          <p className="text-gray-500 mb-2">Nenhum quiz criado ainda</p>
-          <p className="text-gray-400 text-sm">Clique em &quot;Criar Quiz&quot; para começar</p>
+          <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Sparkles size={28} className="text-accent" />
+          </div>
+          <p className="text-gray-700 font-medium mb-1">Nenhum quiz criado ainda</p>
+          <p className="text-gray-400 text-sm mb-6">Comece com um template pronto ou crie do zero</p>
+          {onOpenTemplates && (
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={onOpenTemplates}
+                className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors text-sm font-medium"
+              >
+                <Sparkles size={16} />
+                Ver Templates
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto">
