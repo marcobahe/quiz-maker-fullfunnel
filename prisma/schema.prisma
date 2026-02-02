@@ -8,14 +8,15 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  password  String?
-  image     String?
-  quizzes   Quiz[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  password      String?
+  image         String?
+  quizzes       Quiz[]
+  customDomains CustomDomain[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Quiz {
@@ -32,8 +33,15 @@ model Quiz {
   leads        Lead[]
   integrations Integration[]
   analytics    AnalyticsEvent[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  // A/B Testing
+  parentId     String?
+  parent       Quiz?            @relation("QuizVariants", fields: [parentId], references: [id])
+  variants     Quiz[]           @relation("QuizVariants")
+  splitPercent  Int?             @default(50)
+  isVariant     Boolean          @default(false)
+  customDomains CustomDomain[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model Lead {
@@ -74,4 +82,17 @@ model AnalyticsEvent {
   ip         String?
   userAgent  String?
   createdAt  DateTime @default(now())
+}
+
+model CustomDomain {
+  id          String   @id @default(cuid())
+  domain      String   @unique
+  quizId      String?
+  quiz        Quiz?    @relation(fields: [quizId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  verified    Boolean  @default(false)
+  cnameTarget String   @default("quiz.fullfunnel.com.br")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

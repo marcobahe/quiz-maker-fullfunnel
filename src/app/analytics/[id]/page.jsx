@@ -5,7 +5,8 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import {
   Play, CheckCircle, Target, Clock, Users, TrendingUp,
-  BarChart2, ArrowLeft, Activity, PieChart, Loader2, Inbox
+  BarChart2, ArrowLeft, Activity, PieChart, Loader2, Inbox,
+  FlaskConical, Trophy, ExternalLink, Sliders, Copy
 } from 'lucide-react';
 import TopBar from '@/components/Layout/TopBar';
 import useQuizStore from '@/store/quizStore';
@@ -184,6 +185,343 @@ function ResultsChart({ data }) {
   );
 }
 
+// ── A/B Test Section ─────────────────────────────────────────
+function ABTestSection({ quizId, onRefresh }) {
+  const [abData, setAbData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [splitValue, setSplitValue] = useState(50);
+  const [declaring, setDeclaring] = useState(false);
+  const router = useRouter();
+
+  const fetchAbData = () => {
+    setLoading(true);
+    fetch(`/api/quizzes/${quizId}/ab-test`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.original) {
+          setAbData(data);
+          setSplitValue(data.original.splitPercent || 50);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchAbData(); }, [quizId]);
+
+  const handleCreateVariant = async () => {
+    setCreating(true);
+    try {
+      const res = await fetch(`/api/quizzes/${quizId}/variant`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        fetchAbData();
+      } else {
+        alert(data.error || 'Erro ao criar variante');
+      }
+    } catch {
+      alert('Erro ao criar variante');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleSplitChange = async (value) => {
+    setSplitValue(value);
+    await fetch(`/api/quizzes/${quizId}/ab-test`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ splitPercent: value }),
+    });
+    fetchAbData();
+  };
+
+  const handleDeclareWinner = async (winnerId) => {
+    if (!confirm('Tem certeza? Isso desativará a versão perdedora e redirecionará 100% do tráfego para o vencedor.')) return;
+    setDeclaring(true);
+    try {
+      await fetch(`/api/quizzes/${quizId}/ab-test`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winnerId }),
+      });
+      fetchAbData();
+      if (onRefresh) onRefresh();
+    } catch {
+      alert('Erro ao declarar vencedor');
+    } finally {
+      setDeclaring(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <FlaskConical size={18} className="text-[#7c3aed]" />
+          <h2 className="text-lg font-semibold text-gray-800">A/B Test</h2>
+        </div>
+        <div className="flex justify-center py-8">
+          <Loader2 className="animate-spin text-[#7c3aed]" size={24} />
+        </div>
+      </div>
+    );
+  }
+
+  const hasVariants = abData?.variants && abData.variants.length > 0;
+  const variant = hasVariants ? abData.variants[0] : null;
+  const original = abData?.original;
+
+  // Determine test status
+  let testStatus = 'inactive';
+  if (hasVariants) {
+    if (original?.splitPercent === 100 || (variant && variant.splitPercent === 100)) {
+      testStatus = 'completed';
+    } else if (variant?.status === 'published') {
+      testStatus = 'active';
+    }
+  }
+
+  const statusColors = {
+    active: { bg: '#dcfce7', text: '#16a34a', label: 'Ativo' },
+    inactive: { bg: '#fef3c7', text: '#d97706', label: 'Inativo' },
+    completed: { bg: '#dbeafe', text: '#2563eb', label: 'Concluído' },
+  };
+
+  const statusStyle = statusColors[testStatus];
+
+  // Determine winner (by conversion rate, then completion rate)
+  let winnerId = null;
+  if (hasVariants && original && variant) {
+    if (original.conversionRate > variant.conversionRate) winnerId = original.id;
+    else if (variant.conversionRate > original.conversionRate) winnerId = variant.id;
+    else if (original.completionRate > variant.completionRate) winnerId = original.id;
+    else if (variant.completionRate > original.completionRate) winnerId = variant.id;
+  }
+
+  const splitPresets = [
+    { label: '50/50', value: 50 },
+    { label: '70/30', value: 70 },
+    { label: '80/20', value: 80 },
+    { label: '90/10', value: 90 },
+  ];
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <FlaskConical size={18} className="text-[#7c3aed]" />
+          <h2 className="text-lg font-semibold text-gray-800">A/B Test</h2>
+          {hasVariants && (
+            <span
+              className="text-xs font-medium px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
+            >
+              {statusStyle.label}
+            </span>
+          )}
+        </div>
+
+        {!hasVariants && (
+          <button
+            onClick={handleCreateVariant}
+            disabled={creating}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: '#7c3aed' }}
+          >
+            {creating ? <Loader2 size={16} className="animate-spin" /> : <Copy size={16} />}
+            Criar Variante B
+          </button>
+        )}
+      </div>
+
+      {!hasVariants ? (
+        <div className="text-center py-8">
+          <FlaskConical size={40} className="text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">
+            Crie uma variante B para iniciar um teste A/B.
+            <br />
+            O quiz será duplicado e o tráfego será dividido entre as versões.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Split Control */}
+          {testStatus !== 'completed' && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <Sliders size={16} className="text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">Divisão de Tráfego</span>
+              </div>
+              <div className="flex gap-2 mb-3">
+                {splitPresets.map(preset => (
+                  <button
+                    key={preset.value}
+                    onClick={() => handleSplitChange(preset.value)}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+                    style={{
+                      backgroundColor: splitValue === preset.value ? '#7c3aed' : '#f3f4f6',
+                      color: splitValue === preset.value ? '#ffffff' : '#6b7280',
+                    }}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="10"
+                  max="90"
+                  step="5"
+                  value={splitValue}
+                  onChange={(e) => handleSplitChange(parseInt(e.target.value))}
+                  className="flex-1 accent-[#7c3aed]"
+                />
+                <span className="text-sm font-medium text-gray-600 min-w-[80px] text-right">
+                  A:{splitValue}% / B:{100 - splitValue}%
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Side-by-side Comparison */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Original (A) */}
+            <div
+              className="rounded-xl p-5 border-2 transition-all"
+              style={{
+                borderColor: winnerId === original.id ? '#22c55e' : '#e5e7eb',
+                backgroundColor: winnerId === original.id ? '#f0fdf4' : '#ffffff',
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-full bg-[#7c3aed] text-white text-xs font-bold flex items-center justify-center">A</span>
+                  <span className="font-semibold text-gray-800 text-sm">Original</span>
+                </div>
+                {winnerId === original.id && (
+                  <Trophy size={16} className="text-green-500" />
+                )}
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Inícios</span>
+                  <span className="text-sm font-bold text-gray-800">{original.starts || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Conclusões</span>
+                  <span className="text-sm font-bold text-gray-800">{original.completes || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Taxa Conclusão</span>
+                  <span className="text-sm font-bold" style={{ color: winnerId === original.id && original.completionRate > variant.completionRate ? '#22c55e' : '#374151' }}>
+                    {original.completionRate || 0}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Leads</span>
+                  <span className="text-sm font-bold text-gray-800">{original.leads || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Conversão</span>
+                  <span className="text-sm font-bold" style={{ color: winnerId === original.id && original.conversionRate > variant.conversionRate ? '#22c55e' : '#374151' }}>
+                    {original.conversionRate || 0}%
+                  </span>
+                </div>
+              </div>
+              {testStatus !== 'completed' && (
+                <button
+                  onClick={() => handleDeclareWinner(original.id)}
+                  disabled={declaring}
+                  className="w-full mt-4 text-xs font-medium py-2 rounded-lg border border-green-200 text-green-700 hover:bg-green-50 transition-colors disabled:opacity-50"
+                >
+                  {declaring ? '...' : '🏆 Declarar Vencedor'}
+                </button>
+              )}
+            </div>
+
+            {/* Variant (B) */}
+            <div
+              className="rounded-xl p-5 border-2 transition-all"
+              style={{
+                borderColor: winnerId === variant.id ? '#22c55e' : '#e5e7eb',
+                backgroundColor: winnerId === variant.id ? '#f0fdf4' : '#ffffff',
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center">B</span>
+                  <span className="font-semibold text-gray-800 text-sm">Variante</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {winnerId === variant.id && (
+                    <Trophy size={16} className="text-green-500" />
+                  )}
+                  <button
+                    onClick={() => router.push(`/builder/${variant.id}`)}
+                    className="text-gray-400 hover:text-[#7c3aed] transition-colors"
+                    title="Editar variante"
+                  >
+                    <ExternalLink size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Inícios</span>
+                  <span className="text-sm font-bold text-gray-800">{variant.starts || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Conclusões</span>
+                  <span className="text-sm font-bold text-gray-800">{variant.completes || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Taxa Conclusão</span>
+                  <span className="text-sm font-bold" style={{ color: winnerId === variant.id && variant.completionRate > original.completionRate ? '#22c55e' : '#374151' }}>
+                    {variant.completionRate || 0}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Leads</span>
+                  <span className="text-sm font-bold text-gray-800">{variant.leads || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Conversão</span>
+                  <span className="text-sm font-bold" style={{ color: winnerId === variant.id && variant.conversionRate > original.conversionRate ? '#22c55e' : '#374151' }}>
+                    {variant.conversionRate || 0}%
+                  </span>
+                </div>
+              </div>
+              {testStatus !== 'completed' && (
+                <button
+                  onClick={() => handleDeclareWinner(variant.id)}
+                  disabled={declaring}
+                  className="w-full mt-4 text-xs font-medium py-2 rounded-lg border border-green-200 text-green-700 hover:bg-green-50 transition-colors disabled:opacity-50"
+                >
+                  {declaring ? '...' : '🏆 Declarar Vencedor'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Edit Variant Link */}
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <button
+              onClick={() => router.push(`/builder/${variant.id}`)}
+              className="flex items-center gap-1 text-[#7c3aed] hover:underline"
+            >
+              <ExternalLink size={14} />
+              Editar Variante B no Builder
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Empty State ──────────────────────────────────────────────
 function EmptyState() {
   return (
@@ -341,7 +679,7 @@ export default function AnalyticsPage() {
 
             {/* Results Distribution */}
             {analytics?.results?.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-lg">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-lg mb-8">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <PieChart size={18} className="text-[#7c3aed]" />
                   Distribuição de Resultados
@@ -349,7 +687,28 @@ export default function AnalyticsPage() {
                 <ResultsChart data={analytics.results} />
               </div>
             )}
+
+            {/* A/B Test Section */}
+            <div className="mb-8">
+              <ABTestSection
+                quizId={quizId}
+                onRefresh={() => {
+                  // Re-fetch analytics after declaring winner
+                  fetch(`/api/quizzes/${quizId}/analytics`)
+                    .then(r => r.json())
+                    .then(data => setAnalytics(data))
+                    .catch(() => {});
+                }}
+              />
+            </div>
           </>
+        )}
+
+        {/* Show A/B Test section even when no analytics data yet */}
+        {!loading && !error && !hasData && (
+          <div className="mt-8">
+            <ABTestSection quizId={quizId} />
+          </div>
         )}
       </main>
     </div>

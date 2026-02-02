@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useEffect, useState, useCallback, useMemo, Suspense, useRef } from 'react';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon } from 'lucide-react';
 import { replaceVariables } from '@/lib/dynamicVariables';
 
@@ -55,11 +55,27 @@ function getButtonRadius(style) {
 }
 
 // Wrap in Suspense because useSearchParams requires it in Next 14
+// ── A/B Testing cookie helpers ───────────────────────────────
+function getAbCookie(quizId) {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`qm_ab_${quizId}=([^;]+)`));
+  return match ? match[1] : null;
+}
+
+function setAbCookie(quizId, variantSlug) {
+  if (typeof document === 'undefined') return;
+  // Cookie lasts 30 days
+  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `qm_ab_${quizId}=${variantSlug};path=/;expires=${expires};SameSite=Lax`;
+}
+
 function QuizPlayer() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isPreview = searchParams.get('preview') === 'true';
   const isEmbedParam = searchParams.get('embed') === 'true';
+  const abHandledRef = useRef(false);
 
   // Detect if running inside an iframe (embed mode)
   const [isEmbed, setIsEmbed] = useState(false);
@@ -165,6 +181,45 @@ function QuizPlayer() {
       }
 
       const data = await res.json();
+
+      // ── A/B Testing: client-side split with cookie ──────────
+      if (data.abTest && !isPreview && !abHandledRef.current) {
+        abHandledRef.current = true;
+        const { originalId, originalSlug, originalSplit, variants } = data.abTest;
+
+        if (variants && variants.length > 0) {
+          const variant = variants[0]; // Support single variant for now
+
+          // Check cookie for existing assignment
+          const existing = getAbCookie(originalId);
+
+          if (existing && existing !== originalSlug) {
+            // User was previously assigned to variant — redirect
+            const embedParam = isEmbedParam ? '&embed=true' : '';
+            router.replace(`/q/${existing}?${previewParam}${embedParam}`);
+            return;
+          }
+
+          if (!existing) {
+            // New visitor — do random split
+            const rand = Math.random() * 100;
+            const assignedSlug = rand < (originalSplit || 50) ? originalSlug : variant.slug;
+
+            // Set cookie for consistency
+            setAbCookie(originalId, assignedSlug);
+
+            if (assignedSlug !== originalSlug) {
+              // Redirect to variant
+              const embedParam = isEmbedParam ? '&embed=true' : '';
+              router.replace(`/q/${assignedSlug}?${previewParam}${embedParam}`);
+              return;
+            }
+            // else: stay on original, continue loading
+          }
+          // Cookie matches original — continue loading
+        }
+      }
+
       setQuiz(data);
 
       // Load settings (theme & branding)

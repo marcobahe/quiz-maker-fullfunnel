@@ -31,6 +31,17 @@ export async function GET(request, { params }) {
         settings: true,
         scoreRanges: true,
         status: true,
+        parentId: true,
+        isVariant: true,
+        splitPercent: true,
+        variants: {
+          where: { status: 'published' },
+          select: {
+            id: true,
+            slug: true,
+            splitPercent: true,
+          },
+        },
       },
     });
 
@@ -42,6 +53,23 @@ export async function GET(request, { params }) {
     const origin = new URL(request.url).origin;
     const embedSlug = quiz.slug || quiz.id;
     quiz.embedUrl = `${origin}/q/${embedSlug}?embed=true`;
+
+    // A/B Testing: include variant info for client-side split
+    if (!quiz.isVariant && quiz.variants && quiz.variants.length > 0) {
+      quiz.abTest = {
+        originalId: quiz.id,
+        originalSlug: quiz.slug,
+        originalSplit: quiz.splitPercent || 50,
+        variants: quiz.variants.map(v => ({
+          id: v.id,
+          slug: v.slug,
+          splitPercent: v.splitPercent || 50,
+        })),
+      };
+    }
+
+    // Clean up — don't leak raw variants array
+    delete quiz.variants;
 
     return NextResponse.json(quiz);
   } catch (error) {

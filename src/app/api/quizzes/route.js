@@ -21,11 +21,17 @@ export async function GET() {
     }
 
     const quizzes = await prisma.quiz.findMany({
-      where: { userId: session.user.id },
+      where: {
+        userId: session.user.id,
+        isVariant: false,  // Hide variants from main listing
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
           select: { leads: true },
+        },
+        variants: {
+          select: { id: true, name: true, status: true },
         },
       },
     });

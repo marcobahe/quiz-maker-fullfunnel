@@ -110,7 +110,16 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
     }
 
-    // Delete related data first
+    // Delete variants first (if this is an original quiz)
+    const variants = await prisma.quiz.findMany({ where: { parentId: id } });
+    for (const variant of variants) {
+      await prisma.analyticsEvent.deleteMany({ where: { quizId: variant.id } });
+      await prisma.lead.deleteMany({ where: { quizId: variant.id } });
+      await prisma.integration.deleteMany({ where: { quizId: variant.id } });
+      await prisma.quiz.delete({ where: { id: variant.id } });
+    }
+
+    // Delete related data for the main quiz
     await prisma.analyticsEvent.deleteMany({ where: { quizId: id } });
     await prisma.lead.deleteMany({ where: { quizId: id } });
     await prisma.integration.deleteMany({ where: { quizId: id } });
