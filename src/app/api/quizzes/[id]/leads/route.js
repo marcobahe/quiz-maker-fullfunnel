@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { dispatchIntegrations } from '@/lib/webhookDispatcher';
 
 export async function POST(request, { params }) {
   try {
@@ -26,6 +27,18 @@ export async function POST(request, { params }) {
         resultCategory: body.resultCategory || null,
         metadata: body.metadata ? JSON.stringify(body.metadata) : '{}',
       },
+    });
+
+    // Fire-and-forget: dispatch webhooks and integrations asynchronously
+    const answers = body.answers || [];
+    const scoreRanges = quiz.scoreRanges;
+    dispatchIntegrations({
+      quiz,
+      lead,
+      answers,
+      score: body.score || 0,
+      resultCategory: body.resultCategory || null,
+      scoreRanges,
     });
 
     return NextResponse.json(lead, { status: 201 });

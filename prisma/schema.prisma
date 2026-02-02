@@ -54,10 +54,12 @@ model Integration {
   id        String   @id @default(cuid())
   quizId    String
   quiz      Quiz     @relation(fields: [quizId], references: [id])
-  type      String
-  config    String
-  enabled   Boolean  @default(true)
+  type      String   // "webhook" | "gohighlevel"
+  name      String   @default("")
+  config    String   // JSON string with configuration
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AnalyticsEvent {
