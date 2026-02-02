@@ -1263,9 +1263,11 @@ function QuizPlayer() {
                     </h1>
 
                     {matchedRange?.description ? (
-                      <p className="text-gray-600 mb-4 whitespace-pre-wrap">
-                        {rv(matchedRange.description)}
-                      </p>
+                      <div className="text-gray-600 mb-6 text-left space-y-3">
+                        {rv(matchedRange.description).split('\n\n').map((paragraph, i) => (
+                          <p key={i} className="leading-relaxed">{paragraph.trim()}</p>
+                        ))}
+                      </div>
                     ) : (
                       <div className="text-6xl mb-4">
                         {getResultEmoji(getResultCategory(score))}
@@ -1285,22 +1287,7 @@ function QuizPlayer() {
                       )}
                     </div>
 
-                    <div className="space-y-3 text-left mb-6">
-                      <h3 className="font-semibold text-gray-700">
-                        Suas respostas:
-                      </h3>
-                      {Object.values(answers).map((answer, i) => (
-                        <div key={i} className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-sm text-gray-500">{answer.question}</p>
-                          <p className="font-medium text-gray-800 flex items-center justify-between">
-                            {answer.answer}
-                            <span className="text-sm" style={{ color: theme.primaryColor }}>
-                              +{answer.score}
-                            </span>
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+                    {/* Respostas detalhadas ficam ocultas — foco no diagnóstico */}
 
                     {!showAi && matchedRange?.ctaText && matchedRange?.ctaUrl ? (
                       <a

@@ -129,6 +129,16 @@ Para perguntas do tipo "question-rating": inclua "ratingType" ("stars", "number"
 
 Crie faixas de resultado (scoreRanges) coerentes com a pontuação total possível.
 
+IMPORTANTE sobre as descrições dos resultados (scoreRanges):
+- Cada "description" deve ter 2-3 parágrafos ANALÍTICOS e PROFUNDOS (mínimo 150 palavras)
+- NÃO reproduza as respostas que a pessoa deu
+- ANALISE o perfil/situação da pessoa baseado na faixa de pontuação
+- Explique O QUE isso significa na prática para ela
+- Dê RECOMENDAÇÕES concretas e acionáveis
+- Use tom empático e motivador
+- Termine com um call-to-action sutil se fizer sentido
+- Separe os parágrafos com \n\n
+
 Responda APENAS com JSON válido no seguinte formato exato:
 {
   "title": "Título do quiz",
@@ -168,8 +178,8 @@ Responda APENAS com JSON válido no seguinte formato exato:
     }
   ],
   "scoreRanges": [
-    { "min": 0, "max": 10, "title": "Resultado A", "description": "Descrição do resultado A" },
-    { "min": 11, "max": 20, "title": "Resultado B", "description": "Descrição do resultado B" }
+    { "min": 0, "max": 10, "title": "Resultado A", "description": "Parágrafo 1 com análise do perfil e o que a pontuação revela sobre a situação atual da pessoa.\n\nParágrafo 2 com implicações práticas, o que ela está perdendo ou ganhando, e por quê isso importa.\n\nParágrafo 3 com recomendações concretas e próximos passos acionáveis." },
+    { "min": 11, "max": 20, "title": "Resultado B", "description": "Mesma estrutura: análise profunda em 2-3 parágrafos com recomendações." }
   ]
 }`;
 
