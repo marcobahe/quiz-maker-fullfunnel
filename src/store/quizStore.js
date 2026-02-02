@@ -25,6 +25,14 @@ const defaultQuizSettings = {
     faviconUrl: '',
     showBranding: true,
   },
+  aiResultConfig: {
+    enabled: false,
+    provider: 'openai',
+    model: 'gpt-4o-mini',
+    prompt: '',
+    maxTokens: 500,
+    combineWithStatic: true,
+  },
 };
 
 const useQuizStore = create((set, get) => ({
@@ -102,6 +110,29 @@ const useQuizStore = create((set, get) => ({
       quizSettings: {
         ...state.quizSettings,
         branding: { ...state.quizSettings.branding, ...brandingUpdates },
+      },
+      isSaved: false,
+    })),
+
+  // ── AI Result Config actions ───────────────────────────────
+
+  setAiResultConfig: (config) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        aiResultConfig: config,
+      },
+      isSaved: false,
+    })),
+
+  updateAiResultConfig: (updates) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        aiResultConfig: {
+          ...(state.quizSettings.aiResultConfig || defaultQuizSettings.aiResultConfig),
+          ...updates,
+        },
       },
       isSaved: false,
     })),
@@ -229,6 +260,7 @@ const useQuizStore = create((set, get) => ({
     const settings = typeof data.settings === 'string'
       ? JSON.parse(data.settings || '{}')
       : data.settings || {};
+    const defaults = JSON.parse(JSON.stringify(defaultQuizSettings));
     set({
       quizId: data.id,
       quizName: data.name || 'Quiz',
@@ -236,7 +268,11 @@ const useQuizStore = create((set, get) => ({
       nodes: canvasData.nodes || initialNodes,
       edges: canvasData.edges || [],
       scoreRanges: Array.isArray(scoreRanges) ? scoreRanges : [],
-      quizSettings: { ...JSON.parse(JSON.stringify(defaultQuizSettings)), ...settings },
+      quizSettings: {
+        theme: { ...defaults.theme, ...(settings.theme || {}) },
+        branding: { ...defaults.branding, ...(settings.branding || {}) },
+        aiResultConfig: { ...defaults.aiResultConfig, ...(settings.aiResultConfig || {}) },
+      },
       isSaved: true,
     });
   },

@@ -185,6 +185,12 @@ function QuizPlayer() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [pointsBalloons, setPointsBalloons] = useState([]);
 
+  // AI Analysis state
+  const [aiConfig, setAiConfig] = useState(null);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(false);
+
   // Canvas data
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -326,6 +332,7 @@ function QuizPlayer() {
           if (settings && typeof settings === 'object') {
             if (settings.theme) setTheme((prev) => ({ ...prev, ...settings.theme }));
             if (settings.branding) setBranding((prev) => ({ ...prev, ...settings.branding }));
+            if (settings.aiResultConfig) setAiConfig(settings.aiResultConfig);
           }
         } catch (_e) { /* ignore */ }
       }
@@ -523,6 +530,45 @@ function QuizPlayer() {
     }, '*');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEmbed, showResult]);
+
+  // ── AI Analysis on result screen ───────────────────────────
+  useEffect(() => {
+    if (!showResult || !aiConfig?.enabled || !quiz?.id) return;
+    if (aiAnalysis || aiLoading) return; // Already loaded or loading
+
+    const fetchAiAnalysis = async () => {
+      setAiLoading(true);
+      setAiError(false);
+      try {
+        const matchedRange = getMatchingRange(score);
+        const res = await fetch(`/api/quizzes/${quiz.id}/ai-analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            answers: Object.values(answers),
+            score,
+            maxScore: maxPossibleScore,
+            leadName: leadForm.name || '',
+            leadEmail: leadForm.email || '',
+            resultTitle: matchedRange?.title || getResultCategory(score),
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAiAnalysis(data.analysis);
+        } else {
+          setAiError(true);
+        }
+      } catch (_err) {
+        setAiError(true);
+      } finally {
+        setAiLoading(false);
+      }
+    };
+
+    fetchAiAnalysis();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showResult, aiConfig?.enabled, quiz?.id]);
 
   // ── Handlers ────────────────────────────────────────────────
 
@@ -796,90 +842,205 @@ function QuizPlayer() {
           {/* ── Result Screen ─────────────────────────────── */}
           {showResult && (() => {
             const matchedRange = getMatchingRange(score);
+            const showStatic = !aiConfig?.enabled || aiConfig?.combineWithStatic !== false;
+            const showAi = aiConfig?.enabled;
             return (
-              <div className="bg-white rounded-2xl shadow-xl p-8 text-center" style={{ fontFamily: theme.fontFamily }}>
-                {matchedRange?.image ? (
-                  <img
-                    src={matchedRange.image}
-                    alt={matchedRange.title}
-                    className="w-full h-48 object-cover rounded-xl mb-6"
-                  />
-                ) : (
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-                    style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
-                  >
-                    <Trophy className="text-white" size={40} />
-                  </div>
-                )}
+              <div className="space-y-6">
+                {showStatic && (
+                  <div className="bg-white rounded-2xl shadow-xl p-8 text-center" style={{ fontFamily: theme.fontFamily }}>
+                    {matchedRange?.image ? (
+                      <img
+                        src={matchedRange.image}
+                        alt={matchedRange.title}
+                        className="w-full h-48 object-cover rounded-xl mb-6"
+                      />
+                    ) : (
+                      <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+                        style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
+                      >
+                        <Trophy className="text-white" size={40} />
+                      </div>
+                    )}
 
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  {rv(matchedRange?.title || currentNode?.data?.title || 'Seu Resultado')}
-                </h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                      {rv(matchedRange?.title || currentNode?.data?.title || 'Seu Resultado')}
+                    </h1>
 
-                {matchedRange?.description ? (
-                  <p className="text-gray-600 mb-4 whitespace-pre-wrap">
-                    {rv(matchedRange.description)}
-                  </p>
-                ) : (
-                  <div className="text-6xl mb-4">
-                    {getResultEmoji(getResultCategory(score))}
-                  </div>
-                )}
-
-                <div
-                  className="rounded-xl p-6 mb-6"
-                  style={{ backgroundColor: `${theme.primaryColor}10` }}
-                >
-                  <p className="text-sm text-gray-500 mb-1">Sua pontuação</p>
-                  <p className="text-4xl font-bold" style={{ color: theme.primaryColor }}>{score} pts</p>
-                  {!matchedRange && (
-                    <p className="text-lg font-medium mt-2" style={{ color: theme.secondaryColor }}>
-                      {getResultCategory(score)}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-3 text-left mb-6">
-                  <h3 className="font-semibold text-gray-700">
-                    Suas respostas:
-                  </h3>
-                  {Object.values(answers).map((answer, i) => (
-                    <div key={i} className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-sm text-gray-500">{answer.question}</p>
-                      <p className="font-medium text-gray-800 flex items-center justify-between">
-                        {answer.answer}
-                        <span className="text-sm" style={{ color: theme.primaryColor }}>
-                          +{answer.score}
-                        </span>
+                    {matchedRange?.description ? (
+                      <p className="text-gray-600 mb-4 whitespace-pre-wrap">
+                        {rv(matchedRange.description)}
                       </p>
+                    ) : (
+                      <div className="text-6xl mb-4">
+                        {getResultEmoji(getResultCategory(score))}
+                      </div>
+                    )}
+
+                    <div
+                      className="rounded-xl p-6 mb-6"
+                      style={{ backgroundColor: `${theme.primaryColor}10` }}
+                    >
+                      <p className="text-sm text-gray-500 mb-1">Sua pontuação</p>
+                      <p className="text-4xl font-bold" style={{ color: theme.primaryColor }}>{score} pts</p>
+                      {!matchedRange && (
+                        <p className="text-lg font-medium mt-2" style={{ color: theme.secondaryColor }}>
+                          {getResultCategory(score)}
+                        </p>
+                      )}
                     </div>
-                  ))}
-                </div>
 
-                {matchedRange?.ctaText && matchedRange?.ctaUrl ? (
-                  <a
-                    href={matchedRange.ctaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-block text-white py-3 font-medium transition-opacity hover:opacity-90 mb-3 text-center"
-                    style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                    <div className="space-y-3 text-left mb-6">
+                      <h3 className="font-semibold text-gray-700">
+                        Suas respostas:
+                      </h3>
+                      {Object.values(answers).map((answer, i) => (
+                        <div key={i} className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-sm text-gray-500">{answer.question}</p>
+                          <p className="font-medium text-gray-800 flex items-center justify-between">
+                            {answer.answer}
+                            <span className="text-sm" style={{ color: theme.primaryColor }}>
+                              +{answer.score}
+                            </span>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {!showAi && matchedRange?.ctaText && matchedRange?.ctaUrl ? (
+                      <a
+                        href={matchedRange.ctaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full inline-block text-white py-3 font-medium transition-opacity hover:opacity-90 mb-3 text-center"
+                        style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                      >
+                        {matchedRange.ctaText}
+                      </a>
+                    ) : null}
+
+                    {!showAi && (
+                      <button
+                        onClick={() => window.location.reload()}
+                        className={`w-full py-3 font-medium transition-opacity hover:opacity-90`}
+                        style={{
+                          backgroundColor: matchedRange?.ctaText ? '#f3f4f6' : theme.primaryColor,
+                          color: matchedRange?.ctaText ? '#374151' : '#ffffff',
+                          borderRadius: btnRadius,
+                        }}
+                      >
+                        Refazer Quiz
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* ── AI Analysis Section ──────────────────── */}
+                {showAi && (
+                  <div
+                    className="rounded-2xl shadow-xl overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #f5f3ff, #eef2ff, #faf5ff)',
+                      border: '1px solid #e9d5ff',
+                      fontFamily: theme.fontFamily,
+                    }}
                   >
-                    {matchedRange.ctaText}
-                  </a>
-                ) : null}
+                    <div
+                      className="px-6 py-4 flex items-center gap-2"
+                      style={{
+                        background: `linear-gradient(135deg, ${theme.primaryColor}15, ${theme.secondaryColor || theme.primaryColor}10)`,
+                        borderBottom: '1px solid #e9d5ff',
+                      }}
+                    >
+                      <span className="text-xl">✨</span>
+                      <h3 className="text-lg font-bold text-gray-800">Análise Personalizada</h3>
+                    </div>
 
-                <button
-                  onClick={() => window.location.reload()}
-                  className={`w-full py-3 font-medium transition-opacity hover:opacity-90`}
-                  style={{
-                    backgroundColor: matchedRange?.ctaText ? '#f3f4f6' : theme.primaryColor,
-                    color: matchedRange?.ctaText ? '#374151' : '#ffffff',
-                    borderRadius: btnRadius,
-                  }}
-                >
-                  Refazer Quiz
-                </button>
+                    <div className="p-6">
+                      {aiLoading && (
+                        <div className="space-y-4 animate-pulse">
+                          <div className="flex items-center gap-3 mb-4">
+                            <Loader2 className="animate-spin" size={20} style={{ color: theme.primaryColor }} />
+                            <span className="text-sm font-medium text-gray-600">
+                              Analisando suas respostas com IA...
+                            </span>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="h-4 bg-purple-100 rounded-full w-full" />
+                            <div className="h-4 bg-purple-100 rounded-full w-11/12" />
+                            <div className="h-4 bg-purple-100 rounded-full w-10/12" />
+                            <div className="h-4 bg-purple-100 rounded-full w-0" style={{ width: '0%' }} />
+                            <div className="h-4 bg-purple-50 rounded-full w-full" />
+                            <div className="h-4 bg-purple-50 rounded-full w-9/12" />
+                            <div className="h-4 bg-purple-50 rounded-full w-11/12" />
+                            <div className="h-4 bg-purple-50 rounded-full w-0" style={{ width: '0%' }} />
+                            <div className="h-4 bg-purple-50/50 rounded-full w-full" />
+                            <div className="h-4 bg-purple-50/50 rounded-full w-8/12" />
+                          </div>
+                        </div>
+                      )}
+
+                      {aiAnalysis && !aiLoading && (
+                        <div
+                          className="text-gray-700 text-[15px] leading-relaxed"
+                          style={{
+                            animation: 'fadeInUp 0.6s ease-out',
+                          }}
+                        >
+                          {aiAnalysis.split('\n').map((paragraph, i) => {
+                            if (!paragraph.trim()) return null;
+                            // Basic markdown bold support
+                            const formatted = paragraph.replace(
+                              /\*\*(.*?)\*\*/g,
+                              '<strong class="text-gray-900">$1</strong>'
+                            );
+                            return (
+                              <p
+                                key={i}
+                                className="mb-3 last:mb-0"
+                                dangerouslySetInnerHTML={{ __html: formatted }}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {aiError && !aiLoading && (
+                        <p className="text-gray-400 text-sm text-center py-4">
+                          Análise indisponível no momento
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* CTA and Refazer buttons (always at bottom) */}
+                {showAi && (
+                  <div className="bg-white rounded-2xl shadow-xl p-6 space-y-3" style={{ fontFamily: theme.fontFamily }}>
+                    {matchedRange?.ctaText && matchedRange?.ctaUrl ? (
+                      <a
+                        href={matchedRange.ctaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full inline-block text-white py-3 font-medium transition-opacity hover:opacity-90 text-center"
+                        style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                      >
+                        {matchedRange.ctaText}
+                      </a>
+                    ) : null}
+                    <button
+                      onClick={() => window.location.reload()}
+                      className={`w-full py-3 font-medium transition-opacity hover:opacity-90`}
+                      style={{
+                        backgroundColor: matchedRange?.ctaText ? '#f3f4f6' : theme.primaryColor,
+                        color: matchedRange?.ctaText ? '#374151' : '#ffffff',
+                        borderRadius: btnRadius,
+                      }}
+                    >
+                      Refazer Quiz
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })()}

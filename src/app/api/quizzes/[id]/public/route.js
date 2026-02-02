@@ -71,6 +71,24 @@ export async function GET(request, { params }) {
     // Clean up — don't leak raw variants array
     delete quiz.variants;
 
+    // Sanitize settings: only expose aiResultConfig.enabled (don't leak prompt)
+    if (quiz.settings) {
+      try {
+        const settings = typeof quiz.settings === 'string'
+          ? JSON.parse(quiz.settings)
+          : quiz.settings;
+        if (settings?.aiResultConfig) {
+          settings.aiResultConfig = {
+            enabled: settings.aiResultConfig.enabled || false,
+            combineWithStatic: settings.aiResultConfig.combineWithStatic !== false,
+          };
+          quiz.settings = typeof quiz.settings === 'string'
+            ? JSON.stringify(settings)
+            : settings;
+        }
+      } catch (_e) { /* ignore */ }
+    }
+
     return NextResponse.json(quiz);
   } catch (error) {
     console.error('Error fetching public quiz:', error);

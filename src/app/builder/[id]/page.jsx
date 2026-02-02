@@ -112,6 +112,7 @@ export default function BuilderPage() {
               const merged = {
                 theme: { ...defaultQuizSettings.theme, ...(settings.theme || {}) },
                 branding: { ...defaultQuizSettings.branding, ...(settings.branding || {}) },
+                aiResultConfig: { ...defaultQuizSettings.aiResultConfig, ...(settings.aiResultConfig || {}) },
               };
               useQuizStore.setState({ quizSettings: merged });
             }
