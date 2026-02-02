@@ -8,15 +8,19 @@ generator client {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email         String         @unique
-  password      String?
-  image         String?
-  quizzes       Quiz[]
-  customDomains CustomDomain[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                   String         @id @default(cuid())
+  name                 String?
+  email                String         @unique
+  password             String?
+  image                String?
+  plan                 String         @default("free")
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  planExpiresAt        DateTime?
+  quizzes              Quiz[]
+  customDomains        CustomDomain[]
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 }
 
 model Quiz {

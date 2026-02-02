@@ -8,25 +8,38 @@ import Sidebar from '@/components/Layout/Sidebar';
 import MetricCard from '@/components/Dashboard/MetricCard';
 import QuizTable from '@/components/Dashboard/QuizTable';
 import TemplateGallery from '@/components/Templates/TemplateGallery';
+import LandingPage from '@/components/Landing/LandingPage';
 
-export default function DashboardPage() {
+export default function HomePage() {
   const { data: session, status } = useSession();
+
+  // Show landing page for unauthenticated users
+  if (status === 'unauthenticated') {
+    return <LandingPage />;
+  }
+
+  // Show loading while checking auth
+  if (status === 'loading') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+      </div>
+    );
+  }
+
+  // Authenticated → show dashboard
+  return <Dashboard session={session} />;
+}
+
+function Dashboard({ session }) {
   const router = useRouter();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchQuizzes();
-    }
-  }, [status]);
+    fetchQuizzes();
+  }, []);
 
   const fetchQuizzes = async () => {
     try {
@@ -58,15 +71,13 @@ export default function DashboardPage() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
       </div>
     );
   }
-
-  if (status === 'unauthenticated') return null;
 
   const publishedCount = quizzes.filter(q => q.status === 'published').length;
   const totalLeads = quizzes.reduce((sum, q) => sum + (q._count?.leads || 0), 0);

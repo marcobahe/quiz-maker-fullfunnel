@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { checkLimit } from '@/lib/planLimits';
 
 function generateSlug(name) {
   return name
@@ -48,6 +49,20 @@ export async function POST(request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    // Check plan limits
+    const limitCheck = await checkLimit(session.user.id, 'quizzes');
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Limite de quizzes atingido (${limitCheck.current}/${limitCheck.limit}). Faça upgrade para criar mais.`,
+          limitReached: true,
+          current: limitCheck.current,
+          limit: limitCheck.limit,
+        },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();

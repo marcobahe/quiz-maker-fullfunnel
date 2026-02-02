@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { dispatchIntegrations } from '@/lib/webhookDispatcher';
+import { checkLimit } from '@/lib/planLimits';
 
 export async function GET(request, { params }) {
   try {
@@ -74,6 +75,15 @@ export async function POST(request, { params }) {
 
     if (!quiz) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
+    }
+
+    // Check lead limits for the quiz owner
+    const limitCheck = await checkLimit(quiz.userId, 'leadsPerMonth');
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Limite de leads mensal atingido para este quiz.', limitReached: true },
+        { status: 403 }
+      );
     }
 
     const lead = await prisma.lead.create({

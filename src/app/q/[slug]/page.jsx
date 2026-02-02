@@ -19,6 +19,7 @@ const DEFAULT_THEME = {
 
 const DEFAULT_BRANDING = {
   logoUrl: '',
+  faviconUrl: '',
   showBranding: true,
 };
 
@@ -111,6 +112,23 @@ function QuizPlayer() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [scoreRanges, setScoreRanges] = useState([]);
+
+  // ── Custom favicon ───────────────────────────────────────────
+  useEffect(() => {
+    if (!branding.faviconUrl) return;
+    // Remove existing favicons
+    const existing = document.querySelectorAll("link[rel*='icon']");
+    existing.forEach((el) => el.remove());
+    // Add custom favicon
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.href = branding.faviconUrl;
+    link.type = branding.faviconUrl.endsWith('.ico') ? 'image/x-icon' : 'image/png';
+    document.head.appendChild(link);
+    return () => {
+      try { document.head.removeChild(link); } catch (_) {}
+    };
+  }, [branding.faviconUrl]);
 
   // ── Embed: auto-resize via postMessage ───────────────────────
   useEffect(() => {

@@ -33,6 +33,7 @@ export const authOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
+          plan: user.plan || 'free',
         };
       },
     }),
@@ -47,12 +48,14 @@ export const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.plan = user.plan || 'free';
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
+        session.user.plan = token.plan || 'free';
       }
       return session;
     },

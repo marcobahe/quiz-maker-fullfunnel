@@ -5,9 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import TopBar from '@/components/Layout/TopBar';
 import Link from 'next/link';
-import { Globe, Settings, ChevronRight } from 'lucide-react';
+import { Globe, Settings, ChevronRight, CreditCard } from 'lucide-react';
 
 const settingsItems = [
+  {
+    icon: CreditCard,
+    title: 'Plano & Cobrança',
+    description: 'Gerencie seu plano, veja uso e histórico de pagamentos',
+    href: '/settings/billing',
+  },
   {
     icon: Globe,
     title: 'Domínios Personalizados',

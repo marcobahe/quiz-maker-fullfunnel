@@ -22,6 +22,7 @@ const defaultQuizSettings = {
   },
   branding: {
     logoUrl: '',
+    faviconUrl: '',
     showBranding: true,
   },
 };

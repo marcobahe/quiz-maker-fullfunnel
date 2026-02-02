@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   Palette,
   Type,
@@ -9,8 +10,11 @@ import {
   Eye,
   Sparkles,
   ChevronRight,
+  Lock,
+  Globe,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
+import { canUseWhiteLabel } from '@/lib/plans';
 
 // ── Gradient Presets ─────────────────────────────────────────
 const GRADIENT_PRESETS = [
@@ -83,6 +87,24 @@ function ColorPicker({ label, value, onChange }) {
           onChange={(e) => onChange(e.target.value)}
           className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1 border border-gray-200 w-24 mt-0.5 font-mono"
         />
+      </div>
+    </div>
+  );
+}
+
+// ── Plan Gate Badge ──────────────────────────────────────────
+function PlanGate({ children, isLocked, planName = 'Business' }) {
+  if (!isLocked) return children;
+  return (
+    <div className="relative">
+      <div className="opacity-50 pointer-events-none select-none">
+        {children}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="bg-gray-800/90 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg">
+          <Lock size={12} />
+          <span>Disponível no plano {planName}</span>
+        </div>
       </div>
     </div>
   );
@@ -201,6 +223,10 @@ function MiniPreview({ theme, branding }) {
 
 // ── Main ThemeEditor ─────────────────────────────────────────
 export default function ThemeEditor() {
+  const { data: session } = useSession();
+  const userPlan = session?.user?.plan || 'free';
+  const isWhiteLabelAllowed = canUseWhiteLabel(userPlan);
+
   const theme = useQuizStore((s) => s.quizSettings.theme);
   const branding = useQuizStore((s) => s.quizSettings.branding);
   const updateTheme = useQuizStore((s) => s.updateTheme);
@@ -432,7 +458,7 @@ export default function ThemeEditor() {
 
         {expandedSection === 'branding' && (
           <div className="px-4 pb-4 border-t border-gray-100 pt-4 space-y-4">
-            {/* Logo URL */}
+            {/* Logo URL — available to all plans */}
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">URL do Logo</p>
               <input
@@ -457,30 +483,75 @@ export default function ThemeEditor() {
               )}
             </div>
 
-            {/* Show Branding Toggle */}
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-700">
-                  Mostrar &quot;Feito com Quiz Maker&quot;
-                </p>
-                <p className="text-xs text-gray-500">
-                  Exibe um selo no rodapé do quiz
-                </p>
+            {/* ── White-Label Features (Business only) ──── */}
+            <div className="border-t border-gray-100 pt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Globe size={16} className="text-accent" />
+                <p className="text-sm font-semibold text-gray-700">White-Label</p>
+                {!isWhiteLabelAllowed && (
+                  <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                    <Lock size={10} /> Business
+                  </span>
+                )}
               </div>
-              <button
-                onClick={() =>
-                  updateBranding({ showBranding: !branding.showBranding })
-                }
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  branding.showBranding ? 'bg-accent' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    branding.showBranding ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
+
+              {/* Favicon URL */}
+              <PlanGate isLocked={!isWhiteLabelAllowed}>
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-700 mb-1">URL do Favicon</p>
+                  <input
+                    type="url"
+                    value={branding.faviconUrl || ''}
+                    onChange={(e) => updateBranding({ faviconUrl: e.target.value })}
+                    placeholder="https://exemplo.com/favicon.ico"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Aparece na aba do navegador quando alguém abre seu quiz
+                  </p>
+                  {branding.faviconUrl && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <img
+                        src={branding.faviconUrl}
+                        alt="Favicon preview"
+                        className="w-5 h-5 rounded object-cover border border-gray-200"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      <span className="text-xs text-gray-500">Preview do favicon</span>
+                    </div>
+                  )}
+                </div>
+              </PlanGate>
+
+              {/* Show Branding Toggle */}
+              <PlanGate isLocked={!isWhiteLabelAllowed}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      Mostrar &quot;Feito com Quiz Maker&quot;
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Exibe um selo no rodapé do quiz
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      updateBranding({ showBranding: !branding.showBranding })
+                    }
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      branding.showBranding ? 'bg-accent' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        branding.showBranding ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </PlanGate>
             </div>
           </div>
         )}
