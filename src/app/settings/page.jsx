@@ -5,9 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import TopBar from '@/components/Layout/TopBar';
 import Link from 'next/link';
-import { Globe, Settings, ChevronRight, CreditCard } from 'lucide-react';
+import { Globe, Settings, ChevronRight, CreditCard, Users } from 'lucide-react';
 
 const settingsItems = [
+  {
+    icon: Users,
+    title: 'Time & Workspace',
+    description: 'Gerencie membros, convide pessoas e defina permissões',
+    href: '/settings/team',
+  },
   {
     icon: CreditCard,
     title: 'Plano & Cobrança',

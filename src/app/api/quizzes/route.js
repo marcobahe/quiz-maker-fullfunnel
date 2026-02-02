@@ -14,18 +14,35 @@ function generateSlug(name) {
     + '-' + Math.random().toString(36).substring(2, 8);
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const workspaceId = searchParams.get('workspaceId');
+
+    const where = {
+      isVariant: false,
+    };
+
+    if (workspaceId) {
+      // Check user has access to workspace
+      const member = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+      });
+      if (!member) {
+        return NextResponse.json({ error: 'Sem acesso ao workspace' }, { status: 403 });
+      }
+      where.workspaceId = workspaceId;
+    } else {
+      where.userId = session.user.id;
+    }
+
     const quizzes = await prisma.quiz.findMany({
-      where: {
-        userId: session.user.id,
-        isVariant: false,  // Hide variants from main listing
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
@@ -66,7 +83,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { name, description, canvasData, scoreRanges, settings } = body;
+    const { name, description, canvasData, scoreRanges, settings, workspaceId } = body;
     const quizName = name || 'Meu Novo Quiz';
     
     const slug = generateSlug(quizName);
@@ -86,9 +103,21 @@ export async function POST(request) {
           edges: [],
         });
 
+    // If workspaceId provided, verify access
+    let assignedWorkspaceId = workspaceId || null;
+    if (assignedWorkspaceId) {
+      const member = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId: assignedWorkspaceId, userId: session.user.id } },
+      });
+      if (!member || member.role === 'viewer') {
+        return NextResponse.json({ error: 'Sem permissão neste workspace' }, { status: 403 });
+      }
+    }
+
     const quiz = await prisma.quiz.create({
       data: {
         userId: session.user.id,
+        workspaceId: assignedWorkspaceId,
         name: quizName,
         slug,
         description: description || null,

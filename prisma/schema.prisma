@@ -8,25 +8,30 @@ generator client {
 }
 
 model User {
-  id                   String         @id @default(cuid())
+  id                   String              @id @default(cuid())
   name                 String?
-  email                String         @unique
+  email                String              @unique
   password             String?
   image                String?
-  plan                 String         @default("free")
+  plan                 String              @default("free")
   stripeCustomerId     String?
   stripeSubscriptionId String?
   planExpiresAt        DateTime?
+  onboardingDone       Boolean             @default(false)
   quizzes              Quiz[]
   customDomains        CustomDomain[]
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  ownedWorkspaces      Workspace[]         @relation("WorkspaceOwner")
+  memberships          WorkspaceMember[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 }
 
 model Quiz {
   id           String           @id @default(cuid())
   userId       String
   user         User             @relation(fields: [userId], references: [id])
+  workspaceId  String?
+  workspace    Workspace?       @relation(fields: [workspaceId], references: [id])
   name         String
   slug         String           @unique
   description  String?
@@ -46,6 +51,30 @@ model Quiz {
   customDomains CustomDomain[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
+}
+
+model Workspace {
+  id        String            @id @default(cuid())
+  name      String
+  slug      String            @unique
+  ownerId   String
+  owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members   WorkspaceMember[]
+  quizzes   Quiz[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        String    @default("editor")
+  createdAt   DateTime  @default(now())
+
+  @@unique([workspaceId, userId])
 }
 
 model Lead {

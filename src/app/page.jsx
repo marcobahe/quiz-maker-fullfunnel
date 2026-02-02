@@ -9,6 +9,8 @@ import MetricCard from '@/components/Dashboard/MetricCard';
 import QuizTable from '@/components/Dashboard/QuizTable';
 import TemplateGallery from '@/components/Templates/TemplateGallery';
 import LandingPage from '@/components/Landing/LandingPage';
+import OnboardingTour from '@/components/Onboarding/OnboardingTour';
+import HelpButton from '@/components/Help/HelpButton';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -36,14 +38,28 @@ function Dashboard({ session }) {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('activeWorkspaceId') || null;
+    }
+    return null;
+  });
+
+  const handleWorkspaceChange = (wsId) => {
+    setActiveWorkspaceId(wsId);
+    localStorage.setItem('activeWorkspaceId', wsId);
+  };
 
   useEffect(() => {
     fetchQuizzes();
-  }, []);
+  }, [activeWorkspaceId]);
 
   const fetchQuizzes = async () => {
     try {
-      const res = await fetch('/api/quizzes');
+      const url = activeWorkspaceId
+        ? `/api/quizzes?workspaceId=${activeWorkspaceId}`
+        : '/api/quizzes';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setQuizzes(data);
@@ -60,7 +76,7 @@ function Dashboard({ session }) {
       const res = await fetch('/api/quizzes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Meu Novo Quiz' }),
+        body: JSON.stringify({ name: 'Meu Novo Quiz', workspaceId: activeWorkspaceId }),
       });
       if (res.ok) {
         const quiz = await res.json();
@@ -91,7 +107,7 @@ function Dashboard({ session }) {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar onCreateQuiz={handleCreateQuiz} onOpenTemplates={() => setShowTemplates(true)} userName={session?.user?.name || session?.user?.email} />
+      <Sidebar onCreateQuiz={handleCreateQuiz} onOpenTemplates={() => setShowTemplates(true)} userName={session?.user?.name || session?.user?.email} activeWorkspaceId={activeWorkspaceId} onWorkspaceChange={handleWorkspaceChange} />
       
       <main className="flex-1 p-8">
         <div className="mb-8">
@@ -125,6 +141,9 @@ function Dashboard({ session }) {
         onClose={() => setShowTemplates(false)}
         onCreateBlank={handleCreateQuiz}
       />
+
+      <OnboardingTour />
+      <HelpButton />
     </div>
   );
 }

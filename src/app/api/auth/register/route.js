@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
+import { ensurePersonalWorkspace } from '@/lib/workspace';
 
 export async function POST(request) {
   try {
@@ -40,6 +41,9 @@ export async function POST(request) {
         password: hashedPassword,
       },
     });
+
+    // Auto-create personal workspace
+    await ensurePersonalWorkspace(user.id);
 
     return NextResponse.json(
       { id: user.id, name: user.name, email: user.email },
