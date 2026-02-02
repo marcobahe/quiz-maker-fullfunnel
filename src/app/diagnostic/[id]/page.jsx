@@ -3,8 +3,9 @@
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import TopBar from '@/components/Layout/TopBar';
+import ScoreRangesEditor from '@/components/ScoreRanges/ScoreRangesEditor';
 import { AlertCircle, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 
@@ -66,13 +67,90 @@ export default function DiagnosticPage() {
   const params = useParams();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { nodes, edges } = useQuizStore();
+  const { nodes, edges, scoreRanges, isSaved } = useQuizStore();
+  const setScoreRanges = useQuizStore((s) => s.setScoreRanges);
+  const setQuizId = useQuizStore((s) => s.setQuizId);
+  const setQuizName = useQuizStore((s) => s.setQuizName);
+  const setNodes = useQuizStore((s) => s.setNodes);
+  const setEdges = useQuizStore((s) => s.setEdges);
+  const setQuizStatus = useQuizStore((s) => s.setQuizStatus);
+  const autoSaveTimer = useRef(null);
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
     }
   }, [status, router]);
+
+  // Load quiz data if store is empty (direct navigation to diagnostic page)
+  useEffect(() => {
+    if (status === 'authenticated' && params.id && !useQuizStore.getState().quizId) {
+      loadQuiz(params.id);
+    }
+  }, [status, params.id]);
+
+  const loadQuiz = async (id) => {
+    try {
+      const res = await fetch(`/api/quizzes/${id}`);
+      if (res.ok) {
+        const quiz = await res.json();
+        setQuizId(quiz.id);
+        setQuizName(quiz.name);
+        setQuizStatus(quiz.status === 'published' ? 'Publicado' : 'Rascunho');
+
+        if (quiz.scoreRanges) {
+          const ranges = typeof quiz.scoreRanges === 'string'
+            ? JSON.parse(quiz.scoreRanges)
+            : quiz.scoreRanges;
+          // Use setState directly to avoid marking as unsaved
+          useQuizStore.setState({ scoreRanges: ranges });
+        }
+
+        if (quiz.canvasData) {
+          const canvasData = typeof quiz.canvasData === 'string'
+            ? JSON.parse(quiz.canvasData)
+            : quiz.canvasData;
+          if (canvasData.nodes) setNodes(canvasData.nodes);
+          if (canvasData.edges) setEdges(canvasData.edges);
+        }
+
+        // Mark as saved and allow auto-save
+        useQuizStore.getState().saveQuiz();
+        setTimeout(() => { isFirstLoad.current = false; }, 500);
+      }
+    } catch (err) {
+      console.error('Failed to load quiz:', err);
+    }
+  };
+
+  // Auto-save debounced when scoreRanges change
+  useEffect(() => {
+    if (isFirstLoad.current || !params.id || isSaved) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(async () => {
+      try {
+        const { nodes: n, edges: e, quizName: name, scoreRanges: sr } = useQuizStore.getState();
+        const res = await fetch(`/api/quizzes/${params.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            canvasData: JSON.stringify({ nodes: n, edges: e }),
+            scoreRanges: sr,
+          }),
+        });
+        if (res.ok) {
+          useQuizStore.getState().saveQuiz();
+        }
+      } catch (err) {
+        console.error('Auto-save failed:', err);
+      }
+    }, 2000);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [scoreRanges, isSaved, params.id]);
 
   const diagnosticItems = getDiagnosticItems(nodes, edges);
   const successCount = diagnosticItems.filter(i => i.type === 'success').length;
@@ -115,7 +193,10 @@ export default function DiagnosticPage() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          {/* Score Ranges Editor */}
+          <ScoreRangesEditor />
+
+          <div className="space-y-4 mt-8">
             {diagnosticItems.map((item, index) => {
               const Icon = item.icon;
               return (

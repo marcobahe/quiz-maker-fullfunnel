@@ -28,6 +28,7 @@ model Quiz {
   status       String           @default("draft")
   canvasData   String?
   settings     String           @default("{}")
+  scoreRanges  String           @default("[]")
   leads        Lead[]
   integrations Integration[]
   analytics    AnalyticsEvent[]

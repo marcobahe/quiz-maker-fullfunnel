@@ -29,6 +29,7 @@ export async function GET(request, { params }) {
         description: true,
         canvasData: true,
         settings: true,
+        scoreRanges: true,
         status: true,
       },
     });

@@ -69,6 +69,7 @@ export async function PUT(request, { params }) {
     if (body.description !== undefined) updateData.description = body.description;
     if (body.canvasData !== undefined) updateData.canvasData = body.canvasData;
     if (body.settings !== undefined) updateData.settings = typeof body.settings === 'string' ? body.settings : JSON.stringify(body.settings);
+    if (body.scoreRanges !== undefined) updateData.scoreRanges = typeof body.scoreRanges === 'string' ? body.scoreRanges : JSON.stringify(body.scoreRanges);
     
     if (body.status === 'published' && existing.status !== 'published') {
       updateData.status = 'published';

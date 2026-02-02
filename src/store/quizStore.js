@@ -23,6 +23,9 @@ const useQuizStore = create((set, get) => ({
   // Selected node – store only ID so reads are always fresh
   selectedNodeId: null,
 
+  // Score Ranges
+  scoreRanges: [],
+
   // Gamification
   gamificationEnabled: true,
   pointsToShow: [],
@@ -35,6 +38,30 @@ const useQuizStore = create((set, get) => ({
   setQuizId: (id) => set({ quizId: id }),
   setQuizName: (name) => set({ quizName: name, isSaved: false }),
   setQuizStatus: (status) => set({ quizStatus: status }),
+
+  // ── Score Ranges actions ───────────────────────────────────
+
+  setScoreRanges: (ranges) => set({ scoreRanges: ranges, isSaved: false }),
+
+  addScoreRange: (range) =>
+    set((state) => ({
+      scoreRanges: [...state.scoreRanges, range],
+      isSaved: false,
+    })),
+
+  updateScoreRange: (id, data) =>
+    set((state) => ({
+      scoreRanges: state.scoreRanges.map((r) =>
+        r.id === id ? { ...r, ...data } : r,
+      ),
+      isSaved: false,
+    })),
+
+  removeScoreRange: (id) =>
+    set((state) => ({
+      scoreRanges: state.scoreRanges.filter((r) => r.id !== id),
+      isSaved: false,
+    })),
 
   setNodes: (nodesOrUpdater) => {
     if (typeof nodesOrUpdater === 'function') {
@@ -161,6 +188,7 @@ const useQuizStore = create((set, get) => ({
       nodes: initialNodes,
       edges: [],
       selectedNodeId: null,
+      scoreRanges: [],
     }),
 }));
 

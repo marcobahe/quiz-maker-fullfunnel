@@ -26,6 +26,7 @@ export default function BuilderPage() {
   const setNodes = useQuizStore((s) => s.setNodes);
   const setEdges = useQuizStore((s) => s.setEdges);
   const setQuizStatus = useQuizStore((s) => s.setQuizStatus);
+  const setScoreRanges = useQuizStore((s) => s.setScoreRanges);
 
   const [loading, setLoading] = useState(true);
   const autoSaveTimer = useRef(null);
@@ -40,13 +41,14 @@ export default function BuilderPage() {
   const autoSave = useCallback(async () => {
     if (!params.id || isFirstLoad.current) return;
     try {
-      const { nodes: n, edges: e, quizName: name } = useQuizStore.getState();
+      const { nodes: n, edges: e, quizName: name, scoreRanges: sr } = useQuizStore.getState();
       const res = await fetch(`/api/quizzes/${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
           canvasData: JSON.stringify({ nodes: n, edges: e }),
+          scoreRanges: sr,
         }),
       });
       if (res.ok) {
@@ -89,6 +91,14 @@ export default function BuilderPage() {
         setQuizId(quiz.id);
         setQuizName(quiz.name);
         setQuizStatus(quiz.status === 'published' ? 'Publicado' : 'Rascunho');
+
+        // Load score ranges
+        if (quiz.scoreRanges) {
+          const ranges = typeof quiz.scoreRanges === 'string'
+            ? JSON.parse(quiz.scoreRanges)
+            : quiz.scoreRanges;
+          setScoreRanges(ranges);
+        }
 
         if (quiz.canvasData) {
           const canvasData =

@@ -29,6 +29,7 @@ function QuizPlayer() {
   // Canvas data
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
+  const [scoreRanges, setScoreRanges] = useState([]);
 
   // ── Fetch quiz ──────────────────────────────────────────────
 
@@ -48,6 +49,16 @@ function QuizPlayer() {
 
       const data = await res.json();
       setQuiz(data);
+
+      // Load score ranges
+      if (data.scoreRanges) {
+        const ranges = typeof data.scoreRanges === 'string'
+          ? JSON.parse(data.scoreRanges)
+          : data.scoreRanges;
+        if (Array.isArray(ranges) && ranges.length > 0) {
+          setScoreRanges(ranges);
+        }
+      }
 
       const canvasData =
         typeof data.canvasData === 'string'
@@ -326,7 +337,20 @@ function QuizPlayer() {
     }
   };
 
+  /** Find the matching score range for a given score */
+  const getMatchingRange = (finalScore) => {
+    if (!scoreRanges || scoreRanges.length === 0) return null;
+    // Sort by min ascending and find the first matching range
+    const sorted = [...scoreRanges].sort((a, b) => a.min - b.min);
+    return sorted.find((r) => finalScore >= r.min && finalScore <= r.max) || null;
+  };
+
   const getResultCategory = (finalScore) => {
+    // If score ranges are configured, use them
+    const matchedRange = getMatchingRange(finalScore);
+    if (matchedRange) return matchedRange.title;
+
+    // Fallback to generic categories
     const percentage =
       maxPossibleScore > 0 ? (finalScore / maxPossibleScore) * 100 : 0;
     if (percentage >= 80) return 'Excelente';
@@ -434,48 +458,85 @@ function QuizPlayer() {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-lg">
           {/* ── Result Screen ─────────────────────────────── */}
-          {showResult && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-accent to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Trophy className="text-white" size={40} />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                {currentNode?.data?.title || 'Seu Resultado'}
-              </h1>
-              <div className="text-6xl mb-4">
-                {getResultEmoji(getResultCategory(score))}
-              </div>
-              <div className="bg-gradient-to-br from-accent/10 to-purple-100 rounded-xl p-6 mb-6">
-                <p className="text-sm text-gray-500 mb-1">Sua pontuação</p>
-                <p className="text-4xl font-bold text-accent">{score} pts</p>
-                <p className="text-lg font-medium text-purple-700 mt-2">
-                  {getResultCategory(score)}
-                </p>
-              </div>
-              <div className="space-y-3 text-left mb-6">
-                <h3 className="font-semibold text-gray-700">
-                  Suas respostas:
-                </h3>
-                {Object.values(answers).map((answer, i) => (
-                  <div key={i} className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-500">{answer.question}</p>
-                    <p className="font-medium text-gray-800 flex items-center justify-between">
-                      {answer.answer}
-                      <span className="text-accent text-sm">
-                        +{answer.score}
-                      </span>
-                    </p>
+          {showResult && (() => {
+            const matchedRange = getMatchingRange(score);
+            return (
+              <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+                {/* Range image (if configured) */}
+                {matchedRange?.image ? (
+                  <img
+                    src={matchedRange.image}
+                    alt={matchedRange.title}
+                    className="w-full h-48 object-cover rounded-xl mb-6"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gradient-to-br from-accent to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Trophy className="text-white" size={40} />
                   </div>
-                ))}
+                )}
+
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                  {matchedRange?.title || currentNode?.data?.title || 'Seu Resultado'}
+                </h1>
+
+                {matchedRange?.description ? (
+                  <p className="text-gray-600 mb-4 whitespace-pre-wrap">
+                    {matchedRange.description}
+                  </p>
+                ) : (
+                  <div className="text-6xl mb-4">
+                    {getResultEmoji(getResultCategory(score))}
+                  </div>
+                )}
+
+                <div className="bg-gradient-to-br from-accent/10 to-purple-100 rounded-xl p-6 mb-6">
+                  <p className="text-sm text-gray-500 mb-1">Sua pontuação</p>
+                  <p className="text-4xl font-bold text-accent">{score} pts</p>
+                  {!matchedRange && (
+                    <p className="text-lg font-medium text-purple-700 mt-2">
+                      {getResultCategory(score)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-3 text-left mb-6">
+                  <h3 className="font-semibold text-gray-700">
+                    Suas respostas:
+                  </h3>
+                  {Object.values(answers).map((answer, i) => (
+                    <div key={i} className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-sm text-gray-500">{answer.question}</p>
+                      <p className="font-medium text-gray-800 flex items-center justify-between">
+                        {answer.answer}
+                        <span className="text-accent text-sm">
+                          +{answer.score}
+                        </span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA button from matched range */}
+                {matchedRange?.ctaText && matchedRange?.ctaUrl ? (
+                  <a
+                    href={matchedRange.ctaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-block bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-medium transition-colors mb-3 text-center"
+                  >
+                    {matchedRange.ctaText}
+                  </a>
+                ) : null}
+
+                <button
+                  onClick={() => window.location.reload()}
+                  className={`w-full ${matchedRange?.ctaText ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' : 'bg-accent hover:bg-accent-hover text-white'} py-3 rounded-xl font-medium transition-colors`}
+                >
+                  Refazer Quiz
+                </button>
               </div>
-              <button
-                onClick={() => window.location.reload()}
-                className="w-full bg-accent hover:bg-accent-hover text-white py-3 rounded-xl font-medium transition-colors"
-              >
-                Refazer Quiz
-              </button>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ── Lead Form ─────────────────────────────────── */}
           {showLeadForm && !showResult && (
