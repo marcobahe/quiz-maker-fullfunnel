@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   X, Plus, Trash2, GripVertical, ChevronDown, ChevronRight,
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
@@ -258,6 +258,76 @@ function QuestionElementEditor({ element, nodeId }) {
   );
 }
 
+// ── Emoji Picker ─────────────────────────────────────────────────
+
+const EMOJI_CATEGORIES = {
+  'Pessoas': ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😛','😜','🤪','😎','🤩','🥳','😏','😒','😞','😢','😭','😤','🤯','😱','🤔','🤫','🤭','🙄','😴','🤮','🤑','😈','👻','💀','👽','🤖','💩','🙈','🙉','🙊'],
+  'Gestos': ['👍','👎','👏','🙌','🤝','✌️','🤞','🤟','🤘','👊','✊','👋','🖐️','✋','👆','👇','👈','👉','🫵','☝️','💪','🙏','🤲','👐'],
+  'Pessoas 2': ['🙎🏻','🙎🏻‍♀️','🧑','👨','👩','👶','👴','👵','🧔','👱','👱‍♀️','🤴','👸','🦸','🦹','🧙','🧑‍💼','👨‍💻','👩‍💻','🧑‍🎓'],
+  'Símbolos': ['✅','❌','⭐','🌟','💫','✨','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💯','🔥','💥','💢','💤','💬','👁️','🎯','🏆','🎖️','🥇','🥈','🥉','🏅'],
+  'Objetos': ['📱','💻','⌨️','🖥️','📧','📞','📸','🎥','🎬','🎵','🎶','🎮','🕹️','🎲','🃏','💰','💵','💳','📊','📈','📉','🔑','🔒','🔔','📌','📎','✏️','📝'],
+  'Natureza': ['☀️','🌙','⭐','🌈','☁️','⛈️','❄️','🔥','💧','🌊','🌸','🌺','🌻','🍀','🌿','🌲','🍎','🍊','🍋','🍇','🍕','🍔','☕','🍺'],
+  'Transporte': ['🚗','🚕','🚙','🏎️','🚌','🚎','🏍️','✈️','🚀','🛸','🚁','⛵','🚢','🚂','🏠','🏢','🏥','🏫','🏪','🏭'],
+};
+
+function EmojiPicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [category, setCategory] = useState('Pessoas');
+  const pickerRef = useRef(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={pickerRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-2xl text-center hover:border-accent/40 focus:ring-1 focus:ring-accent transition-colors cursor-pointer"
+        title="Escolher emoji"
+      >
+        {value || '⭐'}
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-64 -translate-x-1/4">
+          {/* Category tabs */}
+          <div className="flex gap-0.5 p-1.5 border-b border-gray-100 overflow-x-auto">
+            {Object.keys(EMOJI_CATEGORIES).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`text-[10px] px-1.5 py-1 rounded whitespace-nowrap transition-colors ${
+                  category === cat ? 'bg-accent text-white' : 'text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          {/* Emoji grid */}
+          <div className="grid grid-cols-8 gap-0.5 p-2 max-h-40 overflow-y-auto">
+            {EMOJI_CATEGORIES[category].map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => { onChange(emoji); setOpen(false); }}
+                className="w-7 h-7 flex items-center justify-center text-lg hover:bg-accent/10 rounded transition-colors"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function IconQuestionElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
 
@@ -365,12 +435,9 @@ function IconQuestionElementEditor({ element, nodeId }) {
                 </div>
                 <div className="flex-1 min-w-0 space-y-1">
                   {optionStyle === 'emoji' ? (
-                    <input
-                      type="text"
-                      value={option.icon || ''}
-                      onChange={(e) => handleOptionChange(index, 'icon', e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
-                      placeholder="Cole o emoji..."
+                    <EmojiPicker
+                      value={option.icon}
+                      onChange={(emoji) => handleOptionChange(index, 'icon', emoji)}
                     />
                   ) : (
                     <input
