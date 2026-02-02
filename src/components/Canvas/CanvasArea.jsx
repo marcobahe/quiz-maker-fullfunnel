@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -66,7 +66,17 @@ const StartNode = ({ data }) => (
 
 const QuestionNode = ({ id, data, selected }) => {
   const updateNode = useQuizStore((s) => s.updateNode);
+  const edges = useQuizStore((s) => s.edges);
   const Icon = data.type === 'multiple-choice' ? CheckSquare : CircleDot;
+
+  // Track which handles are connected
+  const connectedHandles = useMemo(() => {
+    const set = new Set();
+    edges.forEach((e) => {
+      if (e.source === id && e.sourceHandle) set.add(e.sourceHandle);
+    });
+    return set;
+  }, [edges, id]);
 
   const saveQuestion = (val) => updateNode(id, { question: val });
   const saveOption = (idx, val) => {
@@ -102,33 +112,42 @@ const QuestionNode = ({ id, data, selected }) => {
       </div>
 
       <div className="p-3 space-y-2">
-        {(data.options || []).map((option, index) => (
-          <div
-            key={index}
-            className="relative flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-600"
-          >
-            <span className="w-5 h-5 bg-white border border-gray-300 rounded-full flex items-center justify-center text-xs">
-              {String.fromCharCode(65 + index)}
-            </span>
-            <span className="flex-1">
-              <InlineEdit
-                value={option.text}
-                onSave={(val) => saveOption(index, val)}
-                className="text-gray-600"
-                placeholder="Opção…"
+        {(data.options || []).map((option, index) => {
+          const handleId = `option-${index}`;
+          const isConnected = connectedHandles.has(handleId);
+          return (
+            <div
+              key={index}
+              className="relative flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-600"
+            >
+              <span className="w-5 h-5 bg-white border border-gray-300 rounded-full flex items-center justify-center text-xs">
+                {String.fromCharCode(65 + index)}
+              </span>
+              <span className="flex-1">
+                <InlineEdit
+                  value={option.text}
+                  onSave={(val) => saveOption(index, val)}
+                  className="text-gray-600"
+                  placeholder="Opção…"
+                />
+              </span>
+              {option.score > 0 && (
+                <span className="text-xs text-accent font-medium">+{option.score}</span>
+              )}
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={handleId}
+                className={
+                  isConnected
+                    ? '!bg-accent !w-2.5 !h-2.5 !right-[-5px] !border !border-white'
+                    : '!bg-white !border-2 !border-accent/40 !w-2.5 !h-2.5 !right-[-5px]'
+                }
+                title="Conecte a uma pergunta ou resultado"
               />
-            </span>
-            {option.score > 0 && (
-              <span className="text-xs text-accent font-medium">+{option.score}</span>
-            )}
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={`option-${index}`}
-              className="!bg-accent !w-2.5 !h-2.5 !right-[-5px]"
-            />
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* General "all options" source handle */}
@@ -139,7 +158,11 @@ const QuestionNode = ({ id, data, selected }) => {
         type="source"
         position={Position.Bottom}
         id="general"
-        className="!bg-purple-400 !w-4 !h-4 !border-2 !border-white"
+        className={
+          connectedHandles.has('general')
+            ? '!bg-purple-500 !w-4 !h-4 !border-2 !border-white'
+            : '!bg-white !border-2 !border-purple-400 !w-4 !h-4'
+        }
         title="Todas as respostas → mesmo destino"
       />
     </div>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
+import { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon } from 'lucide-react';
+import { replaceVariables } from '@/lib/dynamicVariables';
 
 // ── Default theme (matches store defaults) ───────────────────
 const DEFAULT_THEME = {
@@ -74,36 +75,6 @@ function QuizPlayer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ── Analytics tracking ──────────────────────────────────────
-  const sessionIdRef = useRef(null);
-  const quizCompletedRef = useRef(false);
-  const startTimeRef = useRef(null);
-
-  // Generate a UUID for this session
-  if (!sessionIdRef.current) {
-    sessionIdRef.current = typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-          const r = Math.random() * 16 | 0;
-          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-        });
-  }
-
-  const trackEvent = useCallback((eventName, nodeId = null, metadata = {}) => {
-    if (!quiz?.id || isPreview) return;
-    const payload = {
-      event: eventName,
-      sessionId: sessionIdRef.current,
-      nodeId: nodeId || null,
-      data: { ...metadata, timestamp: Date.now() },
-    };
-    fetch(`/api/quizzes/${quiz.id}/analytics`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).catch(() => {});
-  }, [quiz?.id, isPreview]);
-
   // Theme settings
   const [theme, setTheme] = useState(DEFAULT_THEME);
   const [branding, setBranding] = useState(DEFAULT_BRANDING);
@@ -148,6 +119,34 @@ function QuizPlayer() {
     }
     return { backgroundColor: theme.backgroundColor };
   }, [theme.backgroundType, theme.backgroundGradient, theme.backgroundColor]);
+
+  // ── Dynamic Variables context ───────────────────────────────
+
+  const totalQuestions = useMemo(() => {
+    let count = 0;
+    for (const n of nodes) {
+      if (n.type === 'single-choice' || n.type === 'multiple-choice') count++;
+      if (n.type === 'composite') {
+        count += (n.data.elements || []).filter((el) =>
+          el.type.startsWith('question-'),
+        ).length;
+      }
+    }
+    return count;
+  }, [nodes]);
+
+  const variableValues = useMemo(() => ({
+    nome: leadForm.name || '',
+    email: leadForm.email || '',
+    score: String(score),
+    total_perguntas: String(totalQuestions),
+  }), [leadForm.name, leadForm.email, score, totalQuestions]);
+
+  /** Replace dynamic variables in text */
+  const rv = useCallback(
+    (text) => replaceVariables(text, variableValues),
+    [variableValues],
+  );
 
   // ── Fetch quiz ──────────────────────────────────────────────
 
@@ -214,17 +213,12 @@ function QuizPlayer() {
         }
       }
 
-      // Track quiz start
-      if (data.id && !isPreview) {
-        startTimeRef.current = Date.now();
+      // Track view
+      if (data.id) {
         fetch(`/api/quizzes/${data.id}/analytics`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            event: 'quiz_start',
-            sessionId: sessionIdRef.current,
-            data: { timestamp: Date.now() },
-          }),
+          body: JSON.stringify({ event: 'quiz_started' }),
         }).catch(() => {});
       }
     } catch (_err) {
@@ -234,46 +228,14 @@ function QuizPlayer() {
     }
   };
 
-  // ── Track question views ──────────────────────────────────
-  useEffect(() => {
-    if (!currentNodeId || !quiz?.id || isPreview) return;
-    const node = nodes.find(n => n.id === currentNodeId);
-    if (!node) return;
-    const isQuestion = node.type === 'single-choice' || node.type === 'multiple-choice' ||
-      (node.type === 'composite' && (node.data.elements || []).some(el => el.type.startsWith('question-')));
-    if (isQuestion) {
-      trackEvent('question_view', currentNodeId, { nodeType: node.type });
-    }
-  }, [currentNodeId, quiz?.id, isPreview, nodes, trackEvent]);
-
-  // ── Abandon tracking (beforeunload) ────────────────────────
-  useEffect(() => {
-    if (!quiz?.id || isPreview) return;
-    const handleBeforeUnload = () => {
-      if (quizCompletedRef.current) return;
-      const elapsed = startTimeRef.current ? Math.round((Date.now() - startTimeRef.current) / 1000) : 0;
-      const payload = JSON.stringify({
-        event: 'quiz_abandon',
-        sessionId: sessionIdRef.current,
-        nodeId: currentNodeId,
-        data: { lastNodeId: currentNodeId, answeredCount: Object.keys(answers).length, elapsedSeconds: elapsed, timestamp: Date.now() },
-      });
-      // Use sendBeacon for reliability on page close
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(`/api/quizzes/${quiz.id}/analytics`, new Blob([payload], { type: 'application/json' }));
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [quiz?.id, isPreview, currentNodeId, answers]);
-
-  // ── Navigation helpers ──────────────────────────────────────
+  // ── Navigation helpers (Enhanced Skip Logic) ────────────────
 
   const getNextNode = useCallback(
     (fromNodeId, optionIndex = null, elementId = null) => {
       const nodeEdges = edges.filter((e) => e.source === fromNodeId);
 
       if (optionIndex !== null) {
+        // 1. Try specific option edge (composite element handle)
         if (elementId) {
           const compEdge = nodeEdges.find(
             (e) => e.sourceHandle === `${elementId}-option-${optionIndex}`,
@@ -281,23 +243,67 @@ function QuizPlayer() {
           if (compEdge) return compEdge.target;
         }
 
+        // 2. Try specific option edge (legacy handle)
         const legacyEdge = nodeEdges.find(
           (e) => e.sourceHandle === `option-${optionIndex}`,
         );
         if (legacyEdge) return legacyEdge.target;
 
-        const anyEdge = nodeEdges.find(
+        // 3. Try any matching option edge (fuzzy)
+        const anyOptionEdge = nodeEdges.find(
           (e) =>
             e.sourceHandle &&
             e.sourceHandle.endsWith(`-option-${optionIndex}`),
         );
-        if (anyEdge) return anyEdge.target;
+        if (anyOptionEdge) return anyOptionEdge.target;
+
+        // 4. Fallback: try "general" handle edge (composite)
+        if (elementId) {
+          const compGeneral = nodeEdges.find(
+            (e) => e.sourceHandle === `${elementId}-general`,
+          );
+          if (compGeneral) return compGeneral.target;
+        }
+
+        // 5. Fallback: try "general" handle edge (legacy)
+        const legacyGeneral = nodeEdges.find(
+          (e) => e.sourceHandle === 'general',
+        );
+        if (legacyGeneral) return legacyGeneral.target;
+
+        // 6. Try any general handle
+        const anyGeneral = nodeEdges.find(
+          (e) => e.sourceHandle && e.sourceHandle.endsWith('-general'),
+        );
+        if (anyGeneral) return anyGeneral.target;
       }
 
+      // 7. Try default source handle (bottom handle, no sourceHandle id)
+      const defaultEdge = nodeEdges.find(
+        (e) => !e.sourceHandle,
+      );
+      if (defaultEdge) return defaultEdge.target;
+
+      // 8. Any remaining edge
       if (nodeEdges.length > 0) return nodeEdges[0].target;
+
+      // 9. No edges at all → try sequential navigation by Y position
+      const currentNode = nodes.find((n) => n.id === fromNodeId);
+      if (currentNode) {
+        const sortedNodes = [...nodes]
+          .filter((n) => n.type !== 'start' && n.id !== fromNodeId)
+          .sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0));
+
+        const currentY = currentNode.position?.y || 0;
+        const nextByPosition = sortedNodes.find(
+          (n) => (n.position?.y || 0) > currentY,
+        );
+        if (nextByPosition) return nextByPosition.id;
+      }
+
       return null;
     },
-    [edges],
+    [edges, nodes],
   );
 
   const advanceToNode = useCallback(
@@ -329,19 +335,6 @@ function QuizPlayer() {
 
   const currentNode = nodes.find((n) => n.id === currentNodeId);
 
-  const totalQuestions = useMemo(() => {
-    let count = 0;
-    for (const n of nodes) {
-      if (n.type === 'single-choice' || n.type === 'multiple-choice') count++;
-      if (n.type === 'composite') {
-        count += (n.data.elements || []).filter((el) =>
-          el.type.startsWith('question-'),
-        ).length;
-      }
-    }
-    return count;
-  }, [nodes]);
-
   const answeredCount = Object.keys(answers).length;
   const progress =
     totalQuestions > 0
@@ -368,22 +361,6 @@ function QuizPlayer() {
     }
     return total;
   }, [nodes]);
-
-  // ── Track quiz completion ─────────────────────────────────
-  useEffect(() => {
-    if (!showResult || !quiz?.id) return;
-    if (!quizCompletedRef.current) {
-      quizCompletedRef.current = true;
-      const elapsed = startTimeRef.current ? Math.round((Date.now() - startTimeRef.current) / 1000) : 0;
-      trackEvent('quiz_complete', currentNodeId, {
-        score,
-        resultCategory: getResultCategory(score),
-        totalAnswered: Object.keys(answers).length,
-        elapsedSeconds: elapsed,
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showResult, quiz?.id]);
 
   // ── Embed: notify parent on quiz completion ─────────────────
   useEffect(() => {
@@ -431,9 +408,6 @@ function QuizPlayer() {
       },
     }));
 
-    // Track answer
-    trackEvent('question_answer', currentNodeId, { optionIndex, score: optionScore, answer: option?.text });
-
     setTimeout(() => {
       setSelectedOption(null);
       advanceToNode(getNextNode(currentNodeId, optionIndex));
@@ -461,9 +435,6 @@ function QuizPlayer() {
       },
     }));
 
-    // Track composite answer
-    trackEvent('question_answer', currentNodeId, { elementId: element.id, optionIndex, score: optionScore, answer: option?.text });
-
     setTimeout(() => {
       setSelectedOption(null);
       advanceToNode(
@@ -486,9 +457,6 @@ function QuizPlayer() {
         }),
       });
       setLeadSaved(true);
-
-      // Track lead submit
-      trackEvent('lead_submit', currentNodeId, { hasEmail: !!leadForm.email, hasPhone: !!leadForm.phone });
 
       const nextId = getNextNode(currentNodeId);
       setTimeout(() => {
@@ -689,12 +657,12 @@ function QuizPlayer() {
                 )}
 
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  {matchedRange?.title || currentNode?.data?.title || 'Seu Resultado'}
+                  {rv(matchedRange?.title || currentNode?.data?.title || 'Seu Resultado')}
                 </h1>
 
                 {matchedRange?.description ? (
                   <p className="text-gray-600 mb-4 whitespace-pre-wrap">
-                    {matchedRange.description}
+                    {rv(matchedRange.description)}
                   </p>
                 ) : (
                   <div className="text-6xl mb-4">
@@ -775,13 +743,13 @@ function QuizPlayer() {
               ) : (
                 <>
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                    {currentNode?.data?.title ||
+                    {rv(currentNode?.data?.title ||
                       (isComposite
                         ? (currentNode?.data?.elements || []).find(
                             (el) => el.type === 'lead-form',
                           )?.title
                         : null) ||
-                      'Quase lá!'}
+                      'Quase lá!')}
                   </h2>
                   <p className="text-gray-500 mb-6">
                     Preencha seus dados para ver o resultado
@@ -860,7 +828,7 @@ function QuizPlayer() {
                 </button>
               )}
               <h2 className="text-xl font-bold text-gray-800 mb-6">
-                {currentNode.data.question || 'Pergunta'}
+                {rv(currentNode.data.question || 'Pergunta')}
               </h2>
               <div className="space-y-3">
                 {(currentNode.data.options || []).map((option, index) => (
@@ -925,7 +893,7 @@ function QuizPlayer() {
                       key={el.id}
                       className="text-gray-700 mb-4 whitespace-pre-wrap"
                     >
-                      {el.content}
+                      {rv(el.content)}
                     </p>
                   );
                 }
@@ -973,7 +941,7 @@ function QuizPlayer() {
                   return (
                     <div key={el.id} className="mb-4">
                       <h2 className="text-xl font-bold text-gray-800 mb-4">
-                        {el.question || 'Pergunta'}
+                        {rv(el.question || 'Pergunta')}
                       </h2>
                       <div className="space-y-3">
                         {(el.options || []).map((opt, idx) => {
