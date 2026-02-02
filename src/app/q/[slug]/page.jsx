@@ -24,6 +24,7 @@ function QuizPlayer() {
   const [leadForm, setLeadForm] = useState({ name: '', email: '', phone: '' });
   const [leadSaved, setLeadSaved] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [pointsBalloons, setPointsBalloons] = useState([]);
 
   // Canvas data
   const [nodes, setNodes] = useState([]);
@@ -197,13 +198,28 @@ function QuizPlayer() {
 
   // ── Handlers ────────────────────────────────────────────────
 
+  /** Show points balloon */
+  const showPointsBalloon = (points, event) => {
+    if (points <= 0) return;
+    const id = Date.now();
+    const rect = event?.currentTarget?.getBoundingClientRect?.();
+    const x = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+    const y = rect ? rect.top : window.innerHeight / 2;
+    setPointsBalloons((prev) => [...prev, { id, points, x, y }]);
+    setTimeout(() => {
+      setPointsBalloons((prev) => prev.filter((b) => b.id !== id));
+    }, 1500);
+  };
+
   /** Legacy question node option click */
-  const handleOptionSelect = (optionIndex) => {
+  const handleOptionSelect = (optionIndex, event) => {
     if (!currentNode) return;
     setSelectedOption(optionIndex);
 
     const option = currentNode.data.options?.[optionIndex];
     const optionScore = option?.score || 0;
+
+    if (optionScore > 0) showPointsBalloon(optionScore, event);
 
     setScore((prev) => prev + optionScore);
     setAnswers((prev) => ({
@@ -223,12 +239,14 @@ function QuizPlayer() {
   };
 
   /** Composite question element option click */
-  const handleCompositeOptionSelect = (element, optionIndex) => {
+  const handleCompositeOptionSelect = (element, optionIndex, event) => {
     if (!currentNode) return;
     setSelectedOption(`${element.id}-${optionIndex}`);
 
     const option = element.options?.[optionIndex];
     const optionScore = option?.score || 0;
+
+    if (optionScore > 0) showPointsBalloon(optionScore, event);
 
     setScore((prev) => prev + optionScore);
     setAnswers((prev) => ({
@@ -562,7 +580,7 @@ function QuizPlayer() {
                 {(currentNode.data.options || []).map((option, index) => (
                   <button
                     key={index}
-                    onClick={() => handleOptionSelect(index)}
+                    onClick={(e) => handleOptionSelect(index, e)}
                     disabled={selectedOption !== null}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
                       selectedOption === index
@@ -669,8 +687,8 @@ function QuizPlayer() {
                           return (
                             <button
                               key={idx}
-                              onClick={() =>
-                                handleCompositeOptionSelect(el, idx)
+                              onClick={(e) =>
+                                handleCompositeOptionSelect(el, idx, e)
                               }
                               disabled={selectedOption !== null}
                               className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
@@ -763,6 +781,22 @@ function QuizPlayer() {
           )}
         </div>
       </div>
+
+      {/* Points Balloons */}
+      {pointsBalloons.map((b) => (
+        <div
+          key={b.id}
+          className="fixed pointer-events-none z-50"
+          style={{ left: b.x - 40, top: b.y - 20 }}
+        >
+          <div className="animate-balloon bg-accent text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg flex items-center gap-1">
+            <span>+{b.points}</span>
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          </div>
+        </div>
+      ))}
 
       {/* Footer */}
       <div className="p-4 text-center">
