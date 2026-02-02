@@ -50,6 +50,7 @@ const PANEL_LABELS = {
   text: 'Texto',
   script: 'Script',
   'lead-form': 'Lead Form',
+  'question-icons': 'Escolha Visual',
 };
 
 // ── Legacy Node Components (backward-compat) ────────────────────

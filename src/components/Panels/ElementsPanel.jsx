@@ -10,7 +10,8 @@ import {
   Type, 
   FileText, 
   UserPlus,
-  Trophy
+  Trophy,
+  Grid2X2,
 } from 'lucide-react';
 
 const elements = [
@@ -19,6 +20,7 @@ const elements = [
     items: [
       { type: 'single-choice', icon: CircleDot, label: 'Escolha Única' },
       { type: 'multiple-choice', icon: CheckSquare, label: 'Múltipla Escolha' },
+      { type: 'question-icons', icon: Grid2X2, label: 'Escolha Visual' },
     ]
   },
   {

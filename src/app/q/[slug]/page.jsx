@@ -1010,6 +1010,70 @@ function QuizPlayer() {
                   );
                 }
 
+                if (el.type === 'question-icons') {
+                  const iconCols = el.columns || 2;
+                  return (
+                    <div key={el.id} className="mb-4">
+                      <h2 className="text-xl font-bold text-gray-800 mb-4">
+                        {rv(el.question || 'Pergunta')}
+                      </h2>
+                      <div
+                        className="grid gap-3"
+                        style={{ gridTemplateColumns: `repeat(${iconCols}, 1fr)` }}
+                      >
+                        {(el.options || []).map((opt, idx) => {
+                          const selKey = `${el.id}-${idx}`;
+                          const isSelected = selectedOption === selKey;
+                          return (
+                            <button
+                              key={idx}
+                              onClick={(e) =>
+                                handleCompositeOptionSelect(el, idx, e)
+                              }
+                              disabled={selectedOption !== null}
+                              className="flex flex-col items-center justify-center p-4 border-2 transition-all"
+                              style={{
+                                borderRadius: btnRadius,
+                                borderColor: isSelected ? theme.primaryColor : '#e5e7eb',
+                                backgroundColor: isSelected ? `${theme.primaryColor}10` : 'transparent',
+                                opacity: selectedOption !== null && !isSelected ? 0.5 : 1,
+                                boxShadow: isSelected ? `0 0 0 3px ${theme.primaryColor}20` : 'none',
+                                transform: isSelected ? 'scale(1.03)' : 'scale(1)',
+                                aspectRatio: '1 / 1',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (selectedOption === null) {
+                                  e.currentTarget.style.borderColor = theme.primaryColor;
+                                  e.currentTarget.style.transform = 'scale(1.05)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected && selectedOption === null) {
+                                  e.currentTarget.style.borderColor = '#e5e7eb';
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                }
+                              }}
+                            >
+                              {el.optionStyle === 'image' && opt.image ? (
+                                <img
+                                  src={opt.image}
+                                  alt={opt.text}
+                                  className="w-16 h-16 object-cover rounded-lg mb-2"
+                                />
+                              ) : (
+                                <span className="text-5xl mb-2 leading-none">{opt.icon || '⭐'}</span>
+                              )}
+                              <span className="text-sm font-medium text-gray-700 text-center">
+                                {opt.text}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+
                 if (el.type.startsWith('question-')) {
                   return (
                     <div key={el.id} className="mb-4">

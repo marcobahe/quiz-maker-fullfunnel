@@ -31,6 +31,7 @@ const ICONS = {
   carousel: LayoutGrid,
   'question-single': CircleDot,
   'question-multiple': CheckSquare,
+  'question-icons': LayoutGrid,
   'lead-form': UserPlus,
   script: FileText,
 };
@@ -43,6 +44,7 @@ const COLORS = {
   carousel: { bg: 'bg-orange-100', text: 'text-orange-600' },
   'question-single': { bg: 'bg-accent/10', text: 'text-accent' },
   'question-multiple': { bg: 'bg-accent/10', text: 'text-accent' },
+  'question-icons': { bg: 'bg-accent/10', text: 'text-accent' },
   'lead-form': { bg: 'bg-blue-100', text: 'text-blue-600' },
   script: { bg: 'bg-teal-100', text: 'text-teal-600' },
 };
@@ -55,6 +57,7 @@ const ELEMENT_TYPES = [
   { type: 'carousel', label: 'Carrossel' },
   { type: 'question-single', label: 'Escolha Única' },
   { type: 'question-multiple', label: 'Múltipla Escolha' },
+  { type: 'question-icons', label: 'Escolha Visual' },
   { type: 'lead-form', label: 'Formulário Lead' },
   { type: 'script', label: 'Script' },
 ];
@@ -96,6 +99,18 @@ export function createDefaultElement(type) {
           { text: 'Opção A', score: 10 },
           { text: 'Opção B', score: 5 },
           { text: 'Opção C', score: 0 },
+        ],
+      };
+    case 'question-icons':
+      return {
+        id,
+        type: 'question-icons',
+        question: 'Nova Pergunta Visual',
+        columns: 2,
+        optionStyle: 'emoji',
+        options: [
+          { text: 'Sim', icon: '✅', image: '', score: 10 },
+          { text: 'Não', icon: '❌', image: '', score: 0 },
         ],
       };
     case 'lead-form':
@@ -330,6 +345,116 @@ function QuestionElement({ element, nodeId }) {
   );
 }
 
+function IconQuestionElement({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const edges = useQuizStore((s) => s.edges);
+  const columns = element.columns || 2;
+
+  const connectedHandles = useMemo(() => {
+    const set = new Set();
+    edges.forEach((e) => {
+      if (e.source === nodeId && e.sourceHandle) set.add(e.sourceHandle);
+    });
+    return set;
+  }, [edges, nodeId]);
+
+  const addOption = (e) => {
+    e.stopPropagation();
+    const opts = [
+      ...(element.options || []),
+      { text: `Opção ${(element.options?.length || 0) + 1}`, icon: '⭐', image: '', score: 0 },
+    ];
+    updateNodeElement(nodeId, element.id, { options: opts });
+  };
+
+  return (
+    <div className="p-2">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="w-5 h-5 bg-accent/10 rounded flex items-center justify-center">
+          <LayoutGrid size={12} className="text-accent" />
+        </div>
+        <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">
+          Escolha Visual
+        </span>
+      </div>
+      <InlineEdit
+        value={element.question || ''}
+        onSave={(val) => updateNodeElement(nodeId, element.id, { question: val })}
+        className="text-gray-800 font-medium text-sm mb-2 block"
+        placeholder="Digite a pergunta…"
+      />
+      <div
+        className="grid gap-1.5 mb-1.5"
+        style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+      >
+        {(element.options || []).map((opt, idx) => {
+          const handleId = `${element.id}-option-${idx}`;
+          const isConnected = connectedHandles.has(handleId);
+          return (
+            <div
+              key={idx}
+              className="relative flex flex-col items-center justify-center bg-gray-50 border border-gray-200 rounded-lg p-2 hover:border-accent/40 transition-colors"
+            >
+              {element.optionStyle === 'image' && opt.image ? (
+                <img
+                  src={opt.image}
+                  alt={opt.text}
+                  className="w-8 h-8 object-cover rounded mb-0.5"
+                />
+              ) : (
+                <span className="text-2xl leading-none mb-0.5">{opt.icon || '⭐'}</span>
+              )}
+              <span className="text-[10px] text-gray-600 text-center truncate w-full">{opt.text}</span>
+              {opt.score > 0 && (
+                <span className="text-[9px] text-accent font-medium">+{opt.score}</span>
+              )}
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={handleId}
+                className={
+                  isConnected
+                    ? '!bg-accent !w-2.5 !h-2.5 !right-[-5px] !border !border-white'
+                    : '!bg-white !border-2 !border-accent/40 !w-2.5 !h-2.5 !right-[-5px]'
+                }
+                title="Conecte a uma pergunta ou resultado"
+              />
+            </div>
+          );
+        })}
+      </div>
+      <button
+        onClick={addOption}
+        className="nodrag text-xs text-accent hover:text-accent-hover flex items-center gap-1 px-2 py-1"
+      >
+        <Plus size={12} /> Opção
+      </button>
+
+      {/* General "all options" handle */}
+      {(() => {
+        const generalId = `${element.id}-general`;
+        const isGeneralConnected = connectedHandles.has(generalId);
+        return (
+          <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1">
+            <span className="text-[10px] text-purple-400 select-none flex-1">Todas as respostas</span>
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={generalId}
+              className={
+                isGeneralConnected
+                  ? '!bg-purple-500 !w-3 !h-3 !right-[-5px] !border-2 !border-white'
+                  : '!bg-white !border-2 !border-purple-400 !w-3 !h-3 !right-[-5px]'
+              }
+              title="Todas as respostas → mesmo destino"
+            />
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
 function LeadFormElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   return (
@@ -388,6 +513,8 @@ function ElementRenderer({ element, nodeId }) {
     case 'question-single':
     case 'question-multiple':
       return <QuestionElement element={element} nodeId={nodeId} />;
+    case 'question-icons':
+      return <IconQuestionElement element={element} nodeId={nodeId} />;
     case 'lead-form':
       return <LeadFormElement element={element} nodeId={nodeId} />;
     case 'script':

@@ -19,6 +19,7 @@ const ELEMENT_META = {
   carousel:          { label: 'Carrossel',       icon: LayoutGrid,  color: 'orange' },
   'question-single': { label: 'Escolha Única',   icon: CircleDot,   color: 'purple' },
   'question-multiple':{ label: 'Múltipla Escolha',icon: CheckSquare, color: 'purple' },
+  'question-icons':  { label: 'Escolha Visual',  icon: LayoutGrid,  color: 'purple' },
   'lead-form':       { label: 'Formulário Lead', icon: UserPlus,    color: 'blue' },
   script:            { label: 'Script',          icon: FileText,    color: 'teal' },
 };
@@ -31,6 +32,7 @@ const ELEMENT_TYPES = [
   { type: 'carousel',          label: 'Carrossel' },
   { type: 'question-single',   label: 'Escolha Única' },
   { type: 'question-multiple',  label: 'Múltipla Escolha' },
+  { type: 'question-icons',    label: 'Escolha Visual' },
   { type: 'lead-form',         label: 'Formulário Lead' },
   { type: 'script',            label: 'Script' },
 ];
@@ -163,6 +165,158 @@ function QuestionElementEditor({ element, nodeId }) {
   );
 }
 
+function IconQuestionElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+
+  const handleOptionChange = (index, field, value) => {
+    const opts = [...(element.options || [])];
+    opts[index] = { ...opts[index], [field]: value };
+    updateNodeElement(nodeId, element.id, { options: opts });
+  };
+
+  const addOption = () => {
+    const opts = [
+      ...(element.options || []),
+      { text: `Opção ${(element.options?.length || 0) + 1}`, icon: '⭐', image: '', score: 0 },
+    ];
+    updateNodeElement(nodeId, element.id, { options: opts });
+  };
+
+  const removeOption = (index) => {
+    const opts = (element.options || []).filter((_, i) => i !== index);
+    updateNodeElement(nodeId, element.id, { options: opts });
+  };
+
+  const columns = element.columns || 2;
+  const optionStyle = element.optionStyle || 'emoji';
+
+  return (
+    <div className="space-y-4">
+      {/* Question */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pergunta</label>
+        <textarea
+          value={element.question || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { question: e.target.value })}
+          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent resize-none text-sm"
+          rows={2}
+          placeholder="Digite a pergunta..."
+        />
+      </div>
+
+      {/* Columns selector */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Colunas</label>
+        <div className="flex gap-1">
+          {[2, 3, 4].map((n) => (
+            <button
+              key={n}
+              onClick={() => updateNodeElement(nodeId, element.id, { columns: n })}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                columns === n
+                  ? 'bg-accent text-white border-accent'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-accent/40'
+              }`}
+            >
+              {n} cols
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Option style selector */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Estilo das Opções</label>
+        <div className="flex gap-1">
+          {[
+            { value: 'emoji', label: '😀 Emoji' },
+            { value: 'image', label: '🖼️ Imagem' },
+          ].map((s) => (
+            <button
+              key={s.value}
+              onClick={() => updateNodeElement(nodeId, element.id, { optionStyle: s.value })}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                optionStyle === s.value
+                  ? 'bg-accent text-white border-accent'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-accent/40'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Options */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-700">Opções</label>
+          <button
+            onClick={addOption}
+            className="text-accent hover:text-accent-hover text-sm font-medium flex items-center gap-1"
+          >
+            <Plus size={16} /> Adicionar
+          </button>
+        </div>
+        <div className="space-y-3">
+          {(element.options || []).map((option, index) => (
+            <div key={index} className="bg-gray-50 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                {/* Icon/Image preview */}
+                <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center shrink-0">
+                  {optionStyle === 'image' && option.image ? (
+                    <img src={option.image} alt="" className="w-10 h-10 object-cover rounded" />
+                  ) : (
+                    <span className="text-2xl">{option.icon || '⭐'}</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  {optionStyle === 'emoji' ? (
+                    <input
+                      type="text"
+                      value={option.icon || ''}
+                      onChange={(e) => handleOptionChange(index, 'icon', e.target.value)}
+                      className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
+                      placeholder="Cole o emoji..."
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={option.image || ''}
+                      onChange={(e) => handleOptionChange(index, 'image', e.target.value)}
+                      className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
+                      placeholder="URL da imagem..."
+                    />
+                  )}
+                  <input
+                    type="text"
+                    value={option.text || ''}
+                    onChange={(e) => handleOptionChange(index, 'text', e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
+                    placeholder="Texto da opção..."
+                  />
+                </div>
+                <div className="flex flex-col items-center gap-1 shrink-0">
+                  <input
+                    type="number"
+                    value={option.score || 0}
+                    onChange={(e) => handleOptionChange(index, 'score', parseInt(e.target.value) || 0)}
+                    className="w-14 bg-white border border-gray-200 rounded px-1.5 py-1 text-sm text-center focus:ring-1 focus:ring-accent focus:border-transparent"
+                    title="Pontuação"
+                  />
+                  <button onClick={() => removeOption(index)} className="text-gray-400 hover:text-red-500 p-0.5">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LeadFormElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   return (
@@ -207,6 +361,8 @@ function ElementEditor({ element, nodeId }) {
     case 'question-single':
     case 'question-multiple':
       return <QuestionElementEditor element={element} nodeId={nodeId} />;
+    case 'question-icons':
+      return <IconQuestionElementEditor element={element} nodeId={nodeId} />;
     case 'lead-form':
       return <LeadFormElementEditor element={element} nodeId={nodeId} />;
     case 'script':
@@ -444,7 +600,7 @@ export default function PropertiesPanel({ onClose }) {
 
             {/* Gamification toggle (if composite has question elements) */}
             {(data.elements || []).some(
-              (el) => el.type === 'question-single' || el.type === 'question-multiple',
+              (el) => el.type === 'question-single' || el.type === 'question-multiple' || el.type === 'question-icons',
             ) && (
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
