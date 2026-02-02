@@ -6,6 +6,7 @@ import {
   Plus,
   GripVertical,
   X,
+  Trash2,
   Type,
   Video,
   Music,
@@ -336,12 +337,26 @@ export default function CompositeNode({ id, data, selected }) {
     setDragIdx(null);
   };
 
+  const removeNode = useQuizStore((s) => s.removeNode);
+
   return (
     <div
-      className={`bg-white rounded-xl shadow-lg border-2 min-w-[300px] max-w-[400px] transition-all ${
+      className={`group/node relative bg-white rounded-xl shadow-lg border-2 min-w-[300px] max-w-[400px] transition-all ${
         selected ? 'border-accent ring-2 ring-accent/20' : 'border-gray-200'
       }`}
     >
+      {/* Delete node button — appears on hover */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          removeNode(id);
+        }}
+        className="nodrag absolute -top-3 -right-3 z-10 w-7 h-7 bg-red-50 hover:bg-red-500 text-red-400 hover:text-white rounded-full flex items-center justify-center opacity-0 group-hover/node:opacity-100 transition-all shadow-sm border border-red-200 hover:border-red-500"
+        title="Excluir bloco"
+      >
+        <Trash2 size={14} />
+      </button>
+
       <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3" />
 
       {/* Header — dragging the node starts here */}
