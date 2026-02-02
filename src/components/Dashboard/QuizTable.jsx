@@ -126,7 +126,10 @@ export default function QuizTable({ quizzes, onRefresh }) {
                           <Users size={16} />
                           Ver Leads
                         </button>
-                        <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <button 
+                          onClick={() => { router.push(`/analytics/${quiz.id}`); setOpenMenu(null); }}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
                           <BarChart2 size={16} />
                           Analytics
                         </button>

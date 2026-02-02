@@ -9,6 +9,7 @@ export default function InlineEdit({
   multiline = false,
   placeholder = 'Clique para editar...',
   inputClassName = '',
+  renderValue = null,
 }) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
@@ -86,7 +87,9 @@ export default function InlineEdit({
       className={`cursor-text rounded px-0.5 -mx-0.5 transition-colors hover:bg-accent/5 inline-block ${className}`}
       title="Duplo clique para editar"
     >
-      {value || <span className="text-gray-400 italic">{placeholder}</span>}
+      {renderValue
+        ? (value ? renderValue(value) : <span className="text-gray-400 italic">{placeholder}</span>)
+        : (value || <span className="text-gray-400 italic">{placeholder}</span>)}
     </span>
   );
 }

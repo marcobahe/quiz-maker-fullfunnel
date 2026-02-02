@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon } from 'lucide-react';
 
@@ -73,6 +73,36 @@ function QuizPlayer() {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ── Analytics tracking ──────────────────────────────────────
+  const sessionIdRef = useRef(null);
+  const quizCompletedRef = useRef(false);
+  const startTimeRef = useRef(null);
+
+  // Generate a UUID for this session
+  if (!sessionIdRef.current) {
+    sessionIdRef.current = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+  }
+
+  const trackEvent = useCallback((eventName, nodeId = null, metadata = {}) => {
+    if (!quiz?.id || isPreview) return;
+    const payload = {
+      event: eventName,
+      sessionId: sessionIdRef.current,
+      nodeId: nodeId || null,
+      data: { ...metadata, timestamp: Date.now() },
+    };
+    fetch(`/api/quizzes/${quiz.id}/analytics`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  }, [quiz?.id, isPreview]);
 
   // Theme settings
   const [theme, setTheme] = useState(DEFAULT_THEME);
@@ -184,12 +214,17 @@ function QuizPlayer() {
         }
       }
 
-      // Track view
-      if (data.id) {
+      // Track quiz start
+      if (data.id && !isPreview) {
+        startTimeRef.current = Date.now();
         fetch(`/api/quizzes/${data.id}/analytics`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ event: 'quiz_started' }),
+          body: JSON.stringify({
+            event: 'quiz_start',
+            sessionId: sessionIdRef.current,
+            data: { timestamp: Date.now() },
+          }),
         }).catch(() => {});
       }
     } catch (_err) {
@@ -198,6 +233,39 @@ function QuizPlayer() {
       setLoading(false);
     }
   };
+
+  // ── Track question views ──────────────────────────────────
+  useEffect(() => {
+    if (!currentNodeId || !quiz?.id || isPreview) return;
+    const node = nodes.find(n => n.id === currentNodeId);
+    if (!node) return;
+    const isQuestion = node.type === 'single-choice' || node.type === 'multiple-choice' ||
+      (node.type === 'composite' && (node.data.elements || []).some(el => el.type.startsWith('question-')));
+    if (isQuestion) {
+      trackEvent('question_view', currentNodeId, { nodeType: node.type });
+    }
+  }, [currentNodeId, quiz?.id, isPreview, nodes, trackEvent]);
+
+  // ── Abandon tracking (beforeunload) ────────────────────────
+  useEffect(() => {
+    if (!quiz?.id || isPreview) return;
+    const handleBeforeUnload = () => {
+      if (quizCompletedRef.current) return;
+      const elapsed = startTimeRef.current ? Math.round((Date.now() - startTimeRef.current) / 1000) : 0;
+      const payload = JSON.stringify({
+        event: 'quiz_abandon',
+        sessionId: sessionIdRef.current,
+        nodeId: currentNodeId,
+        data: { lastNodeId: currentNodeId, answeredCount: Object.keys(answers).length, elapsedSeconds: elapsed, timestamp: Date.now() },
+      });
+      // Use sendBeacon for reliability on page close
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(`/api/quizzes/${quiz.id}/analytics`, new Blob([payload], { type: 'application/json' }));
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [quiz?.id, isPreview, currentNodeId, answers]);
 
   // ── Navigation helpers ──────────────────────────────────────
 
@@ -301,6 +369,22 @@ function QuizPlayer() {
     return total;
   }, [nodes]);
 
+  // ── Track quiz completion ─────────────────────────────────
+  useEffect(() => {
+    if (!showResult || !quiz?.id) return;
+    if (!quizCompletedRef.current) {
+      quizCompletedRef.current = true;
+      const elapsed = startTimeRef.current ? Math.round((Date.now() - startTimeRef.current) / 1000) : 0;
+      trackEvent('quiz_complete', currentNodeId, {
+        score,
+        resultCategory: getResultCategory(score),
+        totalAnswered: Object.keys(answers).length,
+        elapsedSeconds: elapsed,
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showResult, quiz?.id]);
+
   // ── Embed: notify parent on quiz completion ─────────────────
   useEffect(() => {
     if (!isEmbed || !showResult) return;
@@ -347,6 +431,9 @@ function QuizPlayer() {
       },
     }));
 
+    // Track answer
+    trackEvent('question_answer', currentNodeId, { optionIndex, score: optionScore, answer: option?.text });
+
     setTimeout(() => {
       setSelectedOption(null);
       advanceToNode(getNextNode(currentNodeId, optionIndex));
@@ -374,6 +461,9 @@ function QuizPlayer() {
       },
     }));
 
+    // Track composite answer
+    trackEvent('question_answer', currentNodeId, { elementId: element.id, optionIndex, score: optionScore, answer: option?.text });
+
     setTimeout(() => {
       setSelectedOption(null);
       advanceToNode(
@@ -396,6 +486,9 @@ function QuizPlayer() {
         }),
       });
       setLeadSaved(true);
+
+      // Track lead submit
+      trackEvent('lead_submit', currentNodeId, { hasEmail: !!leadForm.email, hasPhone: !!leadForm.phone });
 
       const nextId = getNextNode(currentNodeId);
       setTimeout(() => {

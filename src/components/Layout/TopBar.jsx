@@ -16,6 +16,7 @@ export default function TopBar({ quizId }) {
     { label: 'Canvas', path: `/builder/${quizId || 'new'}` },
     { label: 'Diagnóstico', path: `/diagnostic/${quizId || 'new'}` },
     { label: 'Integração', path: `/integration/${quizId || 'new'}` },
+    { label: 'Analytics', path: `/analytics/${quizId || 'new'}` },
   ];
 
   const handleNameChange = (e) => {
@@ -121,7 +122,8 @@ export default function TopBar({ quizId }) {
         <nav className="flex gap-1 bg-gray-100 rounded-lg p-1">
           {tabs.map((tab) => {
             const isActive = pathname === tab.path || 
-              (tab.label === 'Canvas' && pathname.includes('/builder'));
+              (tab.label === 'Canvas' && pathname.includes('/builder')) ||
+              (tab.label === 'Analytics' && pathname.includes('/analytics'));
             return (
               <Link
                 key={tab.path}

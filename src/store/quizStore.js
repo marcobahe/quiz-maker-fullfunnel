@@ -218,6 +218,28 @@ const useQuizStore = create((set, get) => ({
     }, 1500);
   },
 
+  loadQuiz: (data) => {
+    const canvasData = typeof data.canvasData === 'string'
+      ? JSON.parse(data.canvasData || '{}')
+      : data.canvasData || {};
+    const scoreRanges = typeof data.scoreRanges === 'string'
+      ? JSON.parse(data.scoreRanges || '[]')
+      : data.scoreRanges || [];
+    const settings = typeof data.settings === 'string'
+      ? JSON.parse(data.settings || '{}')
+      : data.settings || {};
+    set({
+      quizId: data.id,
+      quizName: data.name || 'Quiz',
+      quizStatus: data.status === 'published' ? 'Publicado' : 'Rascunho',
+      nodes: canvasData.nodes || initialNodes,
+      edges: canvasData.edges || [],
+      scoreRanges: Array.isArray(scoreRanges) ? scoreRanges : [],
+      quizSettings: { ...JSON.parse(JSON.stringify(defaultQuizSettings)), ...settings },
+      isSaved: true,
+    });
+  },
+
   saveQuiz: () => set({ isSaved: true }),
   publishQuiz: () => set({ quizStatus: 'Publicado', isSaved: true }),
 
