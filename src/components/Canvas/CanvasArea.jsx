@@ -3,7 +3,6 @@
 import { useCallback, useRef } from 'react';
 import {
   ReactFlow,
-  MiniMap,
   Controls,
   Background,
   addEdge,
@@ -454,21 +453,7 @@ export default function CanvasArea() {
         }}
       >
         <Background color="#e5e7eb" gap={20} size={1} />
-        <Controls className="!bottom-24 !left-4" />
-        <MiniMap
-          nodeStrokeColor={(n) => {
-            if (n.type === 'start') return '#10b981';
-            if (n.type === 'result' || n.type === 'composite') return '#7c3aed';
-            return '#6b7280';
-          }}
-          nodeColor={(n) => {
-            if (n.type === 'start') return '#10b981';
-            if (n.type === 'result') return '#7c3aed';
-            if (n.type === 'composite') return '#f3f0ff';
-            return '#fff';
-          }}
-          className="!bottom-4 !right-4"
-        />
+        <Controls className="!bottom-4 !left-4" />
       </ReactFlow>
     </div>
   );
