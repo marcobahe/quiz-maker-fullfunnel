@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, GripVertical, BarChart3, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, GripVertical, BarChart3, ExternalLink, Link2, Clock, Eye } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 
 const RANGE_COLORS = [
@@ -46,8 +46,8 @@ export default function ScoreRangesEditor() {
   };
 
   const handleUpdate = (id, field, value) => {
-    // Convert min/max to numbers
-    if (field === 'min' || field === 'max') {
+    // Convert min/max/redirectDelay to numbers
+    if (field === 'min' || field === 'max' || field === 'redirectDelay') {
       value = value === '' ? 0 : parseInt(value, 10) || 0;
     }
     updateScoreRange(id, { [field]: value });
@@ -274,6 +274,162 @@ export default function ScoreRangesEditor() {
                           )}
                         </div>
                       </div>
+                    </div>
+
+                    {/* ── Redirecionamento ─────────────────── */}
+                    <div className="mt-5 pt-4 border-t border-gray-100">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wide">
+                        <Link2 size={13} />
+                        Redirecionamento
+                      </label>
+
+                      {/* Mode selector */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          Ação ao mostrar resultado
+                        </label>
+                        <select
+                          value={range.redirectMode || 'none'}
+                          onChange={(e) => {
+                            const mode = e.target.value;
+                            const updates = { redirectMode: mode };
+                            // Auto-populate from legacy CTA fields
+                            if (mode === 'button' && !range.redirectUrl && range.ctaUrl) {
+                              updates.redirectUrl = range.ctaUrl;
+                            }
+                            if (mode === 'button' && !range.redirectButtonText && range.ctaText) {
+                              updates.redirectButtonText = range.ctaText;
+                            }
+                            updateScoreRange(range.id, updates);
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none bg-white"
+                        >
+                          <option value="none">Nenhum redirecionamento</option>
+                          <option value="auto">Redirecionar automaticamente</option>
+                          <option value="button">Mostrar botão para página</option>
+                        </select>
+                      </div>
+
+                      {/* Auto mode fields */}
+                      {range.redirectMode === 'auto' && (
+                        <div className="space-y-3 mt-3 p-3 bg-purple-50/50 rounded-lg border border-purple-100">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              URL de destino *
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="url"
+                                value={range.redirectUrl || ''}
+                                onChange={(e) => handleUpdate(range.id, 'redirectUrl', e.target.value)}
+                                placeholder="https://suapagina.com/oferta-basica"
+                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                              />
+                              <ExternalLink size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="flex items-center gap-1 text-xs font-medium text-gray-500 mb-1">
+                                <Clock size={12} />
+                                Delay (segundos)
+                              </label>
+                              <input
+                                type="number"
+                                min={0}
+                                max={30}
+                                value={range.redirectDelay ?? 5}
+                                onChange={(e) => handleUpdate(range.id, 'redirectDelay', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                              />
+                            </div>
+                            <div className="flex items-end pb-1">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdate(range.id, 'showResultBeforeRedirect', range.showResultBeforeRedirect === false ? true : false)}
+                                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                                    range.showResultBeforeRedirect !== false ? '' : 'bg-gray-300'
+                                  }`}
+                                  style={range.showResultBeforeRedirect !== false ? { backgroundColor: '#7c3aed' } : {}}
+                                >
+                                  <span
+                                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                                      range.showResultBeforeRedirect !== false ? 'translate-x-4' : 'translate-x-0.5'
+                                    }`}
+                                  />
+                                </button>
+                                <span className="text-xs text-gray-500">Mostrar resultado antes</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Preview */}
+                          {range.redirectUrl && (
+                            <div className="flex items-start gap-2 p-2.5 bg-white rounded-lg border border-purple-100 text-xs text-purple-700">
+                              <Eye size={14} className="mt-0.5 flex-shrink-0" />
+                              <span>
+                                {range.showResultBeforeRedirect !== false
+                                  ? `O respondente verá o resultado por ${range.redirectDelay ?? 5}s e será redirecionado para ${range.redirectUrl}`
+                                  : `O respondente será redirecionado imediatamente para ${range.redirectUrl}`}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Button mode fields */}
+                      {range.redirectMode === 'button' && (
+                        <div className="space-y-3 mt-3 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              URL de destino *
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="url"
+                                value={range.redirectUrl || ''}
+                                onChange={(e) => handleUpdate(range.id, 'redirectUrl', e.target.value)}
+                                placeholder="https://suapagina.com/oferta"
+                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                              />
+                              <ExternalLink size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              Texto do botão
+                            </label>
+                            <input
+                              type="text"
+                              value={range.redirectButtonText || ''}
+                              onChange={(e) => handleUpdate(range.id, 'redirectButtonText', e.target.value)}
+                              placeholder="Ver Minha Oferta Personalizada →"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                            />
+                          </div>
+
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdate(range.id, 'redirectOpenNewTab', !range.redirectOpenNewTab)}
+                              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                                range.redirectOpenNewTab ? '' : 'bg-gray-300'
+                              }`}
+                              style={range.redirectOpenNewTab ? { backgroundColor: '#7c3aed' } : {}}
+                            >
+                              <span
+                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                                  range.redirectOpenNewTab ? 'translate-x-4' : 'translate-x-0.5'
+                                }`}
+                              />
+                            </button>
+                            <span className="text-xs text-gray-500">Abrir em nova aba</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

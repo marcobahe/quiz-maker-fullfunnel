@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, Suspense, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon } from 'lucide-react';
+import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { replaceVariables } from '@/lib/dynamicVariables';
 import { initTracking, trackEvent } from '@/lib/tracking';
 import SpinWheel from '@/components/Player/SpinWheel';
@@ -35,6 +35,41 @@ const GRADIENT_CSS = {
   'from-gray-900 via-slate-800 to-zinc-900': 'linear-gradient(135deg, #111827, #1e293b, #18181b)',
   'from-rose-900 via-pink-800 to-fuchsia-900': 'linear-gradient(135deg, #881337, #9d174d, #701a75)',
 };
+
+// ── Redirect utilities ───────────────────────────────────────
+function performRedirect(url, isEmbed) {
+  if (isEmbed) {
+    try {
+      window.top.location.href = url;
+    } catch (_e) {
+      // Cross-origin iframe — use postMessage + fallback
+      window.parent.postMessage({ type: 'quiz-redirect', url }, '*');
+      window.open(url, '_blank');
+    }
+  } else {
+    window.location.href = url;
+  }
+}
+
+function trackRedirectEvent(url, resultTitle) {
+  try {
+    // Facebook Pixel
+    if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+      window.fbq('track', 'InitiateCheckout', { content_name: resultTitle });
+    }
+    // GTM dataLayer
+    if (typeof window !== 'undefined' && Array.isArray(window.dataLayer)) {
+      window.dataLayer.push({ event: 'quiz_redirect', redirectUrl: url, resultTitle });
+    }
+    // GA4
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('event', 'quiz_redirect', { destination: url, result_title: resultTitle });
+    }
+    // TODO: Use trackEvent from src/lib/tracking.js when available
+  } catch (_e) {
+    // Silently ignore tracking errors
+  }
+}
 
 // ── Google Fonts loader ──────────────────────────────────────
 function GoogleFontLink({ fontFamily }) {
@@ -539,6 +574,93 @@ function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit })
       >
         Continuar <ChevronRight size={20} />
       </button>
+    </div>
+  );
+}
+
+// ── Redirect Components ──────────────────────────────────────
+
+function RedirectCountdown({ url, delay, accentColor, secondaryColor, isEmbed, resultTitle }) {
+  const [remaining, setRemaining] = useState(delay);
+  const [cancelled, setCancelled] = useState(false);
+  const hasRedirected = useRef(false);
+
+  useEffect(() => {
+    if (cancelled || hasRedirected.current) return;
+    const start = Date.now();
+    const timer = setInterval(() => {
+      const elapsed = (Date.now() - start) / 1000;
+      const left = Math.max(0, delay - elapsed);
+      setRemaining(left);
+      if (left <= 0) clearInterval(timer);
+    }, 50);
+    return () => clearInterval(timer);
+  }, [cancelled, delay]);
+
+  useEffect(() => {
+    if (remaining <= 0 && !cancelled && !hasRedirected.current) {
+      hasRedirected.current = true;
+      trackRedirectEvent(url, resultTitle);
+      performRedirect(url, isEmbed);
+    }
+  }, [remaining, cancelled, url, isEmbed, resultTitle]);
+
+  if (cancelled) return null;
+
+  const secondsLeft = Math.ceil(remaining);
+  const progress = delay > 0 ? (remaining / delay) * 100 : 0;
+
+  return (
+    <div
+      className="bg-white rounded-2xl shadow-lg p-5 text-center overflow-hidden"
+      style={{ borderTop: `3px solid ${accentColor}` }}
+    >
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+          style={{ backgroundColor: accentColor, animation: 'pulse 1.5s ease-in-out infinite' }}
+        >
+          {secondsLeft}
+        </div>
+        <p className="text-sm text-gray-500">
+          Redirecionando em{' '}
+          <span className="font-semibold" style={{ color: accentColor }}>
+            {secondsLeft}
+          </span>{' '}
+          segundo{secondsLeft !== 1 ? 's' : ''}...
+        </p>
+      </div>
+      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${progress}%`,
+            background: `linear-gradient(90deg, ${accentColor}, ${secondaryColor || accentColor})`,
+            transition: 'width 0.05s linear',
+          }}
+        />
+      </div>
+      <button
+        onClick={() => setCancelled(true)}
+        className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        Cancelar redirecionamento
+      </button>
+    </div>
+  );
+}
+
+function ImmediateRedirect({ url, isEmbed, resultTitle, accentColor }) {
+  useEffect(() => {
+    trackRedirectEvent(url, resultTitle);
+    const timer = setTimeout(() => performRedirect(url, isEmbed), 800);
+    return () => clearTimeout(timer);
+  }, [url, isEmbed, resultTitle]);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+      <Loader2 className="animate-spin mx-auto mb-4" size={32} style={{ color: accentColor }} />
+      <p className="text-gray-600 font-medium">Redirecionando...</p>
     </div>
   );
 }
@@ -1304,6 +1426,30 @@ function QuizPlayer() {
             const matchedRange = getMatchingRange(score);
             const showStatic = !aiConfig?.enabled || aiConfig?.combineWithStatic !== false;
             const showAi = aiConfig?.enabled;
+
+            // ── Redirect configuration ──────────────────────
+            const _rMode = matchedRange?.redirectMode || (matchedRange?.ctaUrl && matchedRange?.ctaText ? 'button' : 'none');
+            const _rUrl = matchedRange?.redirectUrl || matchedRange?.ctaUrl || '';
+            const _rDelay = matchedRange?.redirectDelay ?? 5;
+            const _rShowBefore = matchedRange?.showResultBeforeRedirect !== false;
+            const _rBtnText = matchedRange?.redirectButtonText || matchedRange?.ctaText || 'Continuar →';
+            const _rNewTab = matchedRange?.redirectMode
+              ? (matchedRange?.redirectOpenNewTab ?? false)
+              : !!matchedRange?.ctaUrl; // backward compat: old ctaUrl → new tab
+            const _rResultTitle = matchedRange?.title || getResultCategory(score);
+
+            // Immediate redirect (auto mode, skip result display)
+            if (_rMode === 'auto' && !_rShowBefore && _rUrl) {
+              return (
+                <ImmediateRedirect
+                  url={_rUrl}
+                  isEmbed={isEmbed}
+                  resultTitle={_rResultTitle}
+                  accentColor={theme.primaryColor}
+                />
+              );
+            }
+
             return (
               <div className="space-y-6">
                 {showStatic && (
@@ -1354,15 +1500,17 @@ function QuizPlayer() {
 
                     {/* Respostas detalhadas ficam ocultas — foco no diagnóstico */}
 
-                    {!showAi && matchedRange?.ctaText && matchedRange?.ctaUrl ? (
+                    {!showAi && _rMode === 'button' && _rUrl ? (
                       <a
-                        href={matchedRange.ctaUrl}
-                        target="_blank"
+                        href={_rUrl}
+                        target={_rNewTab ? '_blank' : '_self'}
                         rel="noopener noreferrer"
-                        className="w-full inline-block text-white py-3 font-medium transition-opacity hover:opacity-90 mb-3 text-center"
+                        className="w-full inline-flex items-center justify-center gap-2 text-white py-3 font-medium transition-opacity hover:opacity-90 mb-3 text-center"
                         style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                        onClick={() => trackRedirectEvent(_rUrl, _rResultTitle)}
                       >
-                        {matchedRange.ctaText}
+                        {_rBtnText}
+                        <ExternalLink size={16} />
                       </a>
                     ) : null}
 
@@ -1371,8 +1519,8 @@ function QuizPlayer() {
                         onClick={() => window.location.reload()}
                         className={`w-full py-3 font-medium transition-opacity hover:opacity-90`}
                         style={{
-                          backgroundColor: matchedRange?.ctaText ? '#f3f4f6' : theme.primaryColor,
-                          color: matchedRange?.ctaText ? '#374151' : '#ffffff',
+                          backgroundColor: (_rMode === 'button' && _rUrl) ? '#f3f4f6' : theme.primaryColor,
+                          color: (_rMode === 'button' && _rUrl) ? '#374151' : '#ffffff',
                           borderRadius: btnRadius,
                         }}
                       >
@@ -1464,29 +1612,43 @@ function QuizPlayer() {
                 {/* CTA and Refazer buttons (always at bottom) */}
                 {showAi && (
                   <div className="bg-white rounded-2xl shadow-xl p-6 space-y-3" style={{ fontFamily: theme.fontFamily }}>
-                    {matchedRange?.ctaText && matchedRange?.ctaUrl ? (
+                    {_rMode === 'button' && _rUrl ? (
                       <a
-                        href={matchedRange.ctaUrl}
-                        target="_blank"
+                        href={_rUrl}
+                        target={_rNewTab ? '_blank' : '_self'}
                         rel="noopener noreferrer"
-                        className="w-full inline-block text-white py-3 font-medium transition-opacity hover:opacity-90 text-center"
+                        className="w-full inline-flex items-center justify-center gap-2 text-white py-3 font-medium transition-opacity hover:opacity-90 text-center"
                         style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                        onClick={() => trackRedirectEvent(_rUrl, _rResultTitle)}
                       >
-                        {matchedRange.ctaText}
+                        {_rBtnText}
+                        <ExternalLink size={16} />
                       </a>
                     ) : null}
                     <button
                       onClick={() => window.location.reload()}
                       className={`w-full py-3 font-medium transition-opacity hover:opacity-90`}
                       style={{
-                        backgroundColor: matchedRange?.ctaText ? '#f3f4f6' : theme.primaryColor,
-                        color: matchedRange?.ctaText ? '#374151' : '#ffffff',
+                        backgroundColor: (_rMode === 'button' && _rUrl) ? '#f3f4f6' : theme.primaryColor,
+                        color: (_rMode === 'button' && _rUrl) ? '#374151' : '#ffffff',
                         borderRadius: btnRadius,
                       }}
                     >
                       Refazer Quiz
                     </button>
                   </div>
+                )}
+
+                {/* Auto redirect countdown */}
+                {_rMode === 'auto' && _rUrl && (
+                  <RedirectCountdown
+                    url={_rUrl}
+                    delay={_rDelay}
+                    accentColor={theme.primaryColor}
+                    secondaryColor={theme.secondaryColor}
+                    isEmbed={isEmbed}
+                    resultTitle={_rResultTitle}
+                  />
                 )}
               </div>
             );
