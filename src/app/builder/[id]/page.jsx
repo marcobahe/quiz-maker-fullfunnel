@@ -51,7 +51,15 @@ export default function BuilderPage() {
         if (quiz.canvasData) {
           const canvasData = typeof quiz.canvasData === 'string' ? JSON.parse(quiz.canvasData) : quiz.canvasData;
           if (canvasData.nodes) setNodes(canvasData.nodes);
-          if (canvasData.edges) setEdges(canvasData.edges);
+          if (canvasData.edges) {
+            // Force all edges to bezier curves
+            const fixedEdges = canvasData.edges.map(edge => ({
+              ...edge,
+              type: 'default',
+              style: { stroke: '#7c3aed', strokeWidth: 2 },
+            }));
+            setEdges(fixedEdges);
+          }
         }
       } else {
         router.push('/');
