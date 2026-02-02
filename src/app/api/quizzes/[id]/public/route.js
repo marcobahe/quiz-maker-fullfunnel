@@ -38,6 +38,11 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
     }
 
+    // Derive origin from request for embed URLs
+    const origin = new URL(request.url).origin;
+    const embedSlug = quiz.slug || quiz.id;
+    quiz.embedUrl = `${origin}/q/${embedSlug}?embed=true`;
+
     return NextResponse.json(quiz);
   } catch (error) {
     console.error('Error fetching public quiz:', error);

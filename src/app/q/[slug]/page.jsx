@@ -58,6 +58,17 @@ function QuizPlayer() {
   const params = useParams();
   const searchParams = useSearchParams();
   const isPreview = searchParams.get('preview') === 'true';
+  const isEmbedParam = searchParams.get('embed') === 'true';
+
+  // Detect if running inside an iframe (embed mode)
+  const [isEmbed, setIsEmbed] = useState(false);
+  useEffect(() => {
+    try {
+      setIsEmbed(isEmbedParam || window.self !== window.top);
+    } catch (_) {
+      setIsEmbed(true); // cross-origin iframe blocks access → we are embedded
+    }
+  }, [isEmbedParam]);
 
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -83,6 +94,19 @@ function QuizPlayer() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [scoreRanges, setScoreRanges] = useState([]);
+
+  // ── Embed: auto-resize via postMessage ───────────────────────
+  useEffect(() => {
+    if (!isEmbed) return;
+    const send = () => {
+      const h = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: 'quizmaker:resize', height: h }, '*');
+    };
+    send();
+    const obs = new ResizeObserver(send);
+    obs.observe(document.body);
+    return () => obs.disconnect();
+  }, [isEmbed, currentNodeId, showResult, showLeadForm]);
 
   // ── Derived styles ──────────────────────────────────────────
 
@@ -277,6 +301,18 @@ function QuizPlayer() {
     return total;
   }, [nodes]);
 
+  // ── Embed: notify parent on quiz completion ─────────────────
+  useEffect(() => {
+    if (!isEmbed || !showResult) return;
+    window.parent.postMessage({
+      type: 'quizmaker:complete',
+      slug: params.slug,
+      score,
+      category: getResultCategory(score),
+    }, '*');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEmbed, showResult]);
+
   // ── Handlers ────────────────────────────────────────────────
 
   const showPointsBalloon = (points, event) => {
@@ -441,9 +477,11 @@ function QuizPlayer() {
 
   // ── Render ──────────────────────────────────────────────────
 
+  const embedClass = isEmbed ? 'min-h-0 h-full' : 'min-h-screen';
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={bgStyle}>
+      <div className={`${embedClass} flex items-center justify-center`} style={bgStyle}>
         <Loader2 className="animate-spin" size={48} style={{ color: theme.textColor }} />
       </div>
     );
@@ -451,7 +489,7 @@ function QuizPlayer() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
+      <div className={`${embedClass} flex items-center justify-center p-4`} style={bgStyle}>
         <div className="bg-white rounded-2xl p-8 max-w-md text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Oops!</h1>
           <p className="text-gray-500">{error}</p>
@@ -478,51 +516,53 @@ function QuizPlayer() {
 
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className={`${embedClass} flex flex-col`}
       style={{ ...bgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}
     >
       {/* Google Font */}
       <GoogleFontLink fontFamily={theme.fontFamily} />
 
       {/* Preview badge */}
-      {isPreview && (
+      {isPreview && !isEmbed && (
         <div className="bg-amber-500 text-white text-center text-xs py-1 font-medium">
           ⚡ Modo Preview — as respostas não serão salvas
         </div>
       )}
 
-      {/* Header */}
-      <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {branding.logoUrl ? (
-            <img
-              src={branding.logoUrl}
-              alt="Logo"
-              className="w-8 h-8 rounded-lg object-cover"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-          ) : (
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-            >
-              <span className="text-sm font-bold" style={{ color: theme.textColor }}>Q</span>
-            </div>
+      {/* Header (hidden in embed mode for cleaner look) */}
+      {!isEmbed && (
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {branding.logoUrl ? (
+              <img
+                src={branding.logoUrl}
+                alt="Logo"
+                className="w-8 h-8 rounded-lg object-cover"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            ) : (
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+              >
+                <span className="text-sm font-bold" style={{ color: theme.textColor }}>Q</span>
+              </div>
+            )}
+            <span className="text-sm font-medium" style={{ color: theme.textColor, opacity: 0.8 }}>
+              {quiz?.name}
+            </span>
+          </div>
+          {!showResult && (
+            <span className="text-sm" style={{ color: theme.textColor, opacity: 0.6 }}>
+              {answeredCount}/{totalQuestions}
+            </span>
           )}
-          <span className="text-sm font-medium" style={{ color: theme.textColor, opacity: 0.8 }}>
-            {quiz?.name}
-          </span>
         </div>
-        {!showResult && (
-          <span className="text-sm" style={{ color: theme.textColor, opacity: 0.6 }}>
-            {answeredCount}/{totalQuestions}
-          </span>
-        )}
-      </div>
+      )}
 
       {/* Progress Bar */}
       {!showResult && (
-        <div className="px-4 mb-6">
+        <div className={isEmbed ? 'px-2 mb-4' : 'px-4 mb-6'}>
           <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
             <div
               className="h-full rounded-full transition-all duration-500"
@@ -533,7 +573,7 @@ function QuizPlayer() {
       )}
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className={`flex-1 flex items-center justify-center ${isEmbed ? 'p-2' : 'p-4'}`}>
         <div className="w-full max-w-lg">
           {/* ── Result Screen ─────────────────────────────── */}
           {showResult && (() => {
@@ -992,7 +1032,7 @@ function QuizPlayer() {
       ))}
 
       {/* Footer */}
-      {branding.showBranding && (
+      {branding.showBranding && !isEmbed && (
         <div className="p-4 text-center">
           <span className="text-xs" style={{ color: theme.textColor, opacity: 0.4 }}>
             Feito com Quiz Maker
