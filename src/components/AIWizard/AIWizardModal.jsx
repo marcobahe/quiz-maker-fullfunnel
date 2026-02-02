@@ -156,7 +156,16 @@ function QuestionPreview({ question, index, onChange }) {
         rows={2}
       />
 
-      {question.type === 'question-open' ? (
+      {question.type === 'question-rating' ? (
+        <div className="mt-2 bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-500">
+          <span className="font-medium">
+            {question.ratingType === 'stars' ? '★★★★★' : question.ratingType === 'slider' ? '🎚️ Slider' : `${question.minValue ?? 0} — ${question.maxValue ?? 10}`}
+          </span>
+          {question.scoreMultiplier && question.scoreMultiplier !== 1 && (
+            <span className="text-purple-400 ml-2">×{question.scoreMultiplier}</span>
+          )}
+        </div>
+      ) : question.type === 'question-open' ? (
         <div className="mt-2 bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-400 italic">
           {question.placeholder || 'Resposta aberta...'}
         </div>

@@ -102,7 +102,14 @@ export async function POST(request, { params }) {
     if (answers && typeof answers === 'object') {
       const answerEntries = Array.isArray(answers) ? answers : Object.values(answers);
       answersFormatted = answerEntries
-        .map((a) => `Pergunta: ${a.question || 'N/A'} | Resposta: ${a.answer || 'N/A'} | Pontos: ${a.score ?? 0}`)
+        .map((a) => {
+          const question = a.question || 'N/A';
+          // Rating answers store ratingValue and ratingMax
+          if (a.ratingValue !== undefined && a.ratingMax !== undefined) {
+            return `Pergunta: ${question} | Nota: ${a.ratingValue}/${a.ratingMax} | Pontos: ${a.score ?? 0}`;
+          }
+          return `Pergunta: ${question} | Resposta: ${a.answer || 'N/A'} | Pontos: ${a.score ?? 0}`;
+        })
         .join('\n');
     }
 

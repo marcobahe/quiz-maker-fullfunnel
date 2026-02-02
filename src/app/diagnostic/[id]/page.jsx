@@ -16,8 +16,14 @@ const getDiagnosticItems = (nodes, edges) => {
   
   const hasStart = nodes.some(n => n.type === 'start');
   const hasResult = nodes.some(n => n.type === 'result');
-  const hasLeadForm = nodes.some(n => n.type === 'lead-form');
-  const questions = nodes.filter(n => n.type === 'single-choice' || n.type === 'multiple-choice');
+  const hasLeadForm = nodes.some(n => n.type === 'lead-form') ||
+    nodes.some(n => n.type === 'composite' && (n.data?.elements || []).some(el => el.type === 'lead-form'));
+  // Count legacy question nodes + composite question elements
+  const legacyQuestions = nodes.filter(n => n.type === 'single-choice' || n.type === 'multiple-choice');
+  const compositeQuestionEls = nodes
+    .filter(n => n.type === 'composite')
+    .flatMap(n => (n.data?.elements || []).filter(el => el.type.startsWith('question-')));
+  const questions = [...legacyQuestions, ...compositeQuestionEls];
   
   if (hasStart && hasResult && questions.length > 0) {
     items.push({ type: 'success', icon: CheckCircle, title: 'Estrutura do Quiz', description: 'O quiz possui início, perguntas e resultado.' });
@@ -39,7 +45,8 @@ const getDiagnosticItems = (nodes, edges) => {
     items.push({ type: 'success', icon: CheckCircle, title: 'Conexões', description: 'Todos os elementos estão conectados.' });
   }
 
-  const noScoreOptions = questions.some(q => q.data.options?.every(o => !o.score || o.score === 0));
+  const noScoreOptions = legacyQuestions.some(q => q.data?.options?.every(o => !o.score || o.score === 0)) ||
+    compositeQuestionEls.some(el => el.options && el.options.length > 0 && el.options.every(o => !o.score || o.score === 0));
   if (noScoreOptions) {
     items.push({ type: 'warning', icon: AlertTriangle, title: 'Pontuação', description: 'Algumas opções não possuem pontuação definida.' });
   } else if (questions.length > 0) {

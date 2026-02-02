@@ -317,7 +317,7 @@ function extractQuestions(canvasData) {
     // Composite nodes with question elements
     if (node.type === 'composite' && node.data?.elements) {
       for (const el of node.data.elements) {
-        if (el.type === 'question-single' || el.type === 'question-multiple' || el.type === 'question-icons') {
+        if (el.type.startsWith('question-')) {
           questions.push({
             id: `${node.id}__${el.id}`,
             elementId: el.id,
@@ -720,7 +720,7 @@ function FullFunnelSection({ quizId }) {
                           {q.question}
                         </p>
                         <p className="text-xs text-gray-400">
-                          {q.type === 'question-icons' ? 'Ícones' : q.type === 'question-multiple' || q.type === 'multiple-choice' ? 'Múltipla escolha' : 'Escolha única'}
+                          {q.type === 'question-icons' ? 'Ícones' : q.type === 'question-multiple' || q.type === 'multiple-choice' ? 'Múltipla escolha' : q.type === 'question-open' ? 'Pergunta aberta' : q.type === 'question-rating' ? 'Nota / Avaliação' : 'Escolha única'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">

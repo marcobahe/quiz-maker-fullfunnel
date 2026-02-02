@@ -21,7 +21,7 @@ function extractQuestionLabels(canvasData) {
       for (const node of data.nodes) {
         if (node.type === 'composite' && node.data?.elements) {
           for (const el of node.data.elements) {
-            if (el.type === 'question-single' || el.type === 'question-multiple') {
+            if (el.type.startsWith('question-')) {
               questions.push({
                 id: el.id,
                 question: el.question || 'Pergunta',
