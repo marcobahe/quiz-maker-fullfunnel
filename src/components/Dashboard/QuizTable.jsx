@@ -125,7 +125,7 @@ export default function QuizTable({ quizzes, onRefresh, onOpenTemplates }) {
                     </button>
                     
                     {openMenu === quiz.id && (
-                      <div className="absolute right-6 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl py-1 z-50 min-w-[180px]" style={{ top: '100%' }}>
+                      <div className="absolute right-6 bottom-full mb-1 bg-white border border-gray-200 rounded-lg shadow-xl py-1 z-50 min-w-[180px]">
                         <button 
                           onClick={() => handleEdit(quiz.id)}
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
