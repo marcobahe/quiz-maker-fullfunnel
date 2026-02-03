@@ -27,6 +27,7 @@ import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
 import { AVAILABLE_VARIABLES, parseVariableSegments } from '@/lib/dynamicVariables';
 import EmojiPicker from '@/components/EmojiPicker';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
 // ── Shared lookups ──────────────────────────────────────────────
 const ICONS = {
@@ -311,17 +312,8 @@ const FONT_FAMILIES = [
 
 function InlineStyleToolbar({ style, onChange, onClose }) {
   const toolbarRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (toolbarRef.current && !toolbarRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
+  
+  useClickOutside(toolbarRef, onClose);
 
   const updateStyle = (updates) => {
     onChange({ ...style, ...updates });
@@ -487,6 +479,594 @@ function InlineStyleToolbar({ style, onChange, onClose }) {
   );
 }
 
+function InlineButtonToolbar({ element, onChange, onClose }) {
+  const toolbarRef = useRef(null);
+  
+  useClickOutside(toolbarRef, onClose);
+
+  const actionOptions = [
+    { value: 'next-node', label: 'Próximo' },
+    { value: 'url', label: 'URL' },
+    { value: 'script', label: 'Script' },
+    { value: 'phone', label: 'Telefone' },
+    { value: 'email', label: 'Email' },
+  ];
+
+  const showActionValue = ['url', 'script', 'phone', 'email'].includes(element.action);
+  const showNewTabOption = element.action === 'url';
+  const style = element.style || {};
+
+  const updateStyle = (updates) => {
+    onChange({ style: { ...style, ...updates } });
+  };
+
+  return (
+    <div
+      ref={toolbarRef}
+      className="absolute -top-16 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease',
+        minWidth: '500px'
+      }}
+    >
+      {/* Linha 1: Ação e Conteúdo */}
+      <div className="flex flex-wrap gap-1 items-center mb-1.5">
+        {/* Action Type */}
+        <select
+          value={element.action || 'next-node'}
+          onChange={(e) => onChange({ action: e.target.value })}
+          className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '80px' }}
+        >
+          {actionOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+
+        {/* Action Value */}
+        {showActionValue && (
+          <input
+            type="text"
+            value={element.actionValue || ''}
+            onChange={(e) => onChange({ actionValue: e.target.value })}
+            className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+            style={{ width: '120px' }}
+            placeholder={
+              element.action === 'url' ? 'https://...' :
+              element.action === 'phone' ? '(11) 99999-9999' :
+              element.action === 'email' ? 'email@...' : 'valor...'
+            }
+          />
+        )}
+
+        {/* New Tab Toggle (for URLs) */}
+        {showNewTabOption && (
+          <button
+            onClick={() => onChange({ openInNewTab: !element.openInNewTab })}
+            className={`text-xs px-2 py-1 border rounded transition-colors ${
+              element.openInNewTab !== false
+                ? 'bg-accent text-white border-accent'
+                : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+            }`}
+            title="Nova aba"
+          >
+            ↗
+          </button>
+        )}
+
+        {/* Divider */}
+        <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+        {/* Font Family */}
+        <select
+          value={style.fontFamily || 'Inter'}
+          onChange={(e) => updateStyle({ fontFamily: e.target.value })}
+          className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '80px' }}
+        >
+          {FONT_FAMILIES.map((font) => (
+            <option key={font} value={font}>{font.slice(0, 8)}</option>
+          ))}
+        </select>
+
+        {/* Font Size */}
+        <input
+          type="number"
+          value={style.fontSize || 16}
+          onChange={(e) => updateStyle({ fontSize: parseInt(e.target.value) || 16 })}
+          className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '40px' }}
+          min="10"
+          max="72"
+        />
+
+        {/* Bold */}
+        <button
+          onClick={() => updateStyle({ 
+            fontWeight: style.fontWeight === '700' ? '400' : '700' 
+          })}
+          className={`w-6 h-6 text-xs font-bold border rounded transition-colors flex items-center justify-center ${
+            style.fontWeight === '700' || style.fontWeight === '800'
+              ? 'bg-accent text-white border-accent'
+              : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+          }`}
+        >
+          B
+        </button>
+
+        {/* Text Color */}
+        <input
+          type="color"
+          value={style.textColor || '#ffffff'}
+          onChange={(e) => updateStyle({ textColor: e.target.value })}
+          className="w-5 h-5 rounded border border-gray-200 cursor-pointer"
+          title="Cor do texto"
+        />
+
+        {/* Background Color */}
+        <input
+          type="color"
+          value={style.backgroundColor || '#7c3aed'}
+          onChange={(e) => updateStyle({ backgroundColor: e.target.value })}
+          className="w-5 h-5 rounded border border-gray-200 cursor-pointer"
+          title="Cor de fundo"
+        />
+
+        {/* Hover Color */}
+        <input
+          type="color"
+          value={style.hoverBackgroundColor || '#6d28d9'}
+          onChange={(e) => updateStyle({ hoverBackgroundColor: e.target.value })}
+          className="w-5 h-5 rounded border border-gray-200 cursor-pointer"
+          title="Cor hover"
+        />
+      </div>
+
+      {/* Linha 2: Estilo e Layout */}
+      <div className="flex flex-wrap gap-1 items-center">
+        {/* Border Color */}
+        <input
+          type="color"
+          value={style.borderColor || 'transparent'}
+          onChange={(e) => updateStyle({ borderColor: e.target.value })}
+          className="w-4 h-4 rounded border border-gray-200 cursor-pointer"
+          title="Cor da borda"
+        />
+
+        {/* Border Width */}
+        <input
+          type="number"
+          value={style.borderWidth || 0}
+          onChange={(e) => updateStyle({ borderWidth: parseInt(e.target.value) || 0 })}
+          className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '30px' }}
+          min="0"
+          max="10"
+          title="Largura borda"
+        />
+
+        {/* Border Radius */}
+        <input
+          type="number"
+          value={style.borderRadius || 8}
+          onChange={(e) => updateStyle({ borderRadius: parseInt(e.target.value) || 8 })}
+          className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '30px' }}
+          min="0"
+          max="50"
+          title="Raio da borda"
+        />
+
+        {/* Divider */}
+        <div className="w-px h-4 bg-gray-200 mx-1"></div>
+
+        {/* Padding X */}
+        <span className="text-xs text-gray-400">Pad:</span>
+        <input
+          type="number"
+          value={style.paddingX || 24}
+          onChange={(e) => updateStyle({ paddingX: parseInt(e.target.value) || 24 })}
+          className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '35px' }}
+          min="0"
+          max="100"
+          title="Padding horizontal"
+        />
+
+        {/* Padding Y */}
+        <input
+          type="number"
+          value={style.paddingY || 12}
+          onChange={(e) => updateStyle({ paddingY: parseInt(e.target.value) || 12 })}
+          className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '35px' }}
+          min="0"
+          max="100"
+          title="Padding vertical"
+        />
+
+        {/* Divider */}
+        <div className="w-px h-4 bg-gray-200 mx-1"></div>
+
+        {/* Width Full/Auto */}
+        <button
+          onClick={() => updateStyle({ width: style.width === 'auto' ? 'full' : 'auto' })}
+          className={`text-xs px-2 py-1 border rounded transition-colors ${
+            style.width === 'auto'
+              ? 'bg-gray-100 text-gray-600 border-gray-200'
+              : 'bg-accent text-white border-accent'
+          }`}
+          title="Largura"
+        >
+          {style.width === 'auto' ? 'Auto' : 'Full'}
+        </button>
+
+        {/* Divider */}
+        <div className="w-px h-4 bg-gray-200 mx-1"></div>
+
+        {/* Alignment Left */}
+        <button
+          onClick={() => updateStyle({ alignment: 'left' })}
+          className={`w-5 h-5 text-xs border rounded transition-colors flex items-center justify-center ${
+            (style.alignment === 'left' || !style.alignment)
+              ? 'bg-accent text-white border-accent'
+              : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+          }`}
+          title="Alinhar à esquerda"
+        >
+          ←
+        </button>
+
+        {/* Alignment Center */}
+        <button
+          onClick={() => updateStyle({ alignment: 'center' })}
+          className={`w-5 h-5 text-xs border rounded transition-colors flex items-center justify-center ${
+            style.alignment === 'center'
+              ? 'bg-accent text-white border-accent'
+              : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+          }`}
+          title="Centralizar"
+        >
+          ↔
+        </button>
+
+        {/* Alignment Right */}
+        <button
+          onClick={() => updateStyle({ alignment: 'right' })}
+          className={`w-5 h-5 text-xs border rounded transition-colors flex items-center justify-center ${
+            style.alignment === 'right'
+              ? 'bg-accent text-white border-accent'
+              : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+          }`}
+          title="Alinhar à direita"
+        >
+          →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InlineScoreEditor({ score, onChange, onClose }) {
+  const scoreRef = useRef(null);
+  
+  useClickOutside(scoreRef, onClose);
+
+  return (
+    <div
+      ref={scoreRef}
+      className="absolute -top-8 right-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1 nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease'
+      }}
+    >
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-gray-400">Score:</span>
+        <input
+          type="number"
+          value={score || 0}
+          onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+          className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '50px' }}
+          min="0"
+          autoFocus
+        />
+      </div>
+    </div>
+  );
+}
+
+function InlineIconToolbar({ element, onChange, onClose }) {
+  const toolbarRef = useRef(null);
+  
+  useClickOutside(toolbarRef, onClose);
+
+  const updateElement = (updates) => {
+    onChange(updates);
+  };
+
+  return (
+    <div
+      ref={toolbarRef}
+      className="absolute -top-10 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 flex gap-1 items-center nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease'
+      }}
+    >
+      {/* Columns */}
+      <span className="text-xs text-gray-400">Cols:</span>
+      {[2, 3, 4].map((n) => (
+        <button
+          key={n}
+          onClick={() => updateElement({ columns: n })}
+          className={`w-5 h-5 text-xs border rounded transition-colors flex items-center justify-center ${
+            (element.columns || 2) === n
+              ? 'bg-accent text-white border-accent'
+              : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+          }`}
+        >
+          {n}
+        </button>
+      ))}
+
+      {/* Divider */}
+      <div className="w-px h-4 bg-gray-200 mx-1"></div>
+
+      {/* Style */}
+      <span className="text-xs text-gray-400">Estilo:</span>
+      {[
+        { value: 'emoji', label: '😀' },
+        { value: 'image', label: '🖼️' }
+      ].map((style) => (
+        <button
+          key={style.value}
+          onClick={() => updateElement({ optionStyle: style.value })}
+          className={`px-2 h-5 text-xs border rounded transition-colors flex items-center justify-center ${
+            (element.optionStyle || 'emoji') === style.value
+              ? 'bg-accent text-white border-accent'
+              : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+          }`}
+        >
+          {style.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function InlineRatingToolbar({ element, onChange, onClose }) {
+  const toolbarRef = useRef(null);
+  
+  useClickOutside(toolbarRef, onClose);
+
+  const ratingTypes = [
+    { value: 'number', label: '🔢' },
+    { value: 'stars', label: '⭐' },
+    { value: 'slider', label: '🎚️' }
+  ];
+
+  return (
+    <div
+      ref={toolbarRef}
+      className="absolute -top-10 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 flex gap-1 items-center nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease',
+        minWidth: '200px'
+      }}
+    >
+      {/* Rating Type */}
+      <span className="text-xs text-gray-400">Tipo:</span>
+      {ratingTypes.map((type) => (
+        <button
+          key={type.value}
+          onClick={() => onChange({ ratingType: type.value })}
+          className={`px-2 h-6 text-xs border rounded transition-colors flex items-center justify-center ${
+            (element.ratingType || 'number') === type.value
+              ? 'bg-accent text-white border-accent'
+              : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+          }`}
+        >
+          {type.label}
+        </button>
+      ))}
+
+      {/* Divider */}
+      <div className="w-px h-4 bg-gray-200 mx-1"></div>
+
+      {/* Type-specific controls */}
+      {element.ratingType === 'stars' && (
+        <>
+          <span className="text-xs text-gray-400">Max:</span>
+          <select
+            value={element.maxStars || 5}
+            onChange={(e) => onChange({ maxStars: parseInt(e.target.value) })}
+            className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+            style={{ width: '40px' }}
+          >
+            <option value={3}>3</option>
+            <option value={5}>5</option>
+            <option value={7}>7</option>
+            <option value={10}>10</option>
+          </select>
+        </>
+      )}
+
+      {(element.ratingType === 'number' || !element.ratingType) && (
+        <>
+          <span className="text-xs text-gray-400">Min:</span>
+          <input
+            type="number"
+            value={element.minValue ?? 0}
+            onChange={(e) => onChange({ minValue: parseInt(e.target.value) || 0 })}
+            className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+            style={{ width: '35px' }}
+          />
+          <span className="text-xs text-gray-400">Max:</span>
+          <input
+            type="number"
+            value={element.maxValue ?? 10}
+            onChange={(e) => onChange({ maxValue: parseInt(e.target.value) || 10 })}
+            className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+            style={{ width: '35px' }}
+          />
+        </>
+      )}
+
+      {element.ratingType === 'slider' && (
+        <>
+          <span className="text-xs text-gray-400">Range:</span>
+          <input
+            type="number"
+            value={element.sliderMin ?? 0}
+            onChange={(e) => onChange({ sliderMin: parseInt(e.target.value) || 0 })}
+            className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+            style={{ width: '35px' }}
+          />
+          <span className="text-xs text-gray-400">-</span>
+          <input
+            type="number"
+            value={element.sliderMax ?? 100}
+            onChange={(e) => onChange({ sliderMax: parseInt(e.target.value) || 100 })}
+            className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+            style={{ width: '35px' }}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function InlineOpenToolbar({ element, onChange, onClose }) {
+  const toolbarRef = useRef(null);
+  
+  useClickOutside(toolbarRef, onClose);
+
+  return (
+    <div
+      ref={toolbarRef}
+      className="absolute -top-10 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 flex gap-1 items-center nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease',
+        minWidth: '300px'
+      }}
+    >
+      {/* Placeholder */}
+      <input
+        type="text"
+        value={element.placeholder || ''}
+        onChange={(e) => onChange({ placeholder: e.target.value })}
+        className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+        style={{ width: '120px' }}
+        placeholder="Placeholder..."
+      />
+
+      {/* Divider */}
+      <div className="w-px h-4 bg-gray-200 mx-1"></div>
+
+      {/* Multiline Toggle */}
+      <button
+        onClick={() => onChange({ multiline: !element.multiline })}
+        className={`text-xs px-2 py-1 border rounded transition-colors ${
+          element.multiline
+            ? 'bg-accent text-white border-accent'
+            : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+        }`}
+        title="Multilinha"
+      >
+        ≡
+      </button>
+
+      {/* Required Toggle */}
+      <button
+        onClick={() => onChange({ required: !element.required })}
+        className={`text-xs px-2 py-1 border rounded transition-colors ${
+          element.required
+            ? 'bg-accent text-white border-accent'
+            : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+        }`}
+        title="Obrigatório"
+      >
+        *
+      </button>
+
+      {/* Divider */}
+      <div className="w-px h-4 bg-gray-200 mx-1"></div>
+
+      {/* Max Length */}
+      <span className="text-xs text-gray-400">Max:</span>
+      <input
+        type="number"
+        value={element.maxLength || 500}
+        onChange={(e) => onChange({ maxLength: parseInt(e.target.value) || 500 })}
+        className="text-xs border border-gray-200 rounded px-1 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+        style={{ width: '50px' }}
+        min="1"
+      />
+    </div>
+  );
+}
+
+function InlineLeadToolbar({ element, onChange, onClose }) {
+  const toolbarRef = useRef(null);
+  
+  useClickOutside(toolbarRef, onClose);
+
+  const availableFields = [
+    { key: 'name', label: 'Nome' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Tel' },
+    { key: 'company', label: 'Empresa' },
+    { key: 'cpf', label: 'CPF' },
+  ];
+
+  const fields = element.fields || ['name', 'email', 'phone'];
+
+  const toggleField = (fieldKey) => {
+    const newFields = fields.includes(fieldKey)
+      ? fields.filter(f => f !== fieldKey)
+      : [...fields, fieldKey];
+    onChange({ fields: newFields });
+  };
+
+  return (
+    <div
+      ref={toolbarRef}
+      className="absolute -top-10 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 flex gap-1 items-center nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease',
+        minWidth: '250px'
+      }}
+    >
+      <span className="text-xs text-gray-400">Campos:</span>
+      {availableFields.map((field) => (
+        <button
+          key={field.key}
+          onClick={() => toggleField(field.key)}
+          className={`text-xs px-2 py-1 border rounded transition-colors ${
+            fields.includes(field.key)
+              ? 'bg-accent text-white border-accent'
+              : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+          }`}
+        >
+          {field.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function TextElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const [showToolbar, setShowToolbar] = useState(false);
@@ -569,6 +1149,7 @@ function QuestionElement({ element, nodeId }) {
   const edges = useQuizStore((s) => s.edges);
   const isMultiple = element.type === 'question-multiple';
   const Icon = isMultiple ? CheckSquare : CircleDot;
+  const [editingScoreIndex, setEditingScoreIndex] = useState(null);
 
   // Track which handles are connected
   const connectedHandles = useMemo(() => {
@@ -589,6 +1170,13 @@ function QuestionElement({ element, nodeId }) {
     const opts = [...(element.options || [])];
     opts[idx] = { ...opts[idx], emoji };
     updateNodeElement(nodeId, element.id, { options: opts });
+  };
+
+  const handleOptionScore = (idx, score) => {
+    const opts = [...(element.options || [])];
+    opts[idx] = { ...opts[idx], score };
+    updateNodeElement(nodeId, element.id, { options: opts });
+    setEditingScoreIndex(null);
   };
 
   const addOption = (e) => {
@@ -644,7 +1232,29 @@ function QuestionElement({ element, nodeId }) {
                   placeholder="Opção…"
                 />
               </span>
-              {opt.score > 0 && <span className="text-xs text-accent font-medium">+{opt.score}</span>}
+              
+              {/* Score display/edit */}
+              <div className="relative nodrag">
+                {editingScoreIndex === idx ? (
+                  <InlineScoreEditor
+                    score={opt.score}
+                    onChange={(score) => handleOptionScore(idx, score)}
+                    onClose={() => setEditingScoreIndex(null)}
+                  />
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingScoreIndex(idx);
+                    }}
+                    className="text-xs text-accent font-medium hover:bg-accent/10 rounded px-1 py-0.5 transition-colors"
+                    title="Clique para editar score"
+                  >
+                    {opt.score > 0 ? `+${opt.score}` : '0'}
+                  </button>
+                )}
+              </div>
+              
               <Handle
                 type="source"
                 position={Position.Right}
@@ -695,7 +1305,12 @@ function QuestionElement({ element, nodeId }) {
 function IconQuestionElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const edges = useQuizStore((s) => s.edges);
+  const [showToolbar, setShowToolbar] = useState(false);
   const columns = element.columns || 2;
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
 
   const connectedHandles = useMemo(() => {
     const set = new Set();
@@ -715,8 +1330,19 @@ function IconQuestionElement({ element, nodeId }) {
   };
 
   return (
-    <div className="p-2">
-      <div className="flex items-center gap-1.5 mb-1.5">
+    <div className="p-2 relative">
+      {showToolbar && (
+        <InlineIconToolbar
+          element={element}
+          onChange={handleChange}
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
         <div className="w-5 h-5 bg-accent/10 rounded flex items-center justify-center">
           <LayoutGrid size={12} className="text-accent" />
         </div>
@@ -805,6 +1431,11 @@ function IconQuestionElement({ element, nodeId }) {
 function RatingElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const edges = useQuizStore((s) => s.edges);
+  const [showToolbar, setShowToolbar] = useState(false);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
 
   const connectedHandles = useMemo(() => {
     const set = new Set();
@@ -869,8 +1500,19 @@ function RatingElement({ element, nodeId }) {
   };
 
   return (
-    <div className="p-2">
-      <div className="flex items-center gap-1.5 mb-1.5">
+    <div className="p-2 relative">
+      {showToolbar && (
+        <InlineRatingToolbar
+          element={element}
+          onChange={handleChange}
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
         <div className="w-5 h-5 bg-amber-100 rounded flex items-center justify-center">
           <Star size={12} className="text-amber-600" />
         </div>
@@ -918,6 +1560,11 @@ function RatingElement({ element, nodeId }) {
 function OpenQuestionElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const edges = useQuizStore((s) => s.edges);
+  const [showToolbar, setShowToolbar] = useState(false);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
 
   const connectedHandles = useMemo(() => {
     const set = new Set();
@@ -931,8 +1578,19 @@ function OpenQuestionElement({ element, nodeId }) {
   const isGeneralConnected = connectedHandles.has(generalId);
 
   return (
-    <div className="p-2">
-      <div className="flex items-center gap-1.5 mb-1.5">
+    <div className="p-2 relative">
+      {showToolbar && (
+        <InlineOpenToolbar
+          element={element}
+          onChange={handleChange}
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
         <div className="w-5 h-5 bg-accent/10 rounded flex items-center justify-center">
           <MessageSquare size={12} className="text-accent" />
         </div>
@@ -981,9 +1639,26 @@ function OpenQuestionElement({ element, nodeId }) {
 
 function LeadFormElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const [showToolbar, setShowToolbar] = useState(false);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
+
   return (
-    <div className="p-2">
-      <div className="flex items-center gap-1.5 mb-1.5">
+    <div className="p-2 relative">
+      {showToolbar && (
+        <InlineLeadToolbar
+          element={element}
+          onChange={handleChange}
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
         <div className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center">
           <UserPlus size={12} className="text-blue-600" />
         </div>
@@ -996,9 +1671,20 @@ function LeadFormElement({ element, nodeId }) {
         placeholder="Título do formulário…"
       />
       <div className="space-y-1">
-        <div className="bg-gray-100 rounded px-2 py-1 text-xs text-gray-400">Nome</div>
-        <div className="bg-gray-100 rounded px-2 py-1 text-xs text-gray-400">Email</div>
-        <div className="bg-gray-100 rounded px-2 py-1 text-xs text-gray-400">Telefone</div>
+        {(element.fields || ['name', 'email', 'phone']).map((field) => {
+          const fieldLabels = {
+            name: 'Nome',
+            email: 'Email', 
+            phone: 'Telefone',
+            company: 'Empresa',
+            cpf: 'CPF'
+          };
+          return (
+            <div key={field} className="bg-gray-100 rounded px-2 py-1 text-xs text-gray-400">
+              {fieldLabels[field] || field}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1025,12 +1711,125 @@ function ScriptElement({ element, nodeId }) {
   );
 }
 
-function SpinWheelPreview({ element }) {
+function InlineSpinToolbar({ element, onChange, onClose }) {
+  const toolbarRef = useRef(null);
+  
+  useClickOutside(toolbarRef, onClose);
+
+  const segments = element.segments || [];
+
+  const addSegment = () => {
+    const colors = ['#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#6b7280'];
+    const newSegments = [
+      ...segments,
+      { 
+        text: `Prêmio ${segments.length + 1}`, 
+        color: colors[segments.length % colors.length], 
+        probability: 10 
+      }
+    ];
+    onChange({ segments: newSegments });
+  };
+
+  const removeSegment = (index) => {
+    const newSegments = segments.filter((_, i) => i !== index);
+    onChange({ segments: newSegments });
+  };
+
+  const updateSegment = (index, field, value) => {
+    const newSegments = [...segments];
+    newSegments[index] = { 
+      ...newSegments[index], 
+      [field]: field === 'probability' ? parseInt(value) || 0 : value 
+    };
+    onChange({ segments: newSegments });
+  };
+
+  return (
+    <div
+      ref={toolbarRef}
+      className="absolute -top-32 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-2 nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease',
+        minWidth: '250px',
+        maxHeight: '120px',
+        overflowY: 'auto'
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium text-gray-700">Segmentos</span>
+        <button
+          onClick={addSegment}
+          className="text-xs bg-accent text-white px-2 py-1 rounded hover:bg-accent/90"
+        >
+          + Add
+        </button>
+      </div>
+      <div className="space-y-1">
+        {segments.map((seg, index) => (
+          <div key={index} className="flex items-center gap-1 bg-gray-50 rounded p-1">
+            <span
+              className="w-3 h-3 rounded border border-gray-200 cursor-pointer"
+              style={{ backgroundColor: seg.color }}
+              onClick={() => {
+                const color = prompt('Cor (hex):', seg.color);
+                if (color) updateSegment(index, 'color', color);
+              }}
+            />
+            <input
+              type="text"
+              value={seg.text}
+              onChange={(e) => updateSegment(index, 'text', e.target.value)}
+              className="flex-1 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+              placeholder="Texto..."
+            />
+            <input
+              type="number"
+              value={seg.probability || 0}
+              onChange={(e) => updateSegment(index, 'probability', e.target.value)}
+              className="w-10 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white text-center"
+              min="0"
+              max="100"
+            />
+            <button
+              onClick={() => removeSegment(index)}
+              className="text-xs text-red-400 hover:text-red-600 w-4 h-4 flex items-center justify-center"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SpinWheelPreview({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const [showToolbar, setShowToolbar] = useState(false);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
   const segments = element.segments || [];
   const total = segments.reduce((s, seg) => s + (seg.probability || 0), 0);
+  
   return (
-    <div className="p-2">
-      <div className="flex items-center gap-1.5 mb-1.5">
+    <div className="p-2 relative">
+      {showToolbar && (
+        <InlineSpinToolbar
+          element={element}
+          onChange={handleChange}
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
         <div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
           <Disc size={12} className="text-orange-600" />
         </div>
@@ -1074,10 +1873,90 @@ function SpinWheelPreview({ element }) {
   );
 }
 
-function ScratchCardPreview({ element }) {
+function InlineScratchToolbar({ element, onChange, onClose }) {
+  const toolbarRef = useRef(null);
+  
+  useClickOutside(toolbarRef, onClose);
+
+  const patterns = [
+    { value: 'solid', label: 'Sólido' },
+    { value: 'dots', label: 'Pontos' }, 
+    { value: 'stars', label: 'Estrelas' }
+  ];
+
   return (
-    <div className="p-2">
-      <div className="flex items-center gap-1.5 mb-1.5">
+    <div
+      ref={toolbarRef}
+      className="absolute -top-16 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease',
+        minWidth: '280px'
+      }}
+    >
+      <div className="flex flex-wrap gap-1 items-center mb-1">
+        {/* Cover Color */}
+        <input
+          type="color"
+          value={element.coverColor || '#7c3aed'}
+          onChange={(e) => onChange({ coverColor: e.target.value })}
+          className="w-6 h-6 rounded border border-gray-200 cursor-pointer"
+          title="Cor da cobertura"
+        />
+
+        {/* Pattern */}
+        <span className="text-xs text-gray-400">Padrão:</span>
+        {patterns.map((pattern) => (
+          <button
+            key={pattern.value}
+            onClick={() => onChange({ coverPattern: pattern.value })}
+            className={`text-xs px-2 py-1 border rounded transition-colors ${
+              (element.coverPattern || 'dots') === pattern.value
+                ? 'bg-accent text-white border-accent'
+                : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+            }`}
+          >
+            {pattern.label}
+          </button>
+        ))}
+      </div>
+      
+      <div className="flex gap-1">
+        {/* Reveal Text */}
+        <input
+          type="text"
+          value={element.revealText || ''}
+          onChange={(e) => onChange({ revealText: e.target.value })}
+          className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder="Texto revelado..."
+        />
+      </div>
+    </div>
+  );
+}
+
+function ScratchCardPreview({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const [showToolbar, setShowToolbar] = useState(false);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
+  return (
+    <div className="p-2 relative">
+      {showToolbar && (
+        <InlineScratchToolbar
+          element={element}
+          onChange={handleChange}
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
         <div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
           <Gift size={12} className="text-orange-600" />
         </div>
@@ -1111,7 +1990,9 @@ function ScratchCardPreview({ element }) {
 }
 
 function ButtonElement({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const edges = useQuizStore((s) => s.edges);
+  const [showToolbar, setShowToolbar] = useState(false);
   const style = element.style || {};
   
   // Track if action is 'next-node' to show Handle
@@ -1128,6 +2009,10 @@ function ButtonElement({ element, nodeId }) {
   
   const handleId = `${element.id}-button`;
   const isConnected = connectedHandles.has(handleId);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
 
   const buttonStyles = {
     fontFamily: style.fontFamily || 'Inter',
@@ -1167,6 +2052,14 @@ function ButtonElement({ element, nodeId }) {
 
   return (
     <div className="p-2 relative">
+      {showToolbar && (
+        <InlineButtonToolbar
+          element={element}
+          onChange={handleChange}
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
+      
       <div className="flex items-center gap-1.5 mb-1.5">
         <div className="w-5 h-5 bg-indigo-100 rounded flex items-center justify-center">
           <MousePointerClick size={12} className="text-indigo-600" />
@@ -1175,7 +2068,8 @@ function ButtonElement({ element, nodeId }) {
       </div>
       
       <div
-        className="relative"
+        className="relative cursor-pointer"
+        onClick={() => setShowToolbar(true)}
         style={{ 
           width: style.width === 'auto' ? 'fit-content' : '100%',
           marginLeft: style.alignment === 'center' ? 'auto' : style.alignment === 'right' ? 'auto' : '0',
@@ -1261,9 +2155,9 @@ function ElementRenderer({ element, nodeId }) {
     case 'script':
       return <ScriptElement element={element} nodeId={nodeId} />;
     case 'spin-wheel':
-      return <SpinWheelPreview element={element} />;
+      return <SpinWheelPreview element={element} nodeId={nodeId} />;
     case 'scratch-card':
-      return <ScratchCardPreview element={element} />;
+      return <ScratchCardPreview element={element} nodeId={nodeId} />;
     default:
       return <div className="p-2 text-gray-400 text-xs">Elemento: {element.type}</div>;
   }
