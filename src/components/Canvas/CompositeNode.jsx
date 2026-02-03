@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { useState, useMemo, useEffect } from 'react';
+import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import {
   Plus,
   GripVertical,
@@ -1077,8 +1077,24 @@ export default function CompositeNode({ id, data, selected }) {
   const removeNodeElement = useQuizStore((s) => s.removeNodeElement);
   const reorderNodeElements = useQuizStore((s) => s.reorderNodeElements);
   const updateNode = useQuizStore((s) => s.updateNode);
+  const updateNodeInternals = useUpdateNodeInternals();
 
   const elements = data.elements || [];
+
+  // Compute a fingerprint of all handle IDs so RF recalculates positions
+  // whenever options are added/removed/reordered
+  const handleFingerprint = useMemo(() => {
+    return elements
+      .map((el) => {
+        if (el.options) return `${el.id}:${el.options.length}`;
+        return el.id;
+      })
+      .join('|');
+  }, [elements]);
+
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, handleFingerprint, updateNodeInternals]);
 
   const handleAdd = (type) => {
     addNodeElement(id, createDefaultElement(type));
