@@ -1013,6 +1013,7 @@ function ScratchCardElementEditor({ element, nodeId }) {
 
 function ButtonElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const nodes = useQuizStore((s) => s.nodes);
   
   const handleStyleChange = (styleUpdates) => {
     updateNodeElement(nodeId, element.id, { 
@@ -1021,7 +1022,7 @@ function ButtonElementEditor({ element, nodeId }) {
   };
 
   const actionOptions = [
-    { value: 'next-node', label: 'Próximo Node' },
+    { value: 'next-node', label: 'Ir para Node' },
     { value: 'url', label: 'Abrir URL' },
     { value: 'script', label: 'Executar Script' },
     { value: 'phone', label: 'Ligar' },
@@ -1029,6 +1030,7 @@ function ButtonElementEditor({ element, nodeId }) {
   ];
 
   const showActionValue = ['url', 'script', 'phone', 'email'].includes(element.action);
+  const showNodeSelection = element.action === 'next-node';
   const showNewTabOption = element.action === 'url';
 
   return (
@@ -1058,6 +1060,28 @@ function ButtonElementEditor({ element, nodeId }) {
           ))}
         </select>
       </div>
+
+      {/* Node Selection (for next-node action) */}
+      {showNodeSelection && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Node Destino</label>
+          <select
+            value={element.actionValue || ''}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { actionValue: e.target.value })}
+            className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm bg-white"
+          >
+            <option value="">Selecione um node...</option>
+            {nodes.map((node) => (
+              <option key={node.id} value={node.id}>
+                {node.data?.label || `Node ${node.id.slice(-4)}`}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400 mt-1">
+            Escolha qual node será acessado ao clicar no botão
+          </p>
+        </div>
+      )}
 
       {/* Action Value (conditional) */}
       {showActionValue && (

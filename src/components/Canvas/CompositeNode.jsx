@@ -110,7 +110,7 @@ export function createDefaultElement(type) {
         id, type: 'button',
         text: 'Clique aqui',
         action: 'next-node',
-        actionValue: '',
+        actionValue: '', // Will store nodeId for next-node action
         openInNewTab: true,
         style: {
           fontFamily: 'Inter',
@@ -481,11 +481,12 @@ function InlineStyleToolbar({ style, onChange, onClose }) {
 
 function InlineButtonToolbar({ element, onChange, onClose }) {
   const toolbarRef = useRef(null);
+  const nodes = useQuizStore((s) => s.nodes);
   
   useClickOutside(toolbarRef, onClose);
 
   const actionOptions = [
-    { value: 'next-node', label: 'Próximo' },
+    { value: 'next-node', label: 'Ir para Node' },
     { value: 'url', label: 'URL' },
     { value: 'script', label: 'Script' },
     { value: 'phone', label: 'Telefone' },
@@ -493,6 +494,7 @@ function InlineButtonToolbar({ element, onChange, onClose }) {
   ];
 
   const showActionValue = ['url', 'script', 'phone', 'email'].includes(element.action);
+  const showNodeSelection = element.action === 'next-node';
   const showNewTabOption = element.action === 'url';
   const style = element.style || {};
 
@@ -525,7 +527,27 @@ function InlineButtonToolbar({ element, onChange, onClose }) {
           ))}
         </select>
 
-        {/* Action Value */}
+        {/* Node Selection for next-node action */}
+        {showNodeSelection && (
+          <>
+            <span className="text-xs text-gray-400">→ Node:</span>
+            <select
+              value={element.actionValue || ''}
+              onChange={(e) => onChange({ actionValue: e.target.value })}
+              className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+              style={{ width: '120px' }}
+            >
+              <option value="">Selecione...</option>
+              {nodes.map((node) => (
+                <option key={node.id} value={node.id}>
+                  {node.data?.label || `Node ${node.id.slice(-4)}`}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {/* Action Value for other actions */}
         {showActionValue && (
           <input
             type="text"
