@@ -26,6 +26,7 @@ import {
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
 import { AVAILABLE_VARIABLES, parseVariableSegments } from '@/lib/dynamicVariables';
+import EmojiPicker from '@/components/EmojiPicker';
 
 // ── Shared lookups ──────────────────────────────────────────────
 const ICONS = {
@@ -382,9 +383,15 @@ function QuestionElement({ element, nodeId }) {
     updateNodeElement(nodeId, element.id, { options: opts });
   };
 
+  const handleOptionEmoji = (idx, emoji) => {
+    const opts = [...(element.options || [])];
+    opts[idx] = { ...opts[idx], emoji };
+    updateNodeElement(nodeId, element.id, { options: opts });
+  };
+
   const addOption = (e) => {
     e.stopPropagation();
-    const opts = [...(element.options || []), { text: `Opção ${(element.options?.length || 0) + 1}`, score: 0 }];
+    const opts = [...(element.options || []), { text: `Opção ${(element.options?.length || 0) + 1}`, score: 0, emoji: '' }];
     updateNodeElement(nodeId, element.id, { options: opts });
   };
 
@@ -413,6 +420,12 @@ function QuestionElement({ element, nodeId }) {
               key={idx}
               className="relative flex items-center gap-1.5 bg-gray-50 rounded-lg px-2.5 py-1.5 text-sm text-gray-600"
             >
+              <div className="nodrag w-6 shrink-0">
+                <EmojiPicker
+                  value={opt.emoji || ''}
+                  onChange={(emoji) => handleOptionEmoji(idx, emoji)}
+                />
+              </div>
               <span className="w-4 h-4 bg-white border border-gray-300 rounded-full flex items-center justify-center text-[10px] shrink-0">
                 {String.fromCharCode(65 + idx)}
               </span>
