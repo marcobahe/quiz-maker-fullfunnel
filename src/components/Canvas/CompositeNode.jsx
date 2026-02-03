@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import {
   Plus,
@@ -303,8 +303,193 @@ function VariableHint() {
 
 // ── Element Renderers ───────────────────────────────────────────
 
+const FONT_FAMILIES = [
+  'Inter', 'Roboto', 'Poppins', 'Montserrat', 'Open Sans',
+  'Lato', 'Nunito', 'Playfair Display', 'Oswald', 'Raleway',
+  'Source Sans Pro', 'PT Sans', 'Ubuntu', 'Merriweather', 'Quicksand'
+];
+
+function InlineStyleToolbar({ style, onChange, onClose }) {
+  const toolbarRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (toolbarRef.current && !toolbarRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  const updateStyle = (updates) => {
+    onChange({ ...style, ...updates });
+  };
+
+  return (
+    <div
+      ref={toolbarRef}
+      className="absolute -top-12 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 flex flex-wrap gap-1 items-center nodrag nopan nowheel"
+      style={{
+        opacity: 1,
+        transform: 'scale(1)',
+        transition: 'opacity 150ms ease, transform 150ms ease'
+      }}
+    >
+      {/* Font Family */}
+      <select
+        value={style.fontFamily || 'Inter'}
+        onChange={(e) => updateStyle({ fontFamily: e.target.value })}
+        className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+        style={{ width: '100px' }}
+      >
+        {FONT_FAMILIES.map((font) => (
+          <option key={font} value={font}>{font}</option>
+        ))}
+      </select>
+
+      {/* Font Size */}
+      <input
+        type="number"
+        value={style.fontSize || 16}
+        onChange={(e) => updateStyle({ fontSize: parseInt(e.target.value) || 16 })}
+        className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+        style={{ width: '40px' }}
+        min="10"
+        max="72"
+      />
+
+      {/* Divider */}
+      <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+      {/* Bold */}
+      <button
+        onClick={() => updateStyle({ 
+          fontWeight: style.fontWeight === '700' ? '400' : '700' 
+        })}
+        className={`w-6 h-6 text-xs font-bold border rounded transition-colors flex items-center justify-center ${
+          style.fontWeight === '700' || style.fontWeight === '800'
+            ? 'bg-accent text-white border-accent'
+            : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+        }`}
+      >
+        B
+      </button>
+
+      {/* Italic */}
+      <button
+        onClick={() => updateStyle({ 
+          fontStyle: style.fontStyle === 'italic' ? 'normal' : 'italic' 
+        })}
+        className={`w-6 h-6 text-xs italic border rounded transition-colors flex items-center justify-center ${
+          style.fontStyle === 'italic'
+            ? 'bg-accent text-white border-accent'
+            : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+        }`}
+      >
+        I
+      </button>
+
+      {/* Underline */}
+      <button
+        onClick={() => updateStyle({ 
+          textDecoration: style.textDecoration === 'underline' ? 'none' : 'underline' 
+        })}
+        className={`w-6 h-6 text-xs underline border rounded transition-colors flex items-center justify-center ${
+          style.textDecoration === 'underline'
+            ? 'bg-accent text-white border-accent'
+            : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+        }`}
+      >
+        U
+      </button>
+
+      {/* Divider */}
+      <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+      {/* Text Color */}
+      <input
+        type="color"
+        value={style.textColor || '#374151'}
+        onChange={(e) => updateStyle({ textColor: e.target.value })}
+        className="w-5 h-5 rounded border border-gray-200 cursor-pointer"
+        title="Cor do texto"
+      />
+
+      {/* Background Color */}
+      <input
+        type="color"
+        value={style.backgroundColor || '#ffffff'}
+        onChange={(e) => updateStyle({ backgroundColor: e.target.value })}
+        className="w-5 h-5 rounded border border-gray-200 cursor-pointer"
+        title="Cor de fundo"
+      />
+
+      {/* Divider */}
+      <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+      {/* Text Align Left */}
+      <button
+        onClick={() => updateStyle({ textAlign: 'left' })}
+        className={`w-6 h-6 text-xs border rounded transition-colors flex items-center justify-center ${
+          (style.textAlign === 'left' || !style.textAlign)
+            ? 'bg-accent text-white border-accent'
+            : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+        }`}
+        title="Alinhar à esquerda"
+      >
+        ←
+      </button>
+
+      {/* Text Align Center */}
+      <button
+        onClick={() => updateStyle({ textAlign: 'center' })}
+        className={`w-6 h-6 text-xs border rounded transition-colors flex items-center justify-center ${
+          style.textAlign === 'center'
+            ? 'bg-accent text-white border-accent'
+            : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+        }`}
+        title="Centralizar"
+      >
+        ↔
+      </button>
+
+      {/* Text Align Right */}
+      <button
+        onClick={() => updateStyle({ textAlign: 'right' })}
+        className={`w-6 h-6 text-xs border rounded transition-colors flex items-center justify-center ${
+          style.textAlign === 'right'
+            ? 'bg-accent text-white border-accent'
+            : 'bg-gray-100 text-gray-600 border-gray-200 hover:border-accent/40'
+        }`}
+        title="Alinhar à direita"
+      >
+        →
+      </button>
+
+      {/* Divider */}
+      <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+      {/* Line Height */}
+      <input
+        type="number"
+        value={style.lineHeight || 1.5}
+        onChange={(e) => updateStyle({ lineHeight: parseFloat(e.target.value) || 1.5 })}
+        className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-accent"
+        style={{ width: '40px' }}
+        min="1.0"
+        max="3.0"
+        step="0.1"
+        title="Altura da linha"
+      />
+    </div>
+  );
+}
+
 function TextElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const [showToolbar, setShowToolbar] = useState(false);
   const style = element.style || {};
   
   const textStyles = {
@@ -319,17 +504,34 @@ function TextElement({ element, nodeId }) {
     lineHeight: style.lineHeight || 1.5,
   };
 
+  const handleStyleChange = (newStyle) => {
+    updateNodeElement(nodeId, element.id, { 
+      style: { ...style, ...newStyle } 
+    });
+  };
+
   return (
-    <div className="p-2">
-      <InlineEdit
-        value={element.content || ''}
-        onSave={(val) => updateNodeElement(nodeId, element.id, { content: val })}
-        className="text-sm"
-        style={textStyles}
-        multiline
-        placeholder="Digite o texto…"
-        renderValue={(val) => <span style={textStyles}><VariableText text={val} /></span>}
-      />
+    <div className="p-2 relative">
+      {showToolbar && (
+        <InlineStyleToolbar
+          style={style}
+          onChange={handleStyleChange}
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
+      
+      <div onClick={() => setShowToolbar(true)}>
+        <InlineEdit
+          value={element.content || ''}
+          onSave={(val) => updateNodeElement(nodeId, element.id, { content: val })}
+          className="text-sm"
+          style={textStyles}
+          multiline
+          placeholder="Digite o texto…"
+          renderValue={(val) => <span style={textStyles}><VariableText text={val} /></span>}
+        />
+      </div>
+      
       <VariableHint />
     </div>
   );
