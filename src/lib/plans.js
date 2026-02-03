@@ -111,7 +111,9 @@ export const FEATURE_LABELS = {
  * Get plan by key (alias for getPlanInfo)
  */
 export function getPlan(planKey) {
-  return PLANS[planKey] || PLANS.free;
+  // enterprise is an alias for business (unlimited)
+  const key = planKey === 'enterprise' ? 'business' : planKey;
+  return PLANS[key] || PLANS.free;
 }
 
 /**
