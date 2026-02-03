@@ -5,15 +5,17 @@ import {
   X, Plus, Trash2, GripVertical, ChevronDown, ChevronRight,
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
   Type, FileText, UserPlus, PanelRightClose, Disc, Gift, MessageSquare,
-  Star, Info,
+  Star, Info, MousePointerClick,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { createDefaultElement } from '@/components/Canvas/CompositeNode';
+import StyleEditor from './StyleEditor';
 
 // ── Element type metadata ────────────────────────────────────────
 
 const ELEMENT_META = {
   text:              { label: 'Texto',           icon: Type,        color: 'teal' },
+  button:            { label: 'Botão',           icon: MousePointerClick, color: 'indigo' },
   video:             { label: 'Vídeo',           icon: Video,       color: 'orange' },
   audio:             { label: 'Áudio',           icon: Music,       color: 'orange' },
   image:             { label: 'Imagem',          icon: Image,       color: 'orange' },
@@ -31,6 +33,7 @@ const ELEMENT_META = {
 
 const ELEMENT_TYPES = [
   { type: 'text',              label: 'Texto' },
+  { type: 'button',            label: 'Botão' },
   { type: 'video',             label: 'Vídeo' },
   { type: 'audio',             label: 'Áudio' },
   { type: 'image',             label: 'Imagem' },
@@ -48,6 +51,7 @@ const ELEMENT_TYPES = [
 
 const COLOR_CLASSES = {
   teal:   'bg-teal-100 text-teal-600',
+  indigo: 'bg-indigo-100 text-indigo-600',
   orange: 'bg-orange-100 text-orange-600',
   purple: 'bg-accent/10 text-accent',
   blue:   'bg-blue-100 text-blue-600',
@@ -59,15 +63,33 @@ const COLOR_CLASSES = {
 
 function TextElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  
+  const handleStyleChange = (styleUpdates) => {
+    updateNodeElement(nodeId, element.id, { 
+      style: { ...(element.style || {}), ...styleUpdates }
+    });
+  };
+
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">Conteúdo</label>
-      <textarea
-        value={element.content || ''}
-        onChange={(e) => updateNodeElement(nodeId, element.id, { content: e.target.value })}
-        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent resize-none text-sm"
-        rows={3}
-        placeholder="Digite o texto..."
+    <div className="space-y-3">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Conteúdo</label>
+        <textarea
+          value={element.content || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { content: e.target.value })}
+          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent resize-none text-sm"
+          rows={3}
+          placeholder="Digite o texto..."
+        />
+      </div>
+      
+      <StyleEditor
+        style={element.style || {}}
+        onChange={handleStyleChange}
+        showWidth={false}
+        showLineHeight={true}
+        showHoverColor={false}
+        showPadding={false}
       />
     </div>
   );
@@ -203,10 +225,16 @@ function QuestionElementEditor({ element, nodeId }) {
     opts[index] = { ...opts[index], score: parseInt(value) || 0 };
     updateNodeElement(nodeId, element.id, { options: opts });
   };
+
+  const handleEmojiChange = (index, emoji) => {
+    const opts = [...(element.options || [])];
+    opts[index] = { ...opts[index], emoji };
+    updateNodeElement(nodeId, element.id, { options: opts });
+  };
   const addOption = () => {
     const opts = [
       ...(element.options || []),
-      { text: `Opção ${(element.options?.length || 0) + 1}`, score: 0 },
+      { text: `Opção ${(element.options?.length || 0) + 1}`, score: 0, emoji: '' },
     ];
     updateNodeElement(nodeId, element.id, { options: opts });
   };
@@ -239,23 +267,33 @@ function QuestionElementEditor({ element, nodeId }) {
         </div>
         <div className="space-y-2">
           {(element.options || []).map((option, index) => (
-            <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
-              <input
-                type="text"
-                value={option.text}
-                onChange={(e) => handleOptionChange(index, e.target.value)}
-                className="flex-1 bg-white border border-gray-200 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
-              />
-              <input
-                type="number"
-                value={option.score || 0}
-                onChange={(e) => handleScoreChange(index, e.target.value)}
-                className="w-16 bg-white border border-gray-200 rounded px-2 py-1.5 text-sm text-center focus:ring-1 focus:ring-accent focus:border-transparent"
-                title="Pontuação"
-              />
-              <button onClick={() => removeOption(index)} className="text-gray-400 hover:text-red-500 p-1">
-                <X size={16} />
-              </button>
+            <div key={index} className="bg-gray-50 rounded-lg p-2 space-y-2">
+              <div className="flex items-center gap-2">
+                {/* Emoji picker */}
+                <div className="w-10 shrink-0">
+                  <EmojiPicker
+                    value={option.emoji || ''}
+                    onChange={(emoji) => handleEmojiChange(index, emoji)}
+                  />
+                </div>
+                <input
+                  type="text"
+                  value={option.text}
+                  onChange={(e) => handleOptionChange(index, e.target.value)}
+                  className="flex-1 bg-white border border-gray-200 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-accent focus:border-transparent"
+                  placeholder="Texto da opção..."
+                />
+                <input
+                  type="number"
+                  value={option.score || 0}
+                  onChange={(e) => handleScoreChange(index, e.target.value)}
+                  className="w-16 bg-white border border-gray-200 rounded px-2 py-1.5 text-sm text-center focus:ring-1 focus:ring-accent focus:border-transparent"
+                  title="Pontuação"
+                />
+                <button onClick={() => removeOption(index)} className="text-gray-400 hover:text-red-500 p-1">
+                  <X size={16} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -1040,10 +1078,128 @@ function ScratchCardElementEditor({ element, nodeId }) {
   );
 }
 
+function ButtonElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  
+  const handleStyleChange = (styleUpdates) => {
+    updateNodeElement(nodeId, element.id, { 
+      style: { ...(element.style || {}), ...styleUpdates }
+    });
+  };
+
+  const actionOptions = [
+    { value: 'next-node', label: 'Próximo Node' },
+    { value: 'url', label: 'Abrir URL' },
+    { value: 'script', label: 'Executar Script' },
+    { value: 'phone', label: 'Ligar' },
+    { value: 'email', label: 'Email' },
+  ];
+
+  const showActionValue = ['url', 'script', 'phone', 'email'].includes(element.action);
+  const showNewTabOption = element.action === 'url';
+
+  return (
+    <div className="space-y-3">
+      {/* Button Text */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Texto do botão</label>
+        <input
+          type="text"
+          value={element.text || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { text: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Clique aqui"
+        />
+      </div>
+
+      {/* Action Type */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Ação</label>
+        <select
+          value={element.action || 'next-node'}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { action: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm bg-white"
+        >
+          {actionOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Action Value (conditional) */}
+      {showActionValue && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {element.action === 'url' ? 'URL' :
+             element.action === 'script' ? 'Script' :
+             element.action === 'phone' ? 'Telefone' :
+             element.action === 'email' ? 'Email' : 'Valor'}
+          </label>
+          {element.action === 'script' ? (
+            <textarea
+              value={element.actionValue || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { actionValue: e.target.value })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm font-mono"
+              rows={3}
+              placeholder="// Seu script aqui"
+            />
+          ) : (
+            <input
+              type="text"
+              value={element.actionValue || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { actionValue: e.target.value })}
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              placeholder={
+                element.action === 'url' ? 'https://example.com' :
+                element.action === 'phone' ? '(11) 99999-9999' :
+                element.action === 'email' ? 'contato@example.com' : ''
+              }
+            />
+          )}
+        </div>
+      )}
+
+      {/* Open in New Tab (for URL action) */}
+      {showNewTabOption && (
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-700">Abrir em nova aba</p>
+            <p className="text-xs text-gray-400">Para URLs externas</p>
+          </div>
+          <button
+            onClick={() => updateNodeElement(nodeId, element.id, { openInNewTab: !element.openInNewTab })}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              element.openInNewTab !== false ? 'bg-accent' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                element.openInNewTab !== false ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      )}
+      
+      {/* Style Editor */}
+      <StyleEditor
+        style={element.style || {}}
+        onChange={handleStyleChange}
+        showWidth={true}
+        showLineHeight={false}
+        showHoverColor={true}
+        showPadding={true}
+      />
+    </div>
+  );
+}
+
 function ElementEditor({ element, nodeId }) {
   switch (element.type) {
     case 'text':
       return <TextElementEditor element={element} nodeId={nodeId} />;
+    case 'button':
+      return <ButtonElementEditor element={element} nodeId={nodeId} />;
     case 'video':
     case 'audio':
     case 'image':

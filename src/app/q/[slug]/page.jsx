@@ -1792,9 +1792,16 @@ function QuizPlayer() {
                     >
                       {String.fromCharCode(65 + index)}
                     </span>
-                    <span className="font-medium text-gray-800">
-                      {option.text}
-                    </span>
+                    <div className="flex items-center gap-2 flex-1">
+                      {option.emoji && (
+                        <span style={{ fontSize: '1.4em', lineHeight: 1 }}>
+                          {option.emoji}
+                        </span>
+                      )}
+                      <span className="font-medium text-gray-800">
+                        {option.text}
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -1815,13 +1822,120 @@ function QuizPlayer() {
 
               {(currentNode.data.elements || []).map((el) => {
                 if (el.type === 'text') {
+                  const style = el.style || {};
+                  const textStyles = {
+                    fontFamily: style.fontFamily || 'Inter',
+                    fontSize: `${style.fontSize || 16}px`,
+                    fontWeight: style.fontWeight || '400',
+                    fontStyle: style.fontStyle || 'normal',
+                    textDecoration: style.textDecoration || 'none',
+                    color: style.textColor || '#374151',
+                    backgroundColor: style.backgroundColor && style.backgroundColor !== 'transparent' ? style.backgroundColor : undefined,
+                    textAlign: style.textAlign || 'left',
+                    lineHeight: style.lineHeight || 1.5,
+                  };
+
                   return (
                     <p
                       key={el.id}
-                      className="text-gray-700 mb-4 whitespace-pre-wrap"
+                      className="mb-4 whitespace-pre-wrap"
+                      style={textStyles}
                     >
                       {rv(el.content)}
                     </p>
+                  );
+                }
+
+                if (el.type === 'button') {
+                  const style = el.style || {};
+                  const buttonStyles = {
+                    fontFamily: style.fontFamily || 'Inter',
+                    fontSize: `${style.fontSize || 16}px`,
+                    fontWeight: style.fontWeight || '600',
+                    color: style.textColor || '#ffffff',
+                    backgroundColor: style.backgroundColor || '#7c3aed',
+                    borderColor: style.borderColor || 'transparent',
+                    borderWidth: `${style.borderWidth || 0}px`,
+                    borderRadius: `${style.borderRadius || 8}px`,
+                    paddingLeft: `${style.paddingX || 24}px`,
+                    paddingRight: `${style.paddingX || 24}px`,
+                    paddingTop: `${style.paddingY || 12}px`,
+                    paddingBottom: `${style.paddingY || 12}px`,
+                    width: style.width === 'auto' ? 'auto' : '100%',
+                    textAlign: style.alignment || 'center',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: style.alignment === 'left' ? 'flex-start' : style.alignment === 'right' ? 'flex-end' : 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    borderStyle: 'solid',
+                    textDecoration: 'none',
+                    marginLeft: style.alignment === 'center' && style.width === 'auto' ? 'auto' : style.alignment === 'right' && style.width === 'auto' ? 'auto' : '0',
+                    marginRight: style.alignment === 'center' && style.width === 'auto' ? 'auto' : style.alignment === 'left' && style.width === 'auto' ? 'auto' : '0',
+                  };
+
+                  const handleButtonClick = () => {
+                    switch (el.action) {
+                      case 'next-node':
+                        advanceToNode(getNextNode(currentNodeId, null, el.id));
+                        break;
+                      case 'url':
+                        if (el.actionValue) {
+                          if (el.openInNewTab !== false) {
+                            window.open(el.actionValue, '_blank', 'noopener,noreferrer');
+                          } else {
+                            window.location.href = el.actionValue;
+                          }
+                        }
+                        break;
+                      case 'script':
+                        if (el.actionValue) {
+                          try {
+                            eval(el.actionValue);
+                          } catch (error) {
+                            console.error('Script execution error:', error);
+                          }
+                        }
+                        break;
+                      case 'phone':
+                        if (el.actionValue) {
+                          window.location.href = `tel:${el.actionValue}`;
+                        }
+                        break;
+                      case 'email':
+                        if (el.actionValue) {
+                          window.location.href = `mailto:${el.actionValue}`;
+                        }
+                        break;
+                    }
+                  };
+
+                  return (
+                    <div key={el.id} className="mb-4" style={{ 
+                      textAlign: style.alignment || 'center',
+                      width: '100%'
+                    }}>
+                      <button
+                        onClick={handleButtonClick}
+                        style={buttonStyles}
+                        className="transition-all duration-200 hover:opacity-90"
+                        onMouseEnter={(e) => {
+                          if (style.hoverBackgroundColor) {
+                            e.target.style.backgroundColor = style.hoverBackgroundColor;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = style.backgroundColor || '#7c3aed';
+                        }}
+                      >
+                        <span>{el.text || 'Clique aqui'}</span>
+                        {el.action === 'url' && <span>🔗</span>}
+                        {el.action === 'script' && <span>⚡</span>}
+                        {el.action === 'phone' && <span>📞</span>}
+                        {el.action === 'email' && <span>📧</span>}
+                      </button>
+                    </div>
                   );
                 }
 
@@ -2005,9 +2119,16 @@ function QuizPlayer() {
                               >
                                 {String.fromCharCode(65 + idx)}
                               </span>
-                              <span className="font-medium text-gray-800">
-                                {opt.text}
-                              </span>
+                              <div className="flex items-center gap-2 flex-1">
+                                {opt.emoji && (
+                                  <span style={{ fontSize: '1.4em', lineHeight: 1 }}>
+                                    {opt.emoji}
+                                  </span>
+                                )}
+                                <span className="font-medium text-gray-800">
+                                  {opt.text}
+                                </span>
+                              </div>
                             </button>
                           );
                         })}

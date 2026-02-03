@@ -16,6 +16,7 @@ import {
   Gift,
   MessageSquare,
   Star,
+  MousePointerClick,
 } from 'lucide-react';
 
 const elements = [
@@ -42,6 +43,7 @@ const elements = [
     category: 'Conteúdo',
     items: [
       { type: 'text', icon: Type, label: 'Texto' },
+      { type: 'button', icon: MousePointerClick, label: 'Botão' },
       { type: 'script', icon: FileText, label: 'Script' },
     ]
   },

@@ -21,6 +21,7 @@ import {
   Gift,
   MessageSquare,
   Star,
+  MousePointerClick,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
@@ -29,6 +30,7 @@ import { AVAILABLE_VARIABLES, parseVariableSegments } from '@/lib/dynamicVariabl
 // ── Shared lookups ──────────────────────────────────────────────
 const ICONS = {
   text: Type,
+  button: MousePointerClick,
   audio: Music,
   video: Video,
   image: Image,
@@ -46,6 +48,7 @@ const ICONS = {
 
 const COLORS = {
   text: { bg: 'bg-teal-100', text: 'text-teal-600' },
+  button: { bg: 'bg-indigo-100', text: 'text-indigo-600' },
   audio: { bg: 'bg-orange-100', text: 'text-orange-600' },
   video: { bg: 'bg-orange-100', text: 'text-orange-600' },
   image: { bg: 'bg-orange-100', text: 'text-orange-600' },
@@ -63,6 +66,7 @@ const COLORS = {
 
 const ELEMENT_TYPES = [
   { type: 'text', label: 'Texto' },
+  { type: 'button', label: 'Botão' },
   { type: 'video', label: 'Vídeo' },
   { type: 'audio', label: 'Áudio' },
   { type: 'image', label: 'Imagem' },
@@ -84,7 +88,44 @@ export function createDefaultElement(type) {
 
   switch (type) {
     case 'text':
-      return { id, type: 'text', content: 'Novo texto…' };
+      return { 
+        id, type: 'text', 
+        content: 'Novo texto…',
+        style: {
+          fontFamily: 'Inter',
+          fontSize: 16,
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          textColor: '#374151',
+          backgroundColor: 'transparent',
+          textAlign: 'left',
+          lineHeight: 1.5,
+        }
+      };
+    case 'button':
+      return {
+        id, type: 'button',
+        text: 'Clique aqui',
+        action: 'next-node',
+        actionValue: '',
+        openInNewTab: true,
+        style: {
+          fontFamily: 'Inter',
+          fontSize: 16,
+          fontWeight: '600',
+          textColor: '#ffffff',
+          backgroundColor: '#7c3aed',
+          hoverBackgroundColor: '#6d28d9',
+          borderColor: 'transparent',
+          borderWidth: 0,
+          borderRadius: 8,
+          paddingX: 24,
+          paddingY: 12,
+          width: 'full',
+          alignment: 'center',
+        }
+      };
     case 'video':
       return { id, type: 'video', url: '', title: 'Vídeo' };
     case 'audio':
@@ -100,9 +141,9 @@ export function createDefaultElement(type) {
         type: 'question-single',
         question: 'Nova Pergunta',
         options: [
-          { text: 'Opção A', score: 10 },
-          { text: 'Opção B', score: 5 },
-          { text: 'Opção C', score: 0 },
+          { text: 'Opção A', score: 10, emoji: '' },
+          { text: 'Opção B', score: 5, emoji: '' },
+          { text: 'Opção C', score: 0, emoji: '' },
         ],
       };
     case 'multiple-choice':
@@ -112,9 +153,9 @@ export function createDefaultElement(type) {
         type: 'question-multiple',
         question: 'Nova Pergunta',
         options: [
-          { text: 'Opção A', score: 10 },
-          { text: 'Opção B', score: 5 },
-          { text: 'Opção C', score: 0 },
+          { text: 'Opção A', score: 10, emoji: '' },
+          { text: 'Opção B', score: 5, emoji: '' },
+          { text: 'Opção C', score: 0, emoji: '' },
         ],
       };
     case 'question-icons':
@@ -263,15 +304,30 @@ function VariableHint() {
 
 function TextElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const style = element.style || {};
+  
+  const textStyles = {
+    fontFamily: style.fontFamily || 'Inter',
+    fontSize: `${style.fontSize || 16}px`,
+    fontWeight: style.fontWeight || '400',
+    fontStyle: style.fontStyle || 'normal',
+    textDecoration: style.textDecoration || 'none',
+    color: style.textColor || '#374151',
+    backgroundColor: style.backgroundColor && style.backgroundColor !== 'transparent' ? style.backgroundColor : undefined,
+    textAlign: style.textAlign || 'left',
+    lineHeight: style.lineHeight || 1.5,
+  };
+
   return (
     <div className="p-2">
       <InlineEdit
         value={element.content || ''}
         onSave={(val) => updateNodeElement(nodeId, element.id, { content: val })}
-        className="text-gray-700 text-sm"
+        className="text-sm"
+        style={textStyles}
         multiline
         placeholder="Digite o texto…"
-        renderValue={(val) => <VariableText text={val} />}
+        renderValue={(val) => <span style={textStyles}><VariableText text={val} /></span>}
       />
       <VariableHint />
     </div>
@@ -360,11 +416,16 @@ function QuestionElement({ element, nodeId }) {
               <span className="w-4 h-4 bg-white border border-gray-300 rounded-full flex items-center justify-center text-[10px] shrink-0">
                 {String.fromCharCode(65 + idx)}
               </span>
-              <span className="flex-1">
+              <span className="flex-1 flex items-center gap-1">
+                {opt.emoji && (
+                  <span style={{ fontSize: '1.3em', lineHeight: 1 }}>
+                    {opt.emoji}
+                  </span>
+                )}
                 <InlineEdit
                   value={opt.text}
                   onSave={(val) => handleOptionText(idx, val)}
-                  className="text-sm"
+                  className="text-sm flex-1"
                   placeholder="Opção…"
                 />
               </span>
@@ -834,10 +895,119 @@ function ScratchCardPreview({ element }) {
   );
 }
 
+function ButtonElement({ element, nodeId }) {
+  const edges = useQuizStore((s) => s.edges);
+  const style = element.style || {};
+  
+  // Track if action is 'next-node' to show Handle
+  const showHandle = element.action === 'next-node';
+  
+  // Connected handle check
+  const connectedHandles = useMemo(() => {
+    const set = new Set();
+    edges.forEach((e) => {
+      if (e.source === nodeId && e.sourceHandle) set.add(e.sourceHandle);
+    });
+    return set;
+  }, [edges, nodeId]);
+  
+  const handleId = `${element.id}-button`;
+  const isConnected = connectedHandles.has(handleId);
+
+  const buttonStyles = {
+    fontFamily: style.fontFamily || 'Inter',
+    fontSize: `${style.fontSize || 16}px`,
+    fontWeight: style.fontWeight || '600',
+    color: style.textColor || '#ffffff',
+    backgroundColor: style.backgroundColor || '#7c3aed',
+    borderColor: style.borderColor || 'transparent',
+    borderWidth: `${style.borderWidth || 0}px`,
+    borderRadius: `${style.borderRadius || 8}px`,
+    paddingLeft: `${style.paddingX || 24}px`,
+    paddingRight: `${style.paddingX || 24}px`,
+    paddingTop: `${style.paddingY || 12}px`,
+    paddingBottom: `${style.paddingY || 12}px`,
+    width: style.width === 'auto' ? 'auto' : '100%',
+    textAlign: style.alignment || 'center',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: style.alignment === 'left' ? 'flex-start' : style.alignment === 'right' ? 'flex-end' : 'center',
+    gap: '0.5rem',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    borderStyle: 'solid',
+    textDecoration: 'none',
+  };
+
+  // Action type icon
+  const getActionIcon = () => {
+    switch (element.action) {
+      case 'url': return '🔗';
+      case 'script': return '⚡';
+      case 'phone': return '📞';
+      case 'email': return '📧';
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="p-2 relative">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="w-5 h-5 bg-indigo-100 rounded flex items-center justify-center">
+          <MousePointerClick size={12} className="text-indigo-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wide">Botão</span>
+      </div>
+      
+      <div
+        className="relative"
+        style={{ 
+          width: style.width === 'auto' ? 'fit-content' : '100%',
+          marginLeft: style.alignment === 'center' ? 'auto' : style.alignment === 'right' ? 'auto' : '0',
+          marginRight: style.alignment === 'center' ? 'auto' : style.alignment === 'left' ? 'auto' : '0'
+        }}
+      >
+        <button
+          style={buttonStyles}
+          className="transition-all duration-200 hover:opacity-90"
+          onMouseEnter={(e) => {
+            if (style.hoverBackgroundColor) {
+              e.target.style.backgroundColor = style.hoverBackgroundColor;
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = style.backgroundColor || '#7c3aed';
+          }}
+        >
+          <span>{element.text || 'Clique aqui'}</span>
+          {getActionIcon() && <span>{getActionIcon()}</span>}
+        </button>
+        
+        {/* Handle for next-node action */}
+        {showHandle && (
+          <Handle
+            type="source"
+            position={Position.Right}
+            id={handleId}
+            className={
+              isConnected
+                ? '!bg-indigo-500 !w-2.5 !h-2.5 !right-[-5px] !border !border-white'
+                : '!bg-white !border-2 !border-indigo-400 !w-2.5 !h-2.5 !right-[-5px]'
+            }
+            title="Conecte ao próximo node"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ElementRenderer({ element, nodeId }) {
   switch (element.type) {
     case 'text':
       return <TextElement element={element} nodeId={nodeId} />;
+    case 'button':
+      return <ButtonElement element={element} nodeId={nodeId} />;
     case 'video':
     case 'audio':
     case 'image':
