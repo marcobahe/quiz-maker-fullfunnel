@@ -2201,17 +2201,26 @@ export default function CompositeNode({ id, data, selected }) {
 
   // Compute a fingerprint of all handle IDs so RF recalculates positions
   // whenever options are added/removed/reordered
+  // Compute a detailed fingerprint of all handle IDs so RF recalculates positions
+  // whenever options are added/removed/reordered or elements change
   const handleFingerprint = useMemo(() => {
     return elements
       .map((el) => {
-        if (el.options) return `${el.id}:${el.options.length}`;
-        return el.id;
+        if (el.options) return `${el.id}:${el.type}:${el.options.length}:${el.options.map((o,i) => i).join(',')}`;
+        return `${el.id}:${el.type}`;
       })
       .join('|');
   }, [elements]);
 
+  // Force React Flow to recalculate handle positions after DOM settles
   useEffect(() => {
+    // Immediate update
     updateNodeInternals(id);
+    // Delayed update to catch async renders
+    const timer = setTimeout(() => {
+      updateNodeInternals(id);
+    }, 50);
+    return () => clearTimeout(timer);
   }, [id, handleFingerprint, updateNodeInternals]);
 
   const handleAdd = (type) => {
