@@ -72,7 +72,7 @@ const leadGenBasic = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 500 },
+        position: { x: 150, y: 750 },
         data: {
           label: 'Porte',
           elements: [
@@ -93,7 +93,7 @@ const leadGenBasic = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 850 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Orçamento',
           elements: [
@@ -114,7 +114,7 @@ const leadGenBasic = {
       {
         id: 'lead',
         type: 'composite',
-        position: { x: 150, y: 1200 },
+        position: { x: 150, y: 1950 },
         data: {
           label: 'Formulário',
           elements: [
@@ -126,7 +126,7 @@ const leadGenBasic = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 1550 },
+        position: { x: 200, y: 2350 },
         data: { title: 'Seu Plano Recomendado' },
       },
     ],
@@ -189,7 +189,7 @@ const investorProfile = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 500 },
+        position: { x: 150, y: 750 },
         data: {
           label: 'Tolerância a Risco',
           elements: [
@@ -210,7 +210,7 @@ const investorProfile = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 850 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Horizonte',
           elements: [
@@ -231,7 +231,7 @@ const investorProfile = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1150 },
+        position: { x: 150, y: 1950 },
         data: {
           label: 'Conhecimento',
           elements: [
@@ -252,7 +252,7 @@ const investorProfile = {
       {
         id: 'q5',
         type: 'composite',
-        position: { x: 150, y: 1450 },
+        position: { x: 150, y: 2550 },
         data: {
           label: 'Objetivo',
           elements: [
@@ -273,7 +273,7 @@ const investorProfile = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 1750 },
+        position: { x: 200, y: 2950 },
         data: { title: 'Seu Perfil de Investidor' },
       },
     ],
@@ -337,7 +337,7 @@ const marketingDiag = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 500 },
+        position: { x: 150, y: 750 },
         data: {
           label: 'Redes Sociais',
           elements: [
@@ -358,7 +358,7 @@ const marketingDiag = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 850 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Tráfego Pago',
           elements: [
@@ -379,7 +379,7 @@ const marketingDiag = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1150 },
+        position: { x: 150, y: 1950 },
         data: {
           label: 'Email Marketing',
           elements: [
@@ -400,7 +400,7 @@ const marketingDiag = {
       {
         id: 'q5',
         type: 'composite',
-        position: { x: 150, y: 1450 },
+        position: { x: 150, y: 2550 },
         data: {
           label: 'Métricas',
           elements: [
@@ -421,7 +421,7 @@ const marketingDiag = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 1750 },
+        position: { x: 200, y: 2950 },
         data: { title: 'Seu Nível de Maturidade Digital' },
       },
     ],
@@ -484,7 +484,7 @@ const knowledgeQuiz = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 500 },
+        position: { x: 150, y: 750 },
         data: {
           label: 'Pergunta 2 de 5',
           elements: [
@@ -504,7 +504,7 @@ const knowledgeQuiz = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 800 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Pergunta 3 de 5',
           elements: [
@@ -524,7 +524,7 @@ const knowledgeQuiz = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1100 },
+        position: { x: 150, y: 1950 },
         data: {
           label: 'Pergunta 4 de 5',
           elements: [
@@ -544,7 +544,7 @@ const knowledgeQuiz = {
       {
         id: 'q5',
         type: 'composite',
-        position: { x: 150, y: 1400 },
+        position: { x: 150, y: 2550 },
         data: {
           label: 'Pergunta 5 de 5',
           elements: [
@@ -564,7 +564,7 @@ const knowledgeQuiz = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 1700 },
+        position: { x: 200, y: 2950 },
         data: { title: 'Sua Pontuação' },
       },
     ],
@@ -627,7 +627,7 @@ const styleQuiz = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 500 },
+        position: { x: 150, y: 750 },
         data: {
           label: 'Trabalho',
           elements: [
@@ -647,7 +647,7 @@ const styleQuiz = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 800 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Lazer',
           elements: [
@@ -667,7 +667,7 @@ const styleQuiz = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1100 },
+        position: { x: 150, y: 1950 },
         data: {
           label: 'Decisões',
           elements: [
@@ -687,7 +687,7 @@ const styleQuiz = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 1400 },
+        position: { x: 200, y: 2350 },
         data: { title: 'Seu Estilo Revelado!' },
       },
     ],
@@ -750,7 +750,7 @@ const npsQuiz = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 550 },
+        position: { x: 150, y: 750 },
         data: {
           label: 'Experiência',
           elements: [
@@ -771,7 +771,7 @@ const npsQuiz = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 900 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Melhoria',
           elements: [
@@ -792,7 +792,7 @@ const npsQuiz = {
       {
         id: 'lead',
         type: 'composite',
-        position: { x: 150, y: 1250 },
+        position: { x: 150, y: 1950 },
         data: {
           label: 'Contato',
           elements: [
@@ -804,7 +804,7 @@ const npsQuiz = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 1600 },
+        position: { x: 200, y: 2350 },
         data: { title: 'Obrigado pelo seu Feedback!' },
       },
     ],
@@ -867,7 +867,7 @@ const bantQualification = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 550 },
+        position: { x: 150, y: 750 },
         data: {
           label: 'Authority (Autoridade)',
           elements: [
@@ -888,7 +888,7 @@ const bantQualification = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 900 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Need (Necessidade)',
           elements: [
@@ -909,7 +909,7 @@ const bantQualification = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1250 },
+        position: { x: 150, y: 1950 },
         data: {
           label: 'Timeline (Prazo)',
           elements: [
@@ -930,7 +930,7 @@ const bantQualification = {
       {
         id: 'lead',
         type: 'composite',
-        position: { x: 150, y: 1550 },
+        position: { x: 150, y: 2550 },
         data: {
           label: 'Dados do Lead',
           elements: [
@@ -942,7 +942,7 @@ const bantQualification = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 1900 },
+        position: { x: 200, y: 2950 },
         data: { title: 'Resultado da Qualificação' },
       },
     ],
@@ -1006,7 +1006,7 @@ const onboardingQuiz = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 550 },
+        position: { x: 150, y: 750 },
         data: {
           label: 'Experiência',
           elements: [
@@ -1027,7 +1027,7 @@ const onboardingQuiz = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 900 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Tamanho',
           elements: [
@@ -1048,7 +1048,7 @@ const onboardingQuiz = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1200 },
+        position: { x: 150, y: 1950 },
         data: {
           label: 'Integrações',
           elements: [
@@ -1069,7 +1069,7 @@ const onboardingQuiz = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 1500 },
+        position: { x: 200, y: 2350 },
         data: { title: 'Sua Experiência Personalizada' },
       },
     ],
