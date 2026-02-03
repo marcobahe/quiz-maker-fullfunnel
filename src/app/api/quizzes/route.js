@@ -23,6 +23,7 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
+    const includeAnalytics = searchParams.get('includeAnalytics') === 'true';
 
     const where = {
       isVariant: false,
@@ -41,18 +42,64 @@ export async function GET(request) {
       where.userId = session.user.id;
     }
 
+    const include = {
+      _count: {
+        select: { leads: true },
+      },
+      variants: {
+        select: { id: true, name: true, status: true },
+      },
+    };
+
+    // Include analytics data if requested
+    if (includeAnalytics) {
+      include.sessions = {
+        select: { 
+          id: true, 
+          startedAt: true, 
+          completedAt: true, 
+          currentScore: true,
+          isCompleted: true
+        }
+      };
+      include.leads = {
+        select: { id: true, createdAt: true }
+      };
+    }
+
     const quizzes = await prisma.quiz.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: {
-        _count: {
-          select: { leads: true },
-        },
-        variants: {
-          select: { id: true, name: true, status: true },
-        },
-      },
+      include,
     });
+
+    // Calculate analytics if requested
+    if (includeAnalytics) {
+      const quizzesWithAnalytics = quizzes.map(quiz => {
+        const totalStarts = quiz.sessions?.length || 0;
+        const totalCompletes = quiz.sessions?.filter(s => s.isCompleted).length || 0;
+        const totalLeads = quiz.leads?.length || 0;
+        const completionRate = totalStarts > 0 ? Math.round((totalCompletes / totalStarts) * 100) : 0;
+        const conversionRate = totalStarts > 0 ? Math.round((totalLeads / totalStarts) * 100) : 0;
+        
+        const scores = quiz.sessions?.filter(s => s.isCompleted && s.currentScore > 0).map(s => s.currentScore) || [];
+        const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+
+        // Remove raw session and lead data to reduce payload size
+        const { sessions, leads, ...quizData } = quiz;
+        
+        return {
+          ...quizData,
+          totalStarts,
+          totalCompletes,
+          totalLeads,
+          completionRate,
+          conversionRate,
+          avgScore,
+        };
+      });
+      return NextResponse.json(quizzesWithAnalytics);
+    }
 
     return NextResponse.json(quizzes);
   } catch (error) {
