@@ -1298,27 +1298,6 @@ function QuestionElement({ element, nodeId }) {
           <Plus size={12} /> Opção
         </button>
 
-        {/* General "all options" handle */}
-        {(() => {
-          const generalId = `${element.id}-general`;
-          const isGeneralConnected = connectedHandles.has(generalId);
-          return (
-            <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1">
-              <span className="text-[10px] text-purple-400 select-none flex-1">Todas as respostas</span>
-              <Handle
-                type="source"
-                position={Position.Right}
-                id={generalId}
-                className={
-                  isGeneralConnected
-                    ? '!bg-purple-500 !w-3 !h-3 !right-[-5px] !border-2 !border-white'
-                    : '!bg-white !border-2 !border-purple-400 !w-3 !h-3 !right-[-5px]'
-                }
-                title="Todas as respostas → mesmo destino"
-              />
-            </div>
-          );
-        })()}
       </div>
     </div>
   );
@@ -1425,27 +1404,6 @@ function IconQuestionElement({ element, nodeId }) {
         <Plus size={12} /> Opção
       </button>
 
-      {/* General "all options" handle */}
-      {(() => {
-        const generalId = `${element.id}-general`;
-        const isGeneralConnected = connectedHandles.has(generalId);
-        return (
-          <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1">
-            <span className="text-[10px] text-purple-400 select-none flex-1">Todas as respostas</span>
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={generalId}
-              className={
-                isGeneralConnected
-                  ? '!bg-purple-500 !w-3 !h-3 !right-[-5px] !border-2 !border-white'
-                  : '!bg-white !border-2 !border-purple-400 !w-3 !h-3 !right-[-5px]'
-              }
-              title="Todas as respostas → mesmo destino"
-            />
-          </div>
-        );
-      })()}
     </div>
   );
 }
@@ -1466,9 +1424,6 @@ function RatingElement({ element, nodeId }) {
     });
     return set;
   }, [edges, nodeId]);
-
-  const generalId = `${element.id}-general`;
-  const isGeneralConnected = connectedHandles.has(generalId);
 
   const renderPreview = () => {
     const ratingType = element.ratingType || 'number';
@@ -1560,21 +1515,6 @@ function RatingElement({ element, nodeId }) {
       {element.required && (
         <span className="text-[9px] text-red-400 mt-0.5 inline-block">* Obrigatório</span>
       )}
-      {/* General handle — always goes to next node */}
-      <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1.5">
-        <span className="text-[10px] text-purple-400 select-none flex-1">Continuar</span>
-        <Handle
-          type="source"
-          position={Position.Right}
-          id={generalId}
-          className={
-            isGeneralConnected
-              ? '!bg-purple-500 !w-3 !h-3 !right-[-5px] !border-2 !border-white'
-              : '!bg-white !border-2 !border-purple-400 !w-3 !h-3 !right-[-5px]'
-          }
-          title="Continuar → próximo bloco"
-        />
-      </div>
     </div>
   );
 }
@@ -1595,9 +1535,6 @@ function OpenQuestionElement({ element, nodeId }) {
     });
     return set;
   }, [edges, nodeId]);
-
-  const generalId = `${element.id}-general`;
-  const isGeneralConnected = connectedHandles.has(generalId);
 
   return (
     <div className="p-2 relative">
@@ -1640,21 +1577,6 @@ function OpenQuestionElement({ element, nodeId }) {
       {element.required && (
         <span className="text-[9px] text-red-400 mt-1 inline-block">* Obrigatório</span>
       )}
-      {/* General handle — always goes to next node */}
-      <div className="relative flex items-center justify-end gap-1.5 px-2.5 py-1 bg-purple-50/50 rounded-lg mt-1.5">
-        <span className="text-[10px] text-purple-400 select-none flex-1">Continuar</span>
-        <Handle
-          type="source"
-          position={Position.Right}
-          id={generalId}
-          className={
-            isGeneralConnected
-              ? '!bg-purple-500 !w-3 !h-3 !right-[-5px] !border-2 !border-white'
-              : '!bg-white !border-2 !border-purple-400 !w-3 !h-3 !right-[-5px]'
-          }
-          title="Continuar → próximo bloco"
-        />
-      </div>
     </div>
   );
 }
@@ -2344,6 +2266,13 @@ export default function CompositeNode({ id, data, selected }) {
           </div>
         )}
       </div>
+
+      {/* Label "Todas as respostas" above bottom handle when node has question elements */}
+      {elements.some(el => ['question-single', 'question-multiple', 'question-icons', 'question-rating', 'question-open'].includes(el.type)) && (
+        <div className="text-center pb-1">
+          <span className="text-[10px] text-purple-400 select-none">Todas as respostas</span>
+        </div>
+      )}
 
       <Handle type="source" position={Position.Bottom} className="!bg-accent !w-3 !h-3" />
     </div>
