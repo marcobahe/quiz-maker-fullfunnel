@@ -27,7 +27,7 @@ export default function QuizTable({ quizzes, onRefresh, onOpenTemplates }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
       <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-800">Meus Quizzes</h2>
         {onOpenTemplates && (
@@ -61,9 +61,9 @@ export default function QuizTable({ quizzes, onRefresh, onOpenTemplates }) {
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-visible">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 rounded-t-xl">
               <tr>
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nome</th>
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Criado em</th>
@@ -125,7 +125,7 @@ export default function QuizTable({ quizzes, onRefresh, onOpenTemplates }) {
                     </button>
                     
                     {openMenu === quiz.id && (
-                      <div className="absolute right-6 top-12 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[160px]">
+                      <div className="absolute right-6 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl py-1 z-50 min-w-[180px]" style={{ top: '100%' }}>
                         <button 
                           onClick={() => handleEdit(quiz.id)}
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
