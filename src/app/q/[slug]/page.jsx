@@ -5,6 +5,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { replaceVariables } from '@/lib/dynamicVariables';
 import { initTracking, trackEvent } from '@/lib/tracking';
+import { getPatternStyle } from '@/lib/patterns';
 import SpinWheel from '@/components/Player/SpinWheel';
 import ScratchCard from '@/components/Player/ScratchCard';
 import QuestionTimer from '@/components/Quiz/QuestionTimer';
@@ -613,8 +614,8 @@ function RedirectCountdown({ url, delay, accentColor, secondaryColor, isEmbed, r
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-lg p-5 text-center overflow-hidden"
-      style={{ borderTop: `3px solid ${accentColor}` }}
+      className="rounded-2xl shadow-lg p-5 text-center overflow-hidden"
+      style={{ borderTop: `3px solid ${accentColor}`, backgroundColor: '#ffffff' }}
     >
       <div className="flex items-center justify-center gap-2 mb-3">
         <div
@@ -659,7 +660,7 @@ function ImmediateRedirect({ url, isEmbed, resultTitle, accentColor }) {
   }, [url, isEmbed, resultTitle]);
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+    <div className="rounded-2xl shadow-xl p-8 text-center" style={{ backgroundColor: '#ffffff' }}>
       <Loader2 className="animate-spin mx-auto mb-4" size={32} style={{ color: accentColor }} />
       <p className="text-gray-600 font-medium">Redirecionando...</p>
     </div>
@@ -847,7 +848,54 @@ function QuizPlayer() {
 
   const btnRadius = getButtonRadius(theme.buttonStyle);
 
-  const bgStyle = useMemo(() => {
+  // Page background styles (novo sistema)
+  const pageBgStyle = useMemo(() => {
+    const pb = theme.pageBackground || {};
+    
+    // Se não houver configuração de page background, usar bgStyle antigo como fallback
+    if (!pb.type) {
+      if (theme.backgroundType === 'gradient' && GRADIENT_CSS[theme.backgroundGradient]) {
+        return { background: GRADIENT_CSS[theme.backgroundGradient] };
+      }
+      return { backgroundColor: theme.backgroundColor };
+    }
+
+    switch (pb.type) {
+      case 'gradient':
+        return GRADIENT_CSS[pb.gradient] 
+          ? { background: GRADIENT_CSS[pb.gradient] }
+          : { backgroundColor: pb.color || theme.backgroundColor };
+      
+      case 'image':
+        if (pb.imageUrl) {
+          const fitMap = {
+            cover: 'cover',
+            contain: 'contain',
+            repeat: 'repeat'
+          };
+          return {
+            backgroundImage: `url(${pb.imageUrl})`,
+            backgroundSize: fitMap[pb.imageFit] || 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: pb.imageFit === 'repeat' ? 'repeat' : 'no-repeat',
+          };
+        }
+        return { backgroundColor: pb.color || theme.backgroundColor };
+      
+      case 'pattern':
+        const patternStyle = getPatternStyle(pb.pattern || 'dots', pb.color || theme.primaryColor);
+        return {
+          backgroundColor: pb.color || theme.backgroundColor,
+          ...patternStyle,
+        };
+      
+      default: // 'color'
+        return { backgroundColor: pb.color || theme.backgroundColor };
+    }
+  }, [theme.pageBackground, theme.backgroundType, theme.backgroundGradient, theme.backgroundColor, theme.primaryColor]);
+
+  // Quiz card background styles (sistema antigo, para os cards do quiz)
+  const cardBgStyle = useMemo(() => {
     if (theme.backgroundType === 'gradient' && GRADIENT_CSS[theme.backgroundGradient]) {
       return { background: GRADIENT_CSS[theme.backgroundGradient] };
     }
@@ -1470,7 +1518,7 @@ function QuizPlayer() {
   if (error) {
     return (
       <div className={`${embedClass} flex items-center justify-center p-4`} style={bgStyle}>
-        <div className="bg-white rounded-2xl p-8 max-w-md text-center">
+        <div className="rounded-2xl p-8 max-w-md text-center" style={{ backgroundColor: '#ffffff' }}>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Oops!</h1>
           <p className="text-gray-500">{error}</p>
         </div>
@@ -1497,8 +1545,18 @@ function QuizPlayer() {
   return (
     <div
       className={`${embedClass} flex flex-col`}
-      style={{ ...bgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}
+      style={{ ...pageBgStyle, fontFamily: theme.fontFamily }}
     >
+      {/* Image overlay if using image background */}
+      {theme.pageBackground?.type === 'image' && theme.pageBackground?.imageUrl && theme.pageBackground?.imageOverlay > 0 && (
+        <div 
+          className="fixed inset-0 pointer-events-none z-0"
+          style={{
+            backgroundColor: `rgba(0, 0, 0, ${theme.pageBackground.imageOverlay || 0.5})`,
+          }}
+        />
+      )}
+
       {/* Google Font */}
       <GoogleFontLink fontFamily={theme.fontFamily} />
 
@@ -1509,52 +1567,65 @@ function QuizPlayer() {
         </div>
       )}
 
-      {/* Header (hidden in embed mode for cleaner look) */}
-      {!isEmbed && (
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {branding.logoUrl ? (
-              <img
-                src={branding.logoUrl}
-                alt="Logo"
-                className="w-8 h-8 rounded-lg object-cover"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : (
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-              >
-                <span className="text-sm font-bold" style={{ color: theme.textColor }}>Q</span>
-              </div>
+      <div className="relative z-10 flex flex-col min-h-full">
+        {/* Header (hidden in embed mode for cleaner look) */}
+        {!isEmbed && (
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt="Logo"
+                  className="w-8 h-8 rounded-lg object-cover"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+                >
+                  <span className="text-sm font-bold" style={{ color: theme.textColor }}>Q</span>
+                </div>
+              )}
+              <span className="text-sm font-medium" style={{ color: theme.textColor, opacity: 0.8 }}>
+                {quiz?.name}
+              </span>
+            </div>
+            {!showResult && (
+              <span className="text-sm" style={{ color: theme.textColor, opacity: 0.6 }}>
+                {answeredCount}/{totalQuestions}
+              </span>
             )}
-            <span className="text-sm font-medium" style={{ color: theme.textColor, opacity: 0.8 }}>
-              {quiz?.name}
-            </span>
           </div>
-          {!showResult && (
-            <span className="text-sm" style={{ color: theme.textColor, opacity: 0.6 }}>
-              {answeredCount}/{totalQuestions}
-            </span>
-          )}
-        </div>
-      )}
+        )}
 
-      {/* Progress Bar */}
-      {!showResult && (
-        <div className={isEmbed ? 'px-2 mb-4' : 'px-4 mb-6'}>
-          <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+        {/* Progress Bar */}
+        {!showResult && (
+          <div className={isEmbed ? 'px-2 mb-4' : 'px-4 mb-6'}>
+            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${progress}%`, backgroundColor: theme.textColor }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Content */}
+        <div className={`flex-1 flex items-center justify-center ${isEmbed ? 'p-2' : 'p-4'}`}>
+          <div className={`w-full ${isEmbed ? 'max-w-lg' : 'max-w-2xl'}`}>
+            {/* Quiz Card Container */}
             <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${progress}%`, backgroundColor: theme.textColor }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className={`flex-1 flex items-center justify-center ${isEmbed ? 'p-2' : 'p-4'}`}>
-        <div className="w-full max-w-lg">
+              className={`${isEmbed ? '' : 'lg:rounded-2xl lg:shadow-xl lg:max-w-lg lg:mx-auto'}`}
+              style={isEmbed ? {} : cardBgStyle}
+            >
+              <div 
+                className={`${isEmbed ? '' : 'lg:p-6'}`}
+                style={{ 
+                  color: theme.textColor,
+                  fontFamily: theme.fontFamily 
+                }}
+              >
           {/* ── Result Screen ─────────────────────────────── */}
           {showResult && (() => {
             const matchedRange = getMatchingRange(score);
@@ -1587,7 +1658,7 @@ function QuizPlayer() {
             return (
               <div className="space-y-6">
                 {showStatic && (
-                  <div className="bg-white rounded-2xl shadow-xl p-8 text-center" style={{ fontFamily: theme.fontFamily }}>
+                  <div className="rounded-2xl shadow-xl p-8 text-center" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
                     {matchedRange?.image ? (
                       <img
                         src={matchedRange.image}
@@ -1745,7 +1816,7 @@ function QuizPlayer() {
 
                 {/* CTA and Refazer buttons (always at bottom) */}
                 {showAi && (
-                  <div className="bg-white rounded-2xl shadow-xl p-6 space-y-3" style={{ fontFamily: theme.fontFamily }}>
+                  <div className="rounded-2xl shadow-xl p-6 space-y-3" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
                     {_rMode === 'button' && _rUrl ? (
                       <a
                         href={_rUrl}
@@ -1790,7 +1861,7 @@ function QuizPlayer() {
 
           {/* ── Lead Form ─────────────────────────────────── */}
           {showLeadForm && !showResult && (
-            <div className="bg-white rounded-2xl shadow-xl p-8" style={{ fontFamily: theme.fontFamily }}>
+            <div className="rounded-2xl shadow-xl p-8" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
               {leadSaved ? (
                 <div className="text-center py-8">
                   <CheckCircle className="mx-auto mb-4" size={48} style={{ color: '#10b981' }} />
@@ -1879,7 +1950,7 @@ function QuizPlayer() {
 
           {/* ── Legacy Question Node ──────────────────────── */}
           {!showLeadForm && !showResult && isLegacyQuestion && (
-            <div className="bg-white rounded-2xl shadow-xl p-8" style={{ fontFamily: theme.fontFamily }}>
+            <div className="rounded-2xl shadow-xl p-8" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   {history.length > 0 && (
@@ -1957,7 +2028,7 @@ function QuizPlayer() {
 
           {/* ── Composite Node ────────────────────────────── */}
           {!showLeadForm && !showResult && isComposite && currentNode && (
-            <div className="bg-white rounded-2xl shadow-xl p-8" style={{ fontFamily: theme.fontFamily }}>
+            <div className="rounded-2xl shadow-xl p-8" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   {history.length > 0 && (
@@ -2414,7 +2485,7 @@ function QuizPlayer() {
 
           {/* ── Content / Media legacy nodes ──────────────── */}
           {!showLeadForm && !showResult && isContentOrMedia && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 text-center" style={{ fontFamily: theme.fontFamily }}>
+            <div className="rounded-2xl shadow-xl p-8 text-center" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
               <p className="text-gray-800 font-medium mb-4">
                 {currentNode.data?.contentType ||
                   currentNode.data?.mediaType ||
@@ -2434,7 +2505,7 @@ function QuizPlayer() {
 
           {/* ── Start node ────────────────────────────────── */}
           {!showLeadForm && !showResult && isStart && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 text-center" style={{ fontFamily: theme.fontFamily }}>
+            <div className="rounded-2xl shadow-xl p-8 text-center" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
                 style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
@@ -2467,6 +2538,9 @@ function QuizPlayer() {
               </button>
             </div>
           )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2491,7 +2565,7 @@ function QuizPlayer() {
 
       {/* Footer */}
       {branding.showBranding && !isEmbed && (
-        <div className="p-4 text-center">
+        <div className="p-4 text-center relative z-10">
           <span className="text-xs" style={{ color: theme.textColor, opacity: 0.4 }}>
             Feito com QuizMeBaby
           </span>
