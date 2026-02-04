@@ -39,6 +39,7 @@ export const authOptions = {
           email: user.email,
           image: user.image,
           plan: user.plan || 'free',
+          role: user.role || 'user',
         };
       },
     }),
@@ -92,10 +93,12 @@ export const authOptions = {
           if (dbUser) {
             token.id = dbUser.id;
             token.plan = dbUser.plan || 'free';
+            token.role = dbUser.role || 'user';
           }
         } else {
           token.id = user.id;
           token.plan = user.plan || 'free';
+          token.role = user.role || 'user';
         }
       }
       return token;
@@ -104,6 +107,7 @@ export const authOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.plan = token.plan || 'free';
+        session.user.role = token.role || 'user';
       }
       return session;
     },
