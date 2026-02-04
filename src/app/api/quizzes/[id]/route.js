@@ -71,6 +71,11 @@ export async function PUT(request, { params }) {
     if (body.settings !== undefined) updateData.settings = typeof body.settings === 'string' ? body.settings : JSON.stringify(body.settings);
     if (body.scoreRanges !== undefined) updateData.scoreRanges = typeof body.scoreRanges === 'string' ? body.scoreRanges : JSON.stringify(body.scoreRanges);
     
+    // Email notification fields
+    if (body.emailNotifications !== undefined) updateData.emailNotifications = body.emailNotifications;
+    if (body.notificationMode !== undefined) updateData.notificationMode = body.notificationMode;
+    if (body.notificationEmail !== undefined) updateData.notificationEmail = body.notificationEmail;
+    
     if (body.status === 'published' && existing.status !== 'published') {
       updateData.status = 'published';
       // Generate a new slug if publishing for the first time

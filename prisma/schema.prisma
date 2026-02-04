@@ -41,6 +41,9 @@ model Quiz {
   canvasData   String?
   settings     String           @default("{}")
   scoreRanges  String           @default("[]")
+  emailNotifications  Boolean  @default(false)
+  notificationMode    String?  // 'instant-hot', 'daily', 'weekly'  
+  notificationEmail   String?  // email para receber (default: email do user)
   leads        Lead[]
   integrations Integration[]
   analytics    AnalyticsEvent[]

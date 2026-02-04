@@ -45,6 +45,11 @@ const defaultQuizSettings = {
       quizCompleted: true,
     },
   },
+  notifications: {
+    emailNotifications: false,
+    notificationMode: 'instant-hot', // 'instant-hot', 'daily', 'weekly'
+    notificationEmail: '', // will default to user email
+  },
 };
 
 const useQuizStore = create((set, get) => ({

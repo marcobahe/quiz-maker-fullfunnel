@@ -556,6 +556,140 @@ export default function ThemeEditor() {
           </div>
         )}
       </div>
+
+      {/* ── Notifications Section ──────────────────────── */}
+      <div className="bg-white rounded-lg border border-gray-200">
+        <button
+          onClick={() => toggleSection('notifications')}
+          className="flex items-center justify-between w-full p-4 text-left hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5S10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800">Notificações por Email</h3>
+              <p className="text-sm text-gray-500">Configure alertas automáticos para novos leads</p>
+            </div>
+          </div>
+          <ChevronRight
+            size={18}
+            className={`text-gray-400 transition-transform ${expandedSection === 'notifications' ? 'rotate-90' : ''}`}
+          />
+        </button>
+
+        {expandedSection === 'notifications' && (
+          <div className="p-4 border-t border-gray-100">
+            
+            {/* Email Notifications Toggle */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">
+                  Ativar notificações por email
+                </p>
+                <p className="text-xs text-gray-500">
+                  Receba alertas quando novos leads respondem seu quiz
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const newNotifications = {
+                    ...quizSettings.notifications,
+                    emailNotifications: !quizSettings.notifications.emailNotifications,
+                  };
+                  setQuizSettings({ 
+                    ...quizSettings, 
+                    notifications: newNotifications 
+                  });
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  quizSettings.notifications.emailNotifications ? 'bg-accent' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    quizSettings.notifications.emailNotifications ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Notification Mode */}
+            {quizSettings.notifications.emailNotifications && (
+              <>
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Modo de notificação</p>
+                  <select
+                    value={quizSettings.notifications.notificationMode || 'instant-hot'}
+                    onChange={(e) => {
+                      const newNotifications = {
+                        ...quizSettings.notifications,
+                        notificationMode: e.target.value,
+                      };
+                      setQuizSettings({ 
+                        ...quizSettings, 
+                        notifications: newNotifications 
+                      });
+                    }}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none bg-white"
+                  >
+                    <option value="instant-hot">Só leads quentes (instantâneo)</option>
+                    <option value="daily">Resumo diário</option>
+                    <option value="weekly">Resumo semanal</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {quizSettings.notifications.notificationMode === 'instant-hot' && "Envia email imediatamente quando um lead atinge a maior faixa de pontuação"}
+                    {quizSettings.notifications.notificationMode === 'daily' && "Envia um resumo diário com todos os leads (em desenvolvimento)"}
+                    {quizSettings.notifications.notificationMode === 'weekly' && "Envia um resumo semanal com todos os leads (em desenvolvimento)"}
+                  </p>
+                </div>
+
+                {/* Notification Email */}
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Email para receber notificações</p>
+                  <input
+                    type="email"
+                    value={quizSettings.notifications.notificationEmail || ''}
+                    onChange={(e) => {
+                      const newNotifications = {
+                        ...quizSettings.notifications,
+                        notificationEmail: e.target.value,
+                      };
+                      setQuizSettings({ 
+                        ...quizSettings, 
+                        notifications: newNotifications 
+                      });
+                    }}
+                    placeholder={session?.user?.email || 'seu@email.com'}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Deixe vazio para usar seu email de cadastro ({session?.user?.email || 'não encontrado'})
+                  </p>
+                </div>
+
+                {/* Information Box */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex gap-2">
+                    <Info size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-blue-700">
+                      <p className="font-medium mb-1">Como funciona:</p>
+                      <ul className="space-y-1 text-blue-600">
+                        <li>• <strong>Leads quentes:</strong> Notificação instantânea quando alguém atinge a faixa de pontuação mais alta</li>
+                        <li>• <strong>Resumo diário/semanal:</strong> Em desenvolvimento - será adicionado em breve</li>
+                        <li>• Configure suas faixas de pontuação na seção "Faixas de Resultado" para definir quais leads são considerados "quentes"</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+          </div>
+        )}
+      </div>
     </div>
   );
 }

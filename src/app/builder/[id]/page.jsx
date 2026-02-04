@@ -51,6 +51,9 @@ export default function BuilderPage() {
           canvasData: JSON.stringify({ nodes: n, edges: e }),
           scoreRanges: sr,
           settings: qs,
+          emailNotifications: qs?.notifications?.emailNotifications,
+          notificationMode: qs?.notifications?.notificationMode,
+          notificationEmail: qs?.notifications?.notificationEmail,
         }),
       });
       if (res.ok) {
@@ -117,6 +120,14 @@ export default function BuilderPage() {
                   ...defaultQuizSettings.tracking,
                   ...(settings.tracking || {}),
                   events: { ...defaultQuizSettings.tracking.events, ...(settings.tracking?.events || {}) },
+                },
+                notifications: {
+                  ...defaultQuizSettings.notifications,
+                  ...(settings.notifications || {}),
+                  // Load from quiz database fields if available
+                  emailNotifications: quiz.emailNotifications ?? settings.notifications?.emailNotifications ?? false,
+                  notificationMode: quiz.notificationMode ?? settings.notifications?.notificationMode ?? 'instant-hot',
+                  notificationEmail: quiz.notificationEmail ?? settings.notifications?.notificationEmail ?? '',
                 },
               };
               useQuizStore.setState({ quizSettings: merged });

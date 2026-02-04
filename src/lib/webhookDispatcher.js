@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { sendHotLeadNotification, isHotLead } from '@/lib/emailNotifier';
 
 /**
  * Dispatch webhooks and Full Funnel integrations for a new lead.
@@ -60,6 +61,32 @@ async function _dispatch({ quiz, lead, answers, score, resultCategory, scoreRang
     });
 
     await Promise.allSettled(promises);
+
+    // ── Email Notifications ──────────────────────────────────
+    try {
+      if (quiz.emailNotifications && quiz.notificationMode === 'instant-hot') {
+        const leadIsHot = isHotLead(score, scoreRanges);
+        
+        if (leadIsHot) {
+          // Buscar dados completos do quiz com usuário
+          const fullQuiz = await prisma.quiz.findUnique({
+            where: { id: quiz.id },
+            include: { user: true },
+          });
+
+          if (fullQuiz) {
+            const emailResult = await sendHotLeadNotification({
+              quizData: fullQuiz,
+              leadData: { ...lead, score, resultCategory, createdAt: new Date() },
+            });
+            
+            console.log(`[emailNotification] Hot lead notification: ${emailResult.success ? 'sent' : 'failed'}`, emailResult);
+          }
+        }
+      }
+    } catch (emailErr) {
+      console.error('[webhookDispatcher] Email notification error:', emailErr);
+    }
   } catch (err) {
     console.error('[webhookDispatcher] Error dispatching:', err);
   }
