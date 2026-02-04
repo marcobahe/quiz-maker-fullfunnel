@@ -20,7 +20,7 @@ export default function PricingPage() {
               <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-bold">Q</span>
               </div>
-              <span className="text-lg font-bold text-gray-900">Quiz Maker</span>
+              <span className="text-lg font-bold text-gray-900">QuizMeBaby</span>
             </Link>
             <Link
               href={session ? '/' : '/login'}

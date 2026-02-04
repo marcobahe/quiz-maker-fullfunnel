@@ -1,5 +1,5 @@
 /**
- * Dynamic Variables utility for Quiz Maker
+ * Dynamic Variables utility for QuizMeBaby
  * Supports placeholders like {{nome}}, {{email}}, {{score}}, {{total_perguntas}}
  */
 

@@ -2,7 +2,7 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata = {
-  title: 'Quiz Maker - Full Funnel',
+  title: 'QuizMeBaby - Crie Quizzes que Convertem',
   description: 'Crie quizzes interativos para capturar leads e aumentar conversões',
 };
 

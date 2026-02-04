@@ -1,4 +1,4 @@
-// Plan definitions for Quiz Maker Full Funnel
+// Plan definitions for QuizMeBaby Full Funnel
 // Used across the app for feature gating and pricing display
 
 export const PLANS = {
@@ -15,7 +15,7 @@ export const PLANS = {
       '100 leads/mês',
       'Templates básicos',
       'Analytics básico',
-      'Branding Quiz Maker',
+      'Branding QuizMeBaby',
     ],
     limits: {
       quizzes: 3,

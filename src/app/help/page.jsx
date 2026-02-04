@@ -52,7 +52,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'Como convidar membros para meu time?',
-    answer: 'Acesse Configurações → Time & Workspace. Insira o email do membro e escolha o nível de acesso (Viewer, Editor ou Admin). O usuário precisa ter conta no Quiz Maker.',
+    answer: 'Acesse Configurações → Time & Workspace. Insira o email do membro e escolha o nível de acesso (Viewer, Editor ou Admin). O usuário precisa ter conta no QuizMeBaby.',
     icon: Users,
   },
   {
@@ -126,7 +126,7 @@ export default function HelpPage() {
               <HelpCircle size={24} className="text-accent" />
               Central de Ajuda
             </h1>
-            <p className="text-sm text-gray-500">Encontre respostas e aprenda a usar o Quiz Maker</p>
+            <p className="text-sm text-gray-500">Encontre respostas e aprenda a usar o QuizMeBaby</p>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 /**
- * Quiz Maker - Embed Script
+ * QuizMeBaby - Embed Script
  * Lightweight vanilla JS for embedding quizzes as popups/modals.
  *
  * Usage:
@@ -172,8 +172,10 @@
   }
 
   // ── Public API ─────────────────────────────────────────────
-  window.QuizMaker = {
+  window.QuizMeBaby = {
     open: open,
     close: close,
   };
+  // Backward compatibility
+  window.QuizMaker = window.QuizMeBaby;
 })();

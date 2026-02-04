@@ -40,7 +40,7 @@ export async function POST(request, { params }) {
     const targetUser = await prisma.user.findUnique({ where: { email } });
     if (!targetUser) {
       return NextResponse.json(
-        { error: 'Usuário não encontrado. O usuário precisa ter uma conta no Quiz Maker.' },
+        { error: 'Usuário não encontrado. O usuário precisa ter uma conta no QuizMeBaby.' },
         { status: 404 }
       );
     }

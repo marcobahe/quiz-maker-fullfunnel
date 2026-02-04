@@ -589,7 +589,7 @@ function FullFunnelSection({ quizId }) {
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold text-orange-600 shrink-0">3.</span>
-                  <span>Dê um nome (ex: <strong>&quot;Quiz Maker&quot;</strong>)</span>
+                  <span>Dê um nome (ex: <strong>&quot;QuizMeBaby&quot;</strong>)</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-semibold text-orange-600 shrink-0">4.</span>
@@ -872,7 +872,7 @@ function EmbedSection({ quizId }) {
 
   const iframeCode = `<iframe\n  src="${origin}/q/${slug}?embed=true"\n  width="${width}"\n  height="${height}"\n  frameborder="0"\n  style="border:none;"\n  allow="autoplay; fullscreen"\n></iframe>`;
 
-  const popupCode = `<!-- Quiz Maker Embed -->\n<script src="${origin}/embed.js" data-quiz="${slug}"></script>\n<button onclick="QuizMaker.open('${slug}')" style="background:#7c3aed;color:#fff;padding:12px 24px;border:none;border-radius:8px;font-size:16px;cursor:pointer;">Fazer Quiz</button>`;
+  const popupCode = `<!-- QuizMeBaby Embed -->\n<script src="${origin}/embed.js" data-quiz="${slug}"></script>\n<button onclick="QuizMaker.open('${slug}')" style="background:#7c3aed;color:#fff;padding:12px 24px;border:none;border-radius:8px;font-size:16px;cursor:pointer;">Fazer Quiz</button>`;
 
   const activeCode = embedStyle === 'inline' ? iframeCode : popupCode;
 

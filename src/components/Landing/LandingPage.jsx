@@ -96,7 +96,7 @@ function PublicHeader() {
               <span className="text-white text-lg font-bold">Q</span>
             </div>
             <span className={`text-lg font-bold transition-colors ${scrolled ? 'text-gray-900' : 'text-white'}`}>
-              Quiz Maker
+              QuizMeBaby
             </span>
           </div>
 
@@ -610,7 +610,7 @@ function CTASection() {
             Pronto para criar quizzes que convertem?
           </h2>
           <p className="text-lg text-gray-500 mb-8 max-w-2xl mx-auto">
-            Junte-se a milhares de profissionais que já estão usando Quiz Maker para capturar leads qualificados.
+            Junte-se a milhares de profissionais que já estão usando QuizMeBaby para capturar leads qualificados.
           </p>
           <Link
             href="/login"
@@ -640,7 +640,7 @@ function Footer() {
               <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-bold">Q</span>
               </div>
-              <span className="text-white font-bold">Quiz Maker</span>
+              <span className="text-white font-bold">QuizMeBaby</span>
             </div>
             <p className="text-sm leading-relaxed mb-4">
               A plataforma mais completa para criar quizzes interativos que geram leads e conversões.
@@ -680,7 +680,7 @@ function Footer() {
 
         <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm">
-            © {new Date().getFullYear()} Quiz Maker. Todos os direitos reservados.
+            © {new Date().getFullYear()} QuizMeBaby. Todos os direitos reservados.
           </p>
           <p className="text-sm flex items-center gap-1">
             Feito com <span className="text-red-400">❤️</span> no Brasil

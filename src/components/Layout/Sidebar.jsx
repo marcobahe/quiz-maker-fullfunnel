@@ -107,7 +107,7 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
           <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
             <span className="text-white text-sm font-bold">Q</span>
           </div>
-          Quiz Maker
+          QuizMeBaby
         </h1>
       </div>
 

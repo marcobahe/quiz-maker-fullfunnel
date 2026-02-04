@@ -6,7 +6,7 @@ import { Sparkles, ChevronRight, X, Rocket, PartyPopper } from 'lucide-react';
 const TOUR_STEPS = [
   {
     target: null, // center modal
-    title: 'Bem-vindo ao Quiz Maker! 🎉',
+    title: 'Bem-vindo ao QuizMeBaby! 🎉',
     description: 'Aqui você cria quizzes que convertem visitantes em leads qualificados. Vamos fazer um tour rápido?',
     position: 'center',
   },

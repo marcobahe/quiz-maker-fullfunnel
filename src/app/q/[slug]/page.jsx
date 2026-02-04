@@ -2333,7 +2333,7 @@ function QuizPlayer() {
       {branding.showBranding && !isEmbed && (
         <div className="p-4 text-center">
           <span className="text-xs" style={{ color: theme.textColor, opacity: 0.4 }}>
-            Feito com Quiz Maker
+            Feito com QuizMeBaby
           </span>
         </div>
       )}

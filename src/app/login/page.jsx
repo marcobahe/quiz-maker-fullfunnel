@@ -62,7 +62,7 @@ export default function LoginPage() {
             <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center">
               <span className="text-white text-xl font-bold">Q</span>
             </div>
-            <h1 className="text-3xl font-bold text-white">Quiz Maker</h1>
+            <h1 className="text-3xl font-bold text-white">QuizMeBaby</h1>
           </div>
           <p className="text-purple-200">
             {isRegister ? 'Crie sua conta e comece a criar quizzes' : 'Entre na sua conta para continuar'}

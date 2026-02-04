@@ -214,7 +214,7 @@ function MiniPreview({ theme, branding }) {
       {/* Footer */}
       {branding.showBranding && (
         <div className="px-3 pb-2 text-center">
-          <span className="text-[9px] opacity-40">Feito com Quiz Maker</span>
+          <span className="text-[9px] opacity-40">Feito com QuizMeBaby</span>
         </div>
       )}
     </div>
@@ -530,7 +530,7 @@ export default function ThemeEditor() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-700">
-                      Mostrar &quot;Feito com Quiz Maker&quot;
+                      Mostrar &quot;Feito com QuizMeBaby&quot;
                     </p>
                     <p className="text-xs text-gray-500">
                       Exibe um selo no rodapé do quiz
