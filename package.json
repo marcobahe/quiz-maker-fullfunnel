@@ -19,6 +19,7 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@stripe/stripe-js": "^8.7.0",
+    "@vercel/og": "^0.8.6",
     "@xyflow/react": "^12.0.0",
     "bcryptjs": "^2.4.3",
     "lucide-react": "^0.344.0",

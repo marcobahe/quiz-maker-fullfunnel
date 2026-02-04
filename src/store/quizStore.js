@@ -50,6 +50,10 @@ const defaultQuizSettings = {
     notificationMode: 'instant-hot', // 'instant-hot', 'daily', 'weekly'
     notificationEmail: '', // will default to user email
   },
+  behavior: {
+    shuffleQuestions: false,
+    questionTimer: null, // segundos por pergunta (null = sem timer)
+  },
 };
 
 const useQuizStore = create((set, get) => ({
@@ -160,6 +164,18 @@ const useQuizStore = create((set, get) => ({
         ...state.quizSettings,
         tracking: {
           ...(state.quizSettings.tracking || defaultQuizSettings.tracking),
+          ...updates,
+        },
+      },
+      isSaved: false,
+    })),
+
+  updateBehavior: (updates) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        behavior: {
+          ...(state.quizSettings.behavior || defaultQuizSettings.behavior),
           ...updates,
         },
       },
@@ -306,6 +322,7 @@ const useQuizStore = create((set, get) => ({
           ...(settings.tracking || {}),
           events: { ...defaults.tracking.events, ...(settings.tracking?.events || {}) },
         },
+        behavior: { ...defaults.behavior, ...(settings.behavior || {}) },
       },
       isSaved: true,
     });

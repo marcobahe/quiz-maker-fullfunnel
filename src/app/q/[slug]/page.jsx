@@ -7,6 +7,7 @@ import { replaceVariables } from '@/lib/dynamicVariables';
 import { initTracking, trackEvent } from '@/lib/tracking';
 import SpinWheel from '@/components/Player/SpinWheel';
 import ScratchCard from '@/components/Player/ScratchCard';
+import QuestionTimer from '@/components/Quiz/QuestionTimer';
 
 // ── Default theme (matches store defaults) ───────────────────
 const DEFAULT_THEME = {
@@ -665,6 +666,86 @@ function ImmediateRedirect({ url, isEmbed, resultTitle, accentColor }) {
   );
 }
 
+// ── Fisher-Yates shuffle algorithm ──────────────────────────
+function fisherYatesShuffle(array, seed) {
+  // Deterministic shuffle based on session
+  let sessionSeed = seed || Date.now();
+  const random = () => {
+    sessionSeed = (sessionSeed * 9301 + 49297) % 233280;
+    return sessionSeed / 233280;
+  };
+  
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// ── Apply question shuffling ─────────────────────────────────
+function applyQuestionShuffle(nodes, edges) {
+  // Identificar nós que podem ser embaralhados (perguntas)
+  const questionNodes = nodes.filter(node => {
+    if (node.type === 'start' || node.type === 'result') return false;
+    if (node.type === 'lead-form') return false;
+    
+    // Embaralhar nós de pergunta padrão
+    if (node.type === 'single-choice' || node.type === 'multiple-choice') return true;
+    
+    // Embaralhar composite que contém perguntas
+    if (node.type === 'composite') {
+      const hasQuestions = (node.data.elements || []).some(el => 
+        el.type.startsWith('question-')
+      );
+      const hasLeadForm = (node.data.elements || []).some(el => 
+        el.type === 'lead-form'
+      );
+      return hasQuestions && !hasLeadForm;
+    }
+    
+    return false;
+  });
+
+  // Verificar se há branching condicional (edges com sourceHandle específico)
+  const hasBranching = edges.some(edge => 
+    edge.sourceHandle && 
+    edge.sourceHandle !== 'general' &&
+    !edge.sourceHandle.endsWith('-general')
+  );
+
+  // Se há branching, não embaralhar para evitar quebrar a lógica
+  if (hasBranching) {
+    console.log('Quiz has branching logic - shuffling disabled');
+    return nodes;
+  }
+
+  if (questionNodes.length === 0) {
+    return nodes;
+  }
+
+  // Use quiz ID + today's date como seed para ser determinístico
+  const today = new Date().toDateString();
+  const seedStr = (nodes.find(n => n.type === 'start')?.id || 'quiz') + today;
+  const seed = seedStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const shuffledQuestions = fisherYatesShuffle(questionNodes, seed);
+
+  // Reconstruir array de nós com perguntas embaralhadas
+  const result = [];
+  let questionIndex = 0;
+
+  for (const node of nodes) {
+    if (questionNodes.includes(node)) {
+      result.push(shuffledQuestions[questionIndex]);
+      questionIndex++;
+    } else {
+      result.push(node);
+    }
+  }
+
+  return result;
+}
+
 function QuizPlayer() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -718,6 +799,12 @@ function QuizPlayer() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [scoreRanges, setScoreRanges] = useState([]);
+  
+  // Quiz behavior settings
+  const [shuffleQuestions, setShuffleQuestions] = useState(false);
+  const [questionTimer, setQuestionTimer] = useState(null);
+  const [shuffledNodes, setShuffledNodes] = useState([]); // nós embaralhados
+  const [timerActive, setTimerActive] = useState(false);
 
   // ── Custom favicon ───────────────────────────────────────────
   useEffect(() => {
@@ -853,6 +940,10 @@ function QuizPlayer() {
 
       setQuiz(data);
 
+      // Load behavior settings from quiz object
+      setShuffleQuestions(data.shuffleQuestions || false);
+      setQuestionTimer(data.questionTimer || null);
+
       // Load settings (theme & branding)
       if (data.settings) {
         try {
@@ -864,6 +955,12 @@ function QuizPlayer() {
             if (settings.branding) setBranding((prev) => ({ ...prev, ...settings.branding }));
             if (settings.aiResultConfig) setAiConfig(settings.aiResultConfig);
             if (settings.tracking) setTrackingConfig(settings.tracking);
+            
+            // Override with behavior settings from settings object if present
+            if (settings.behavior) {
+              setShuffleQuestions(settings.behavior.shuffleQuestions || data.shuffleQuestions || false);
+              setQuestionTimer(settings.behavior.questionTimer || data.questionTimer || null);
+            }
           }
         } catch (_e) { /* ignore */ }
       }
@@ -884,13 +981,24 @@ function QuizPlayer() {
           : data.canvasData;
 
       if (canvasData?.nodes) {
-        setNodes(canvasData.nodes);
-        setEdges(canvasData.edges || []);
+        const allNodes = canvasData.nodes;
+        const allEdges = canvasData.edges || [];
+        
+        setNodes(allNodes);
+        setEdges(allEdges);
+
+        // Apply shuffling if enabled
+        if ((data.shuffleQuestions || settings?.behavior?.shuffleQuestions) && !isPreview) {
+          const shuffled = applyQuestionShuffle(allNodes, allEdges);
+          setShuffledNodes(shuffled);
+        } else {
+          setShuffledNodes(allNodes);
+        }
 
         // Find start → jump to first connected node
-        const startNode = canvasData.nodes.find((n) => n.type === 'start');
+        const startNode = allNodes.find((n) => n.type === 'start');
         if (startNode) {
-          const startEdge = (canvasData.edges || []).find(
+          const startEdge = allEdges.find(
             (e) => e.source === startNode.id,
           );
           if (startEdge) {
@@ -1033,6 +1141,7 @@ function QuizPlayer() {
       if (isLeadForm) setShowLeadForm(true);
       if (isResult) {
         setShowResult(true);
+        setTimerActive(false); // Desativar timer no resultado
         // Track quizCompleted when reaching result node
         if (trackingConfig) {
           trackEvent(trackingConfig, 'quizCompleted', {
@@ -1040,6 +1149,14 @@ function QuizPlayer() {
             score,
           });
         }
+      } else if (questionTimer && !isLeadForm) {
+        // Ativar timer para perguntas (mas não lead forms)
+        const isQuestion = nextNode?.type === 'single-choice' || 
+                          nextNode?.type === 'multiple-choice' ||
+                          (nextNode?.type === 'composite' && 
+                           (nextNode.data.elements || []).some(el => el.type.startsWith('question-')));
+        
+        setTimerActive(isQuestion);
       }
     },
     [nodes, currentNodeId, trackingConfig, quiz?.name, score],
@@ -1144,11 +1261,12 @@ function QuizPlayer() {
   const handleOptionSelect = (optionIndex, event) => {
     if (!currentNode) return;
     setSelectedOption(optionIndex);
+    setTimerActive(false); // Desativar timer quando resposta for selecionada
 
     const option = currentNode.data.options?.[optionIndex];
     const optionScore = option?.score || 0;
 
-    if (optionScore > 0) showPointsBalloon(optionScore, event);
+    if (optionScore > 0 && event) showPointsBalloon(optionScore, event);
 
     setScore((prev) => prev + optionScore);
     setAnswers((prev) => ({
@@ -1179,11 +1297,12 @@ function QuizPlayer() {
   const handleCompositeOptionSelect = (element, optionIndex, event) => {
     if (!currentNode) return;
     setSelectedOption(`${element.id}-${optionIndex}`);
+    setTimerActive(false); // Desativar timer quando resposta for selecionada
 
     const option = element.options?.[optionIndex];
     const optionScore = option?.score || 0;
 
-    if (optionScore > 0) showPointsBalloon(optionScore, event);
+    if (optionScore > 0 && event) showPointsBalloon(optionScore, event);
 
     setScore((prev) => prev + optionScore);
     setAnswers((prev) => ({
@@ -1260,6 +1379,7 @@ function QuizPlayer() {
     setCurrentNodeId(prevId);
     setShowLeadForm(false);
     setShowResult(false);
+    setTimerActive(false); // Desativar timer ao voltar
 
     const keysToRemove = Object.keys(answers).filter(
       (k) => k === currentNodeId || k.startsWith(`${currentNodeId}__`),
@@ -1275,6 +1395,20 @@ function QuizPlayer() {
         keysToRemove.forEach((k) => delete next[k]);
         return next;
       });
+    }
+  };
+
+  const handleTimerTimeout = () => {
+    // Timer acabou - avançar automaticamente
+    setTimerActive(false);
+    // Se for pergunta múltipla choice, seleciona primeira opção como padrão
+    if (currentNode?.type === 'single-choice' || currentNode?.type === 'multiple-choice') {
+      handleOptionSelect(0, null);
+    } else if (currentNode?.type === 'composite' && compositeQuestionEl) {
+      handleCompositeOptionSelect(compositeQuestionEl, 0, null);
+    } else {
+      // Avançar sem pontuação
+      advanceToNode(getNextNode(currentNodeId));
     }
   };
 
@@ -1746,14 +1880,27 @@ function QuizPlayer() {
           {/* ── Legacy Question Node ──────────────────────── */}
           {!showLeadForm && !showResult && isLegacyQuestion && (
             <div className="bg-white rounded-2xl shadow-xl p-8" style={{ fontFamily: theme.fontFamily }}>
-              {history.length > 0 && (
-                <button
-                  onClick={handleGoBack}
-                  className="flex items-center gap-1 text-gray-400 hover:text-gray-600 mb-4 text-sm transition-colors"
-                >
-                  <ArrowLeft size={16} /> Voltar
-                </button>
-              )}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  {history.length > 0 && (
+                    <button
+                      onClick={handleGoBack}
+                      className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm transition-colors"
+                    >
+                      <ArrowLeft size={16} /> Voltar
+                    </button>
+                  )}
+                </div>
+                {questionTimer && timerActive && (
+                  <QuestionTimer
+                    seconds={questionTimer}
+                    onTimeout={handleTimerTimeout}
+                    isActive={timerActive}
+                    size={60}
+                    className="flex-shrink-0"
+                  />
+                )}
+              </div>
               <h2 className="text-xl font-bold text-gray-800 mb-6">
                 {rv(currentNode.data.question || 'Pergunta')}
               </h2>
@@ -1811,14 +1958,27 @@ function QuizPlayer() {
           {/* ── Composite Node ────────────────────────────── */}
           {!showLeadForm && !showResult && isComposite && currentNode && (
             <div className="bg-white rounded-2xl shadow-xl p-8" style={{ fontFamily: theme.fontFamily }}>
-              {history.length > 0 && (
-                <button
-                  onClick={handleGoBack}
-                  className="flex items-center gap-1 text-gray-400 hover:text-gray-600 mb-4 text-sm transition-colors"
-                >
-                  <ArrowLeft size={16} /> Voltar
-                </button>
-              )}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  {history.length > 0 && (
+                    <button
+                      onClick={handleGoBack}
+                      className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm transition-colors"
+                    >
+                      <ArrowLeft size={16} /> Voltar
+                    </button>
+                  )}
+                </div>
+                {questionTimer && timerActive && compositeQuestionEl && (
+                  <QuestionTimer
+                    seconds={questionTimer}
+                    onTimeout={handleTimerTimeout}
+                    isActive={timerActive}
+                    size={60}
+                    className="flex-shrink-0"
+                  />
+                )}
+              </div>
 
               {(currentNode.data.elements || []).map((el) => {
                 if (el.type === 'text') {

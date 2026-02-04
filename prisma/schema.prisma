@@ -44,6 +44,8 @@ model Quiz {
   emailNotifications  Boolean  @default(false)
   notificationMode    String?  // 'instant-hot', 'daily', 'weekly'  
   notificationEmail   String?  // email para receber (default: email do user)
+  shuffleQuestions    Boolean  @default(false)
+  questionTimer       Int?     // segundos por pergunta (null = sem timer)
   leads        Lead[]
   integrations Integration[]
   analytics    AnalyticsEvent[]

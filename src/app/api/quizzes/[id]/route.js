@@ -76,6 +76,10 @@ export async function PUT(request, { params }) {
     if (body.notificationMode !== undefined) updateData.notificationMode = body.notificationMode;
     if (body.notificationEmail !== undefined) updateData.notificationEmail = body.notificationEmail;
     
+    // Behavior fields
+    if (body.shuffleQuestions !== undefined) updateData.shuffleQuestions = body.shuffleQuestions;
+    if (body.questionTimer !== undefined) updateData.questionTimer = body.questionTimer;
+    
     if (body.status === 'published' && existing.status !== 'published') {
       updateData.status = 'published';
       // Generate a new slug if publishing for the first time

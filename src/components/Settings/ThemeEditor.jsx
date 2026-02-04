@@ -12,6 +12,10 @@ import {
   ChevronRight,
   Lock,
   Globe,
+  Settings,
+  Shuffle,
+  Timer,
+  Info,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { canUseWhiteLabel } from '@/lib/plans';
@@ -229,8 +233,10 @@ export default function ThemeEditor() {
 
   const theme = useQuizStore((s) => s.quizSettings.theme);
   const branding = useQuizStore((s) => s.quizSettings.branding);
+  const behavior = useQuizStore((s) => s.quizSettings.behavior || { shuffleQuestions: false, questionTimer: null });
   const updateTheme = useQuizStore((s) => s.updateTheme);
   const updateBranding = useQuizStore((s) => s.updateBranding);
+  const updateBehavior = useQuizStore((s) => s.updateBehavior);
 
   const [expandedSection, setExpandedSection] = useState('colors');
 
@@ -552,6 +558,145 @@ export default function ThemeEditor() {
                   </button>
                 </div>
               </PlanGate>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Behavior Section ──────────────────────── */}
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <button
+          onClick={() => toggleSection('behavior')}
+          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+        >
+          <span className="flex items-center gap-2 font-medium text-gray-800">
+            <Settings size={18} className="text-accent" /> Comportamento
+          </span>
+          <ChevronRight
+            size={18}
+            className={`text-gray-400 transition-transform ${expandedSection === 'behavior' ? 'rotate-90' : ''}`}
+          />
+        </button>
+
+        {expandedSection === 'behavior' && (
+          <div className="px-4 pb-4 border-t border-gray-100 pt-4 space-y-4">
+            {/* Shuffle Questions */}
+            <div className="flex items-start justify-between">
+              <div className="flex-1 mr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <Shuffle size={16} className="text-accent" />
+                  <p className="text-sm font-medium text-gray-700">
+                    Randomizar ordem das perguntas
+                  </p>
+                </div>
+                <p className="text-xs text-gray-500">
+                  As perguntas serão exibidas em ordem aleatória para cada respondente. Útil para quizzes de conhecimento.
+                </p>
+              </div>
+              <button
+                onClick={() => updateBehavior({ shuffleQuestions: !behavior.shuffleQuestions })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  behavior.shuffleQuestions ? 'bg-accent' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    behavior.shuffleQuestions ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Question Timer */}
+            <div className="border-t border-gray-100 pt-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 mr-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Timer size={16} className="text-accent" />
+                    <p className="text-sm font-medium text-gray-700">
+                      Timer por pergunta
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Adiciona um contador regressivo em cada pergunta. Quando o tempo acaba, avança automaticamente.
+                  </p>
+                </div>
+                <button
+                  onClick={() => updateBehavior({ questionTimer: behavior.questionTimer ? null : 30 })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    behavior.questionTimer ? 'bg-accent' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      behavior.questionTimer ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Timer Configuration */}
+              {behavior.questionTimer && (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Segundos por pergunta</p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min="5"
+                        max="300"
+                        value={behavior.questionTimer || 30}
+                        onChange={(e) => updateBehavior({ questionTimer: parseInt(e.target.value) })}
+                        className="flex-1 accent-accent"
+                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="5"
+                          max="300"
+                          value={behavior.questionTimer || 30}
+                          onChange={(e) => updateBehavior({ questionTimer: Math.max(5, Math.min(300, parseInt(e.target.value) || 30)) })}
+                          className="w-16 px-2 py-1 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-accent focus:border-transparent outline-none text-center"
+                        />
+                        <span className="text-sm text-gray-500">seg</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Timer Preview */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="flex-1">
+                        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full transition-all duration-1000"
+                            style={{ width: '60%' }}
+                          />
+                        </div>
+                      </div>
+                      <div className="text-sm font-bold text-accent">
+                        {behavior.questionTimer}s
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 text-center">Preview do timer</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Information Box */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex gap-2">
+                <Info size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-blue-700">
+                  <p className="font-medium mb-1">Dicas importantes:</p>
+                  <ul className="space-y-1 text-blue-600">
+                    <li>• A randomização mantém o início e resultado no lugar</li>
+                    <li>• O timer não funciona em quizzes com lógica de branches avançados</li>
+                    <li>• Leads forms não são afetados pela randomização</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         )}
