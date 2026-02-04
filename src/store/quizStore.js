@@ -19,6 +19,16 @@ const defaultQuizSettings = {
     textColor: '#ffffff',
     buttonStyle: 'rounded',
     fontFamily: 'Inter',
+    // Novo: configuração do fundo da página
+    pageBackground: {
+      type: 'color', // 'color' | 'gradient' | 'image' | 'pattern'
+      color: '#1e1b4b',
+      gradient: 'from-purple-900 via-purple-800 to-indigo-900',
+      imageUrl: '',
+      imageOverlay: 0.5, // 0-1
+      imageFit: 'cover', // 'cover' | 'contain' | 'repeat'
+      pattern: 'dots', // 'dots' | 'grid' | 'diagonal' | 'waves' | 'confetti' | 'circuit'
+    },
   },
   branding: {
     logoUrl: '',

@@ -16,9 +16,12 @@ import {
   Shuffle,
   Timer,
   Info,
+  Monitor,
+  Upload,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { canUseWhiteLabel } from '@/lib/plans';
+import { PATTERN_META, getPatternStyle } from '@/lib/patterns';
 
 // ── Gradient Presets ─────────────────────────────────────────
 const GRADIENT_PRESETS = [
@@ -121,7 +124,46 @@ function MiniPreview({ theme, branding }) {
     gradientMap[g.value] = `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]}, ${g.colors[2]})`;
   });
 
-  const bgStyle =
+  // Page background styles
+  const getPageBgStyle = () => {
+    const pb = theme.pageBackground || {};
+    
+    switch (pb.type) {
+      case 'gradient':
+        return gradientMap[pb.gradient] 
+          ? { background: gradientMap[pb.gradient] }
+          : { backgroundColor: pb.color || theme.backgroundColor };
+      
+      case 'image':
+        if (pb.imageUrl) {
+          const fitMap = {
+            cover: 'cover',
+            contain: 'contain', 
+            repeat: 'repeat'
+          };
+          return {
+            backgroundImage: `url(${pb.imageUrl})`,
+            backgroundSize: fitMap[pb.imageFit] || 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: pb.imageFit === 'repeat' ? 'repeat' : 'no-repeat',
+          };
+        }
+        return { backgroundColor: pb.color || theme.backgroundColor };
+      
+      case 'pattern':
+        const patternStyle = getPatternStyle(pb.pattern || 'dots', pb.color || theme.primaryColor);
+        return {
+          backgroundColor: pb.color || theme.backgroundColor,
+          ...patternStyle,
+        };
+      
+      default: // 'color'
+        return { backgroundColor: pb.color || theme.backgroundColor };
+    }
+  };
+
+  // Quiz card background (original bgStyle)
+  const cardBgStyle =
     theme.backgroundType === 'gradient' && gradientMap[theme.backgroundGradient]
       ? { background: gradientMap[theme.backgroundGradient] }
       : { backgroundColor: theme.backgroundColor };
@@ -133,94 +175,115 @@ function MiniPreview({ theme, branding }) {
         ? '0.25rem'
         : '0.75rem';
 
+  const pageStyle = getPageBgStyle();
+
   return (
     <div
-      className="rounded-xl overflow-hidden border border-gray-200 shadow-sm"
+      className="rounded-xl overflow-hidden border border-gray-200 shadow-sm relative"
       style={{
-        ...bgStyle,
-        color: theme.textColor,
-        fontFamily: theme.fontFamily,
-        minHeight: 200,
+        ...pageStyle,
+        minHeight: 240,
+        padding: '16px',
       }}
     >
-      {/* Mini header */}
-      <div className="p-3 flex items-center gap-2">
-        {branding.logoUrl ? (
-          <img
-            src={branding.logoUrl}
-            alt="Logo"
-            className="w-6 h-6 rounded object-cover"
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
-        ) : (
-          <div
-            className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold"
-            style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-          >
-            Q
-          </div>
-        )}
-        <span className="text-xs opacity-80">Meu Quiz</span>
-      </div>
-
-      {/* Progress bar */}
-      <div className="px-3 mb-3">
-        <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-          <div
-            className="h-full rounded-full"
-            style={{ width: '60%', backgroundColor: theme.textColor }}
-          />
-        </div>
-      </div>
-
-      {/* Card */}
-      <div className="mx-3 mb-3 bg-white rounded-lg p-3">
-        <p className="text-xs font-bold text-gray-800 mb-2" style={{ fontFamily: theme.fontFamily }}>
-          Qual é a sua pergunta?
-        </p>
-        <div className="space-y-1.5">
-          {['Opção A', 'Opção B'].map((opt, i) => (
+      {/* Image overlay if using image background */}
+      {theme.pageBackground?.type === 'image' && theme.pageBackground?.imageUrl && theme.pageBackground?.imageOverlay > 0 && (
+        <div 
+          className="absolute inset-0 rounded-xl"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, ' + (theme.pageBackground.imageOverlay || 0.5) + ')',
+          }}
+        />
+      )}
+      
+      {/* Quiz Card */}
+      <div
+        className="relative rounded-lg overflow-hidden shadow-md"
+        style={{
+          ...cardBgStyle,
+          color: theme.textColor,
+          fontFamily: theme.fontFamily,
+        }}
+      >
+        {/* Mini header */}
+        <div className="p-3 flex items-center gap-2">
+          {branding.logoUrl ? (
+            <img
+              src={branding.logoUrl}
+              alt="Logo"
+              className="w-6 h-6 rounded object-cover"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          ) : (
             <div
-              key={i}
-              className={`text-xs px-2 py-1.5 border flex items-center gap-2 ${i === 0 ? 'border-current' : 'border-gray-200'}`}
-              style={{
-                borderRadius: btnRadius,
-                color: i === 0 ? theme.primaryColor : '#6b7280',
-                borderColor: i === 0 ? theme.primaryColor : '#e5e7eb',
-                backgroundColor: i === 0 ? `${theme.primaryColor}10` : 'transparent',
-              }}
+              className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold"
+              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
             >
-              <span
-                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0"
+              Q
+            </div>
+          )}
+          <span className="text-xs opacity-80">Meu Quiz</span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="px-3 mb-3">
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+            <div
+              className="h-full rounded-full"
+              style={{ width: '60%', backgroundColor: theme.textColor }}
+            />
+          </div>
+        </div>
+
+        {/* Card content */}
+        <div className="mx-3 mb-3 bg-white rounded-lg p-3">
+          <p className="text-xs font-bold text-gray-800 mb-2" style={{ fontFamily: theme.fontFamily }}>
+            Qual é a sua pergunta?
+          </p>
+          <div className="space-y-1.5">
+            {['Opção A', 'Opção B'].map((opt, i) => (
+              <div
+                key={i}
+                className={`text-xs px-2 py-1.5 border flex items-center gap-2 ${i === 0 ? 'border-current' : 'border-gray-200'}`}
                 style={{
-                  backgroundColor: i === 0 ? theme.primaryColor : '#f3f4f6',
-                  color: i === 0 ? '#fff' : '#6b7280',
+                  borderRadius: btnRadius,
+                  color: i === 0 ? theme.primaryColor : '#6b7280',
+                  borderColor: i === 0 ? theme.primaryColor : '#e5e7eb',
+                  backgroundColor: i === 0 ? `${theme.primaryColor}10` : 'transparent',
                 }}
               >
-                {String.fromCharCode(65 + i)}
-              </span>
-              {opt}
-            </div>
-          ))}
+                <span
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0"
+                  style={{
+                    backgroundColor: i === 0 ? theme.primaryColor : '#f3f4f6',
+                    color: i === 0 ? '#fff' : '#6b7280',
+                  }}
+                >
+                  {String.fromCharCode(65 + i)}
+                </span>
+                {opt}
+              </div>
+            ))}
+          </div>
+
+          <button
+            className="w-full mt-2 text-white text-xs py-1.5 font-medium flex items-center justify-center gap-1"
+            style={{
+              backgroundColor: theme.primaryColor,
+              borderRadius: btnRadius,
+            }}
+          >
+            Continuar <ChevronRight size={12} />
+          </button>
         </div>
 
-        <button
-          className="w-full mt-2 text-white text-xs py-1.5 font-medium flex items-center justify-center gap-1"
-          style={{
-            backgroundColor: theme.primaryColor,
-            borderRadius: btnRadius,
-          }}
-        >
-          Continuar <ChevronRight size={12} />
-        </button>
+        {/* Footer */}
+        {branding.showBranding && (
+          <div className="px-3 pb-2 text-center">
+            <span className="text-[9px] opacity-40">Feito com QuizMeBaby</span>
+          </div>
+        )}
       </div>
-
-      {/* Footer */}
-      {branding.showBranding && (
-        <div className="px-3 pb-2 text-center">
-          <span className="text-[9px] opacity-40">Feito com QuizMeBaby</span>
-        </div>
-      )}
     </div>
   );
 }
@@ -295,26 +358,223 @@ export default function ThemeEditor() {
         )}
       </div>
 
-      {/* ── Background Section ────────────────────────── */}
+      {/* ── Page Background Section ────────────────────────── */}
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <button
-          onClick={() => toggleSection('background')}
+          onClick={() => toggleSection('pageBackground')}
           className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
         >
           <span className="flex items-center gap-2 font-medium text-gray-800">
-            <Sparkles size={18} className="text-accent" /> Fundo
+            <Monitor size={18} className="text-accent" /> Fundo da Página
           </span>
           <ChevronRight
             size={18}
-            className={`text-gray-400 transition-transform ${expandedSection === 'background' ? 'rotate-90' : ''}`}
+            className={`text-gray-400 transition-transform ${expandedSection === 'pageBackground' ? 'rotate-90' : ''}`}
           />
         </button>
 
-        {expandedSection === 'background' && (
+        {expandedSection === 'pageBackground' && (
+          <div className="px-4 pb-4 border-t border-gray-100 pt-4 space-y-4">
+            {/* Page Background Type */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Tipo de Fundo da Página</p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: 'Cor Sólida', value: 'color' },
+                  { label: 'Gradiente', value: 'gradient' },
+                  { label: 'Imagem', value: 'image' },
+                  { label: 'Padrão', value: 'pattern' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => updateTheme({ pageBackground: { ...(theme.pageBackground || {}), type: opt.value } })}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      (theme.pageBackground?.type || 'color') === opt.value
+                        ? 'bg-accent text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Color picker for color type */}
+            {(!theme.pageBackground?.type || theme.pageBackground?.type === 'color') && (
+              <ColorPicker
+                label="Cor do Fundo"
+                value={theme.pageBackground?.color || theme.backgroundColor}
+                onChange={(color) => updateTheme({ 
+                  pageBackground: { ...(theme.pageBackground || {}), color }
+                })}
+              />
+            )}
+
+            {/* Gradient presets for gradient type */}
+            {theme.pageBackground?.type === 'gradient' && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Gradiente</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {GRADIENT_PRESETS.map((preset) => (
+                    <button
+                      key={preset.value}
+                      onClick={() => updateTheme({ 
+                        pageBackground: { ...(theme.pageBackground || {}), gradient: preset.value }
+                      })}
+                      className={`relative rounded-lg overflow-hidden h-16 transition-all ${
+                        (theme.pageBackground?.gradient || theme.backgroundGradient) === preset.value
+                          ? 'ring-2 ring-accent ring-offset-2'
+                          : 'ring-1 ring-gray-200 hover:ring-gray-300'
+                      }`}
+                      style={{
+                        background: `linear-gradient(135deg, ${preset.colors[0]}, ${preset.colors[1]}, ${preset.colors[2]})`,
+                      }}
+                    >
+                      <span className="absolute bottom-1 left-1 right-1 text-[9px] text-white font-medium text-center bg-black/30 rounded px-1 py-0.5">
+                        {preset.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Image configuration */}
+            {theme.pageBackground?.type === 'image' && (
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">URL da Imagem</p>
+                  <input
+                    type="url"
+                    value={theme.pageBackground?.imageUrl || ''}
+                    onChange={(e) => updateTheme({ 
+                      pageBackground: { ...(theme.pageBackground || {}), imageUrl: e.target.value }
+                    })}
+                    placeholder="Cole a URL da imagem"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                  />
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Ajuste da Imagem</p>
+                  <select
+                    value={theme.pageBackground?.imageFit || 'cover'}
+                    onChange={(e) => updateTheme({ 
+                      pageBackground: { ...(theme.pageBackground || {}), imageFit: e.target.value }
+                    })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                  >
+                    <option value="cover">Cobrir</option>
+                    <option value="contain">Conter</option>
+                    <option value="repeat">Repetir</option>
+                  </select>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Overlay Escuro ({Math.round((theme.pageBackground?.imageOverlay || 0.5) * 100)}%)
+                  </p>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={theme.pageBackground?.imageOverlay || 0.5}
+                    onChange={(e) => updateTheme({ 
+                      pageBackground: { ...(theme.pageBackground || {}), imageOverlay: parseFloat(e.target.value) }
+                    })}
+                    className="w-full accent-accent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Aumenta a legibilidade adicionando uma camada escura sobre a imagem
+                  </p>
+                </div>
+
+                {theme.pageBackground?.imageUrl && (
+                  <div className="border border-gray-200 rounded-lg p-3">
+                    <p className="text-xs font-medium text-gray-700 mb-2">Preview</p>
+                    <img
+                      src={theme.pageBackground.imageUrl}
+                      alt="Preview"
+                      className="w-full h-20 object-cover rounded"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Pattern selection */}
+            {theme.pageBackground?.type === 'pattern' && (
+              <div className="space-y-3">
+                <ColorPicker
+                  label="Cor Base do Padrão"
+                  value={theme.pageBackground?.color || theme.primaryColor}
+                  onChange={(color) => updateTheme({ 
+                    pageBackground: { ...(theme.pageBackground || {}), color }
+                  })}
+                />
+
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Padrão</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(PATTERN_META).map(([key, meta]) => {
+                      const isSelected = (theme.pageBackground?.pattern || 'dots') === key;
+                      const patternStyle = getPatternStyle(key, theme.pageBackground?.color || theme.primaryColor);
+                      
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => updateTheme({ 
+                            pageBackground: { ...(theme.pageBackground || {}), pattern: key }
+                          })}
+                          className={`relative rounded-lg h-16 transition-all border-2 ${
+                            isSelected
+                              ? 'border-accent shadow-md'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          style={{
+                            backgroundColor: theme.pageBackground?.color || theme.primaryColor,
+                            ...patternStyle,
+                          }}
+                        >
+                          <span className="absolute bottom-1 left-1 right-1 text-[9px] text-white font-medium text-center bg-black/60 rounded px-1 py-0.5">
+                            {meta.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Quiz Background Section ────────────────────────── */}
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <button
+          onClick={() => toggleSection('quizBackground')}
+          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+        >
+          <span className="flex items-center gap-2 font-medium text-gray-800">
+            <Sparkles size={18} className="text-accent" /> Fundo do Quiz
+          </span>
+          <ChevronRight
+            size={18}
+            className={`text-gray-400 transition-transform ${expandedSection === 'quizBackground' ? 'rotate-90' : ''}`}
+          />
+        </button>
+
+        {expandedSection === 'quizBackground' && (
           <div className="px-4 pb-4 border-t border-gray-100 pt-4 space-y-4">
             {/* Background Type */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Tipo de Fundo</p>
+              <p className="text-sm font-medium text-gray-700 mb-2">Tipo de Fundo do Quiz</p>
               <div className="flex gap-2">
                 {[
                   { label: 'Cor Sólida', value: 'solid' },
