@@ -482,7 +482,7 @@ export default function GamificationSettings() {
                   placeholder="Texto que será compartilhado..."
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Use {{`{score}`}} para incluir a pontuação do usuário
+                  Use {`{{score}}`} para incluir a pontuação do usuário
                 </p>
               </div>
             )}

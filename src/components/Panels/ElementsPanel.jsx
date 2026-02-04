@@ -20,6 +20,7 @@ import {
   Package,
   FlipVertical,
   Dices,
+  Phone,
 } from 'lucide-react';
 
 const elements = [
@@ -64,6 +65,7 @@ const elements = [
       { type: 'mystery-box', icon: Package, label: 'Mystery Box' },
       { type: 'card-flip', icon: FlipVertical, label: 'Card Flip' },
       { type: 'slot-machine', icon: Dices, label: 'Slot Machine' },
+      { type: 'phone-call', icon: Phone, label: 'Chamada' },
     ]
   },
   {

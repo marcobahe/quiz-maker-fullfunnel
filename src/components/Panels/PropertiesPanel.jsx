@@ -5,7 +5,7 @@ import {
   X, Plus, Trash2, GripVertical, ChevronDown, ChevronRight,
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
   Type, FileText, UserPlus, PanelRightClose, Disc, Gift, MessageSquare,
-  Star, Info, MousePointerClick, Package, FlipVertical, Dices,
+  Star, Info, MousePointerClick, Package, FlipVertical, Dices, Phone,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { createDefaultElement } from '@/components/Canvas/CompositeNode';
@@ -33,6 +33,7 @@ const ELEMENT_META = {
   'mystery-box':     { label: 'Mystery Box',     icon: Package,     color: 'orange' },
   'card-flip':       { label: 'Card Flip',       icon: FlipVertical, color: 'orange' },
   'slot-machine':    { label: 'Slot Machine',    icon: Dices,       color: 'orange' },
+  'phone-call':     { label: 'Chamada',         icon: Phone,       color: 'green' },
 };
 
 const ELEMENT_TYPES = [
@@ -54,6 +55,7 @@ const ELEMENT_TYPES = [
   { type: 'mystery-box',       label: 'Mystery Box' },
   { type: 'card-flip',         label: 'Card Flip' },
   { type: 'slot-machine',      label: 'Slot Machine' },
+  { type: 'phone-call',       label: 'Chamada' },
 ];
 
 const COLOR_CLASSES = {
@@ -63,6 +65,7 @@ const COLOR_CLASSES = {
   purple: 'bg-accent/10 text-accent',
   blue:   'bg-blue-100 text-blue-600',
   amber:  'bg-amber-100 text-amber-600',
+  green:  'bg-green-100 text-green-600',
   gray:   'bg-gray-100 text-gray-600',
 };
 
@@ -1257,6 +1260,97 @@ function SlotMachineElementEditor({ element, nodeId }) {
   );
 }
 
+function PhoneCallElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Nome do Ligante</label>
+        <input
+          type="text"
+          value={element.callerName || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { callerName: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Consultor, Dr. Silva..."
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Foto do Ligante (URL)</label>
+        <input
+          type="text"
+          value={element.callerPhoto || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { callerPhoto: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="https://..."
+        />
+        {element.callerPhoto && (
+          <img
+            src={element.callerPhoto}
+            alt="Preview"
+            className="w-12 h-12 rounded-full object-cover mt-2 border-2 border-gray-200"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Áudio da Chamada (URL)</label>
+        <input
+          type="text"
+          value={element.audioUrl || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { audioUrl: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="https://... (.mp3, .wav, .ogg)"
+        />
+        {element.audioUrl && (
+          <audio controls className="w-full mt-2" src={element.audioUrl}>
+            Seu navegador não suporta áudio.
+          </audio>
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Duração do Toque (segundos)</label>
+        <input
+          type="number"
+          value={element.ringDuration ?? 3}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { ringDuration: parseInt(e.target.value) || 3 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          min="1"
+          max="30"
+        />
+        <p className="text-xs text-gray-400 mt-1">Tempo antes que o botão &quot;Atender&quot; apareça</p>
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-700">Auto-avançar</p>
+          <p className="text-xs text-gray-400">Ir para próximo node ao encerrar</p>
+        </div>
+        <button
+          onClick={() => updateNodeElement(nodeId, element.id, { autoAdvance: !element.autoAdvance })}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            element.autoAdvance !== false ? 'bg-accent' : 'bg-gray-200'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              element.autoAdvance !== false ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação</label>
+        <input
+          type="number"
+          value={element.score || 0}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { score: parseInt(e.target.value) || 0 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
 function ButtonElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const nodes = useQuizStore((s) => s.nodes);
@@ -1432,6 +1526,8 @@ function ElementEditor({ element, nodeId }) {
       return <CardFlipElementEditor element={element} nodeId={nodeId} />;
     case 'slot-machine':
       return <SlotMachineElementEditor element={element} nodeId={nodeId} />;
+    case 'phone-call':
+      return <PhoneCallElementEditor element={element} nodeId={nodeId} />;
     default:
       return <div className="text-gray-400 text-sm">Editor não disponível para {element.type}</div>;
   }

@@ -8,7 +8,17 @@ import { initTracking, trackEvent } from '@/lib/tracking';
 import { getPatternStyle } from '@/lib/patterns';
 import SpinWheel from '@/components/Player/SpinWheel';
 import ScratchCard from '@/components/Player/ScratchCard';
+import PhoneCallScreen from '@/components/Player/PhoneCallScreen';
 import QuestionTimer from '@/components/Quiz/QuestionTimer';
+import {
+  GamifiedProgressBar,
+  StreakCounter,
+  QuestionTimer as GamifiedTimer,
+  LivesDisplay,
+  ConfettiEffect,
+  SoundSystem,
+  ShareChallengeButton,
+} from '@/components/Player/GamificationComponents';
 
 // ── Default theme (matches store defaults) ───────────────────
 const DEFAULT_THEME = {
@@ -798,6 +808,16 @@ function QuizPlayer() {
   
   // Attribution tracking state
   const [attribution, setAttribution] = useState(null);
+  
+  // Gamification state
+  const [gamificationConfig, setGamificationConfig] = useState(null);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [lives, setLives] = useState(3);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [timerActive, setTimerActive] = useState(false);
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState(false);
 
   // Canvas data
   const [nodes, setNodes] = useState([]);
@@ -808,8 +828,10 @@ function QuizPlayer() {
   const [shuffleQuestions, setShuffleQuestions] = useState(false);
   const [questionTimer, setQuestionTimer] = useState(null);
   const [shuffledNodes, setShuffledNodes] = useState([]); // nós embaralhados
-  const [timerActive, setTimerActive] = useState(false);
   const [questionOrder, setQuestionOrder] = useState([]); // ordem das perguntas para variáveis
+  
+  // Sound system
+  const { playSound } = SoundSystem({ level: gamificationConfig?.soundLevel || 'medium' });
 
   // ── Custom favicon ───────────────────────────────────────────
   useEffect(() => {
@@ -855,6 +877,33 @@ function QuizPlayer() {
     setAttribution(attributionData);
   }, []);
 
+  // ── Gamification: Confetti on result ─────────────────────────
+  useEffect(() => {
+    if (showResult && gamificationConfig?.confetti !== false) {
+      setShowConfetti(true);
+      if (gamificationConfig?.sounds) {
+        setTimeout(() => playSound('complete'), 300);
+      }
+    }
+  }, [showResult, gamificationConfig, playSound]);
+
+  // ── Gamification: Timer activation ───────────────────────────
+  useEffect(() => {
+    if (currentNode && gamificationConfig?.timer) {
+      const isQuestion = currentNode.type === 'single-choice' || 
+                        currentNode.type === 'multiple-choice' ||
+                        (currentNode.type === 'composite' && 
+                         (currentNode.data.elements || []).some(el => el.type.startsWith('question-')));
+                         
+      if (isQuestion && !selectedOption) {
+        setTimerActive(true);
+        setSpeedBonusAwarded(false);
+      } else {
+        setTimerActive(false);
+      }
+    }
+  }, [currentNode, gamificationConfig, selectedOption]);
+
   // ── Embed: auto-resize via postMessage ───────────────────────
   useEffect(() => {
     if (!isEmbed) return;
@@ -867,6 +916,112 @@ function QuizPlayer() {
     obs.observe(document.body);
     return () => obs.disconnect();
   }, [isEmbed, currentNodeId, showResult, showLeadForm]);
+
+  // ── Gamification Helper Functions ───────────────────────────
+  
+  const processGamificationAnswer = useCallback((optionScore, isCorrect = false) => {
+    if (!gamificationConfig) return optionScore;
+    
+    let finalScore = optionScore;
+    
+    setQuestionsAnswered(prev => prev + 1);
+    
+    // Process streak and sounds
+    if (isCorrect || optionScore > 0) {
+      setCorrectAnswers(prev => prev + 1);
+      
+      if (gamificationConfig.streak) {
+        setCurrentStreak(prev => {
+          const newStreak = prev + 1;
+          
+          // Apply streak multiplier if enabled and threshold reached
+          if (newStreak >= (gamificationConfig.streakAfter || 3)) {
+            const multiplier = gamificationConfig.streakMultiplier || 2;
+            finalScore = Math.floor(optionScore * multiplier);
+          }
+          
+          return newStreak;
+        });
+        
+        if (gamificationConfig.sounds) {
+          playSound('streak');
+        }
+      } else if (gamificationConfig.sounds) {
+        playSound('correct');
+      }
+    } else {
+      // Wrong answer
+      setCurrentStreak(0);
+      
+      if (gamificationConfig.sounds) {
+        playSound('incorrect');
+      }
+      
+      // Process lives system
+      if (gamificationConfig.lives && lives > 0) {
+        setLives(prev => {
+          const newLives = prev - 1;
+          
+          if (newLives === 0) {
+            // Handle lives depleted
+            setTimeout(() => {
+              if (gamificationConfig.livesAction === 'email') {
+                setShowLeadForm(true);
+              } else if (gamificationConfig.livesAction === 'partial') {
+                setShowResult(true);
+              } else if (gamificationConfig.livesAction === 'redirect' && gamificationConfig.livesRedirectUrl) {
+                window.location.href = gamificationConfig.livesRedirectUrl;
+              }
+            }, 1000);
+          }
+          
+          return newLives;
+        });
+      }
+    }
+    
+    return finalScore;
+  }, [gamificationConfig, lives, playSound]);
+  
+  const handleTimerTimeout = useCallback(() => {
+    if (!gamificationConfig?.timer) return;
+    
+    // Treat timeout as wrong answer for gamification purposes
+    processGamificationAnswer(0, false);
+    
+    if (gamificationConfig.sounds) {
+      playSound('timer');
+    }
+    
+    // Continue to next question
+    setTimeout(() => {
+      setTimerActive(false);
+      advanceToNode(getNextNode(currentNodeId));
+    }, 500);
+  }, [gamificationConfig, processGamificationAnswer, playSound, currentNodeId]);
+  
+  const handleSpeedBonus = useCallback((bonusLevel) => {
+    if (!gamificationConfig?.timer || speedBonusAwarded) return;
+    
+    const bonusMultipliers = {
+      low: 1.1, // +10%
+      medium: 1.25, // +25%
+      high: 1.5, // +50%
+    };
+    
+    const multiplier = bonusMultipliers[bonusLevel] || 1;
+    const bonus = Math.floor(10 * multiplier); // Base 10 points + bonus
+    
+    setScore(prev => prev + bonus);
+    setSpeedBonusAwarded(true);
+    
+    if (gamificationConfig.sounds) {
+      playSound('streak');
+    }
+    
+    // Show visual feedback
+    showPointsBalloon(bonus, null, 'Bônus de Velocidade!');
+  }, [gamificationConfig, speedBonusAwarded, playSound, showPointsBalloon]);
 
   // ── Derived styles ──────────────────────────────────────────
 
@@ -1035,6 +1190,12 @@ function QuizPlayer() {
             if (settings.branding) setBranding((prev) => ({ ...prev, ...settings.branding }));
             if (settings.aiResultConfig) setAiConfig(settings.aiResultConfig);
             if (settings.tracking) setTrackingConfig(settings.tracking);
+            if (settings.gamification) {
+              setGamificationConfig(settings.gamification);
+              if (settings.gamification.lives && settings.gamification.livesCount) {
+                setLives(settings.gamification.livesCount);
+              }
+            }
             
             // Override with behavior settings from settings object if present
             if (settings.behavior) {
@@ -1341,13 +1502,13 @@ function QuizPlayer() {
 
   // ── Handlers ────────────────────────────────────────────────
 
-  const showPointsBalloon = (points, event) => {
+  const showPointsBalloon = (points, event, customText = null) => {
     if (points <= 0) return;
     const id = Date.now();
     const rect = event?.currentTarget?.getBoundingClientRect?.();
     const x = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
     const y = rect ? rect.top : window.innerHeight / 2;
-    setPointsBalloons((prev) => [...prev, { id, points, x, y }]);
+    setPointsBalloons((prev) => [...prev, { id, points, x, y, text: customText }]);
     setTimeout(() => {
       setPointsBalloons((prev) => prev.filter((b) => b.id !== id));
     }, 1500);
@@ -1361,15 +1522,18 @@ function QuizPlayer() {
     const option = currentNode.data.options?.[optionIndex];
     const optionScore = option?.score || 0;
 
-    if (optionScore > 0 && event) showPointsBalloon(optionScore, event);
+    // Process gamification
+    const finalScore = processGamificationAnswer(optionScore, optionScore > 0);
+    
+    if (finalScore > 0 && event) showPointsBalloon(finalScore, event);
 
-    setScore((prev) => prev + optionScore);
+    setScore((prev) => prev + finalScore);
     setAnswers((prev) => ({
       ...prev,
       [currentNodeId]: {
         question: currentNode.data.question,
         answer: option?.text,
-        score: optionScore,
+        score: finalScore,
         optionIndex,
       },
     }));
@@ -1385,6 +1549,7 @@ function QuizPlayer() {
 
     setTimeout(() => {
       setSelectedOption(null);
+      setSpeedBonusAwarded(false); // Reset speed bonus for next question
       advanceToNode(getNextNode(currentNodeId, optionIndex));
     }, 500);
   };
@@ -1397,15 +1562,18 @@ function QuizPlayer() {
     const option = element.options?.[optionIndex];
     const optionScore = option?.score || 0;
 
-    if (optionScore > 0 && event) showPointsBalloon(optionScore, event);
+    // Process gamification
+    const finalScore = processGamificationAnswer(optionScore, optionScore > 0);
+    
+    if (finalScore > 0 && event) showPointsBalloon(finalScore, event);
 
-    setScore((prev) => prev + optionScore);
+    setScore((prev) => prev + finalScore);
     setAnswers((prev) => ({
       ...prev,
       [`${currentNodeId}__${element.id}`]: {
         question: element.question,
         answer: option?.text,
-        score: optionScore,
+        score: finalScore,
         optionIndex,
         elementId: element.id,
       },
@@ -1498,20 +1666,6 @@ function QuizPlayer() {
     }
   };
 
-  const handleTimerTimeout = () => {
-    // Timer acabou - avançar automaticamente
-    setTimerActive(false);
-    // Se for pergunta múltipla choice, seleciona primeira opção como padrão
-    if (currentNode?.type === 'single-choice' || currentNode?.type === 'multiple-choice') {
-      handleOptionSelect(0, null);
-    } else if (currentNode?.type === 'composite' && compositeQuestionEl) {
-      handleCompositeOptionSelect(compositeQuestionEl, 0, null);
-    } else {
-      // Avançar sem pontuação
-      advanceToNode(getNextNode(currentNodeId));
-    }
-  };
-
   const getMatchingRange = (finalScore) => {
     if (!scoreRanges || scoreRanges.length === 0) return null;
     const sorted = [...scoreRanges].sort((a, b) => a.min - b.min);
@@ -1551,7 +1705,7 @@ function QuizPlayer() {
   const compositeHasGamification = useMemo(() => {
     if (currentNode?.type !== 'composite') return false;
     return (currentNode.data.elements || []).some(
-      (el) => el.type === 'spin-wheel' || el.type === 'scratch-card',
+      (el) => el.type === 'spin-wheel' || el.type === 'scratch-card' || el.type === 'phone-call',
     );
   }, [currentNode]);
 
@@ -1643,23 +1797,68 @@ function QuizPlayer() {
                 {quiz?.name}
               </span>
             </div>
-            {!showResult && (
-              <span className="text-sm" style={{ color: theme.textColor, opacity: 0.6 }}>
-                {answeredCount}/{totalQuestions}
-              </span>
-            )}
+            <div className="flex items-center gap-4">
+              {!showResult && (
+                <span className="text-sm" style={{ color: theme.textColor, opacity: 0.6 }}>
+                  {answeredCount}/{totalQuestions}
+                </span>
+              )}
+              
+              {/* Gamification Header Elements */}
+              {gamificationConfig?.lives && (
+                <LivesDisplay 
+                  current={lives}
+                  total={gamificationConfig.livesCount || 3}
+                  primaryColor={theme.primaryColor}
+                  showAnimation={false}
+                />
+              )}
+              
+              {currentStreak > 0 && gamificationConfig?.streak && (
+                <StreakCounter 
+                  streak={currentStreak}
+                  multiplier={gamificationConfig.streakMultiplier || 2}
+                  effect={gamificationConfig.streakEffect || 'fire'}
+                  primaryColor={theme.primaryColor}
+                  isActive={false}
+                />
+              )}
+            </div>
           </div>
         )}
 
         {/* Progress Bar */}
         {!showResult && (
           <div className={isEmbed ? 'px-2 mb-4' : 'px-4 mb-6'}>
-            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${progress}%`, backgroundColor: theme.textColor }}
+            {gamificationConfig?.progressBar ? (
+              <GamifiedProgressBar 
+                current={questionsAnswered}
+                total={totalQuestions}
+                style={gamificationConfig.progressStyle || 'simple'}
+                primaryColor={theme.primaryColor}
               />
-            </div>
+            ) : (
+              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%`, backgroundColor: theme.textColor }}
+                />
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Timer (shown when active) */}
+        {timerActive && gamificationConfig?.timer && (
+          <div className={isEmbed ? 'px-2 mb-4' : 'px-4 mb-6'}>
+            <GamifiedTimer 
+              seconds={gamificationConfig.timerSeconds || 30}
+              onTimeout={handleTimerTimeout}
+              onSpeedBonus={handleSpeedBonus}
+              speedBonus={gamificationConfig.speedBonus || 'none'}
+              isActive={timerActive}
+              primaryColor={theme.primaryColor}
+            />
           </div>
         )}
 
@@ -2458,6 +2657,23 @@ function QuizPlayer() {
                   );
                 }
 
+                if (el.type === 'phone-call') {
+                  return (
+                    <div key={el.id} className="mb-4">
+                      <PhoneCallScreen
+                        element={el}
+                        theme={theme}
+                        onComplete={() => {
+                          if (el.score > 0) {
+                            setScore((prev) => prev + el.score);
+                          }
+                          advanceToNode(getNextNode(currentNodeId));
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
                 if (el.type === 'question-open') {
                   return (
                     <OpenQuestionPlayer
@@ -2607,13 +2823,28 @@ function QuizPlayer() {
             className="animate-balloon text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg flex items-center gap-1"
             style={{ backgroundColor: theme.primaryColor }}
           >
-            <span>+{b.points}</span>
+            <span>{b.text || `+${b.points}`}</span>
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07 3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
           </div>
         </div>
       ))}
+      
+      {/* Confetti Effect */}
+      <ConfettiEffect trigger={showConfetti} />
+      
+      {/* Share Challenge Button - only show on result */}
+      {showResult && gamificationConfig?.challenge && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <ShareChallengeButton 
+            text={gamificationConfig.challengeText || 'Acabei de fazer este quiz e consegui {{score}} pontos! Será que você consegue superar? 🔥'}
+            score={score}
+            quizUrl={typeof window !== 'undefined' ? window.location.href.replace(/[?&]preview=true/, '') : ''}
+            primaryColor={theme.primaryColor}
+          />
+        </div>
+      )}
 
       {/* Footer */}
       {branding.showBranding && !isEmbed && (

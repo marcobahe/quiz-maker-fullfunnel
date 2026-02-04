@@ -25,6 +25,7 @@ import {
   Package,
   FlipVertical,
   Dices,
+  Phone,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
@@ -52,6 +53,7 @@ const ICONS = {
   'mystery-box': Package,
   'card-flip': FlipVertical,
   'slot-machine': Dices,
+  'phone-call': Phone,
 };
 
 const COLORS = {
@@ -73,6 +75,7 @@ const COLORS = {
   'mystery-box': { bg: 'bg-orange-100', text: 'text-orange-600' },
   'card-flip': { bg: 'bg-orange-100', text: 'text-orange-600' },
   'slot-machine': { bg: 'bg-orange-100', text: 'text-orange-600' },
+  'phone-call': { bg: 'bg-green-100', text: 'text-green-600' },
 };
 
 const ELEMENT_TYPES = [
@@ -94,6 +97,7 @@ const ELEMENT_TYPES = [
   { type: 'mystery-box', label: 'Mystery Box' },
   { type: 'card-flip', label: 'Card Flip' },
   { type: 'slot-machine', label: 'Slot Machine' },
+  { type: 'phone-call', label: 'Chamada' },
 ];
 
 // ── Factory ─────────────────────────────────────────────────────
@@ -274,6 +278,17 @@ export function createDefaultElement(type) {
         slot3: '🎉',
         slotEmojis: ['🎰', '💎', '🎉', '🍒', '⭐', '💰', '🔥', '🎪'],
         bgColor: '#1e1b4b',
+        score: 0,
+      };
+    case 'phone-call':
+      return {
+        id,
+        type: 'phone-call',
+        callerName: 'Consultor',
+        callerPhoto: '',
+        audioUrl: '',
+        ringDuration: 3,
+        autoAdvance: true,
         score: 0,
       };
     default:
@@ -2472,6 +2487,93 @@ function SlotMachinePreview({ element, nodeId }) {
   );
 }
 
+function PhoneCallPreview({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const [phase, setPhase] = useState('ringing'); // ringing | answered | ended
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (phase === 'ringing') {
+      setPhase('answered');
+      setTimeout(() => setPhase('ended'), 2000);
+      setTimeout(() => setPhase('ringing'), 3500);
+    }
+  };
+
+  return (
+    <div className="p-2 relative">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="w-5 h-5 bg-green-100 rounded flex items-center justify-center">
+          <Phone size={12} className="text-green-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-green-600 uppercase tracking-wide">Chamada</span>
+      </div>
+
+      {/* Mini phone mockup */}
+      <div
+        className="rounded-xl overflow-hidden cursor-pointer"
+        style={{ backgroundColor: '#111827' }}
+        onClick={handleClick}
+      >
+        <div className="p-3 flex flex-col items-center gap-1.5">
+          {/* Caller photo */}
+          <div className={`w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center border-2 border-green-400/50 ${phase === 'ringing' ? 'animate-pulse' : ''}`}>
+            {element.callerPhoto ? (
+              <img src={element.callerPhoto} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <Phone size={16} className="text-green-400" />
+            )}
+          </div>
+
+          {/* Caller name */}
+          <span className="text-white text-xs font-medium">
+            {element.callerName || 'Consultor'}
+          </span>
+
+          {/* Status */}
+          <span className="text-[10px] text-gray-400">
+            {phase === 'ringing' && '📞 Chamada recebida...'}
+            {phase === 'answered' && '🔊 Em chamada 0:05'}
+            {phase === 'ended' && '📵 Chamada encerrada'}
+          </span>
+
+          {/* Action button */}
+          <div className="flex gap-2 mt-1">
+            {phase === 'ringing' && (
+              <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                <Phone size={10} className="text-white" />
+              </div>
+            )}
+            {phase === 'answered' && (
+              <div className="flex gap-1.5">
+                {/* Waveform bars */}
+                {[1,2,3,4,5].map((i) => (
+                  <div
+                    key={i}
+                    className="w-0.5 bg-green-400 rounded-full"
+                    style={{
+                      height: `${8 + Math.random() * 10}px`,
+                      animation: `pulse 0.${3 + i}s ease-in-out infinite alternate`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Audio URL indicator */}
+      {element.audioUrl && (
+        <div className="mt-1 flex items-center gap-1">
+          <Music size={10} className="text-gray-400" />
+          <span className="text-[9px] text-gray-400 truncate">{element.audioUrl}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ButtonElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const edges = useQuizStore((s) => s.edges);
@@ -2647,6 +2749,8 @@ function ElementRenderer({ element, nodeId }) {
       return <CardFlipPreview element={element} nodeId={nodeId} />;
     case 'slot-machine':
       return <SlotMachinePreview element={element} nodeId={nodeId} />;
+    case 'phone-call':
+      return <PhoneCallPreview element={element} nodeId={nodeId} />;
     default:
       return <div className="p-2 text-gray-400 text-xs">Elemento: {element.type}</div>;
   }
