@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import TopBar from '@/components/Layout/TopBar';
+import Sidebar from '@/components/Layout/Sidebar';
+import Link from 'next/link';
 import {
   Globe, Plus, Trash2, RefreshCw, CheckCircle, Clock, AlertCircle,
-  Copy, CheckCircle2, Loader2, X, ChevronDown, ExternalLink, Info,
+  Copy, CheckCircle2, Loader2, X, ChevronDown, ExternalLink, Info, ChevronLeft,
 } from 'lucide-react';
 
 // ── Copy button ─────────────────────────────────────────────
@@ -72,6 +73,33 @@ export default function DomainsSettingsPage() {
   const [error, setError] = useState('');
   const [checkingId, setCheckingId] = useState(null);
   const [verifyMessage, setVerifyMessage] = useState({});
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('activeWorkspaceId') || null;
+    }
+    return null;
+  });
+
+  const handleWorkspaceChange = (wsId) => {
+    setActiveWorkspaceId(wsId);
+    localStorage.setItem('activeWorkspaceId', wsId);
+  };
+
+  const handleCreateQuiz = async () => {
+    try {
+      const res = await fetch('/api/quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Meu Novo Quiz', workspaceId: activeWorkspaceId }),
+      });
+      if (res.ok) {
+        const quiz = await res.json();
+        router.push(`/builder/${quiz.id}`);
+      }
+    } catch (err) {
+      console.error('Failed to create quiz:', err);
+    }
+  };
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login');
@@ -222,39 +250,59 @@ export default function DomainsSettingsPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-app flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Loader2 className="animate-spin text-accent" size={32} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-app">
-      <TopBar title="Domínios Personalizados" />
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar
+        onCreateQuiz={handleCreateQuiz}
+        onOpenTemplates={() => router.push('/templates')}
+        userName={session?.user?.name || session?.user?.email}
+        activeWorkspaceId={activeWorkspaceId}
+        onWorkspaceChange={handleWorkspaceChange}
+      />
 
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <main className="flex-1 p-8">
+        <div className="mb-8">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+            <Link href="/settings" className="hover:text-accent transition-colors">Configurações</Link>
+            <ChevronLeft size={14} className="rotate-180" />
+            <span className="text-gray-800">Domínios</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <Globe size={28} className="text-accent" />
+            Domínios Personalizados
+          </h1>
+          <p className="text-gray-500">Configure domínios customizados (CNAME) para seus quizzes</p>
+        </div>
+
+      <div className="max-w-4xl space-y-6">
         {/* Instructions Card */}
-        <div className="bg-card border border-card-border rounded-xl p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
               <Globe size={20} className="text-accent" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white mb-2">
+              <h2 className="text-lg font-semibold text-gray-800 mb-2">
                 Como configurar um domínio personalizado
               </h2>
-              <div className="text-sm text-gray-400 space-y-2">
-                <p>Sirva seus quizzes diretamente no seu domínio (ex: <code className="bg-gray-800 px-1.5 py-0.5 rounded text-accent">quiz.seusite.com.br</code>).</p>
+              <div className="text-sm text-gray-600 space-y-2">
+                <p>Sirva seus quizzes diretamente no seu domínio (ex: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-accent">quiz.seusite.com.br</code>).</p>
                 <ol className="list-decimal list-inside space-y-1.5 mt-3">
-                  <li>Acesse o <strong className="text-gray-300">painel DNS</strong> do seu provedor de domínio</li>
-                  <li>Crie um registro <strong className="text-gray-300">CNAME</strong> apontando para:
+                  <li>Acesse o <strong className="text-gray-800">painel DNS</strong> do seu provedor de domínio</li>
+                  <li>Crie um registro <strong className="text-gray-800">CNAME</strong> apontando para:
                     <span className="inline-flex items-center gap-1 ml-1">
-                      <code className="bg-gray-800 px-2 py-0.5 rounded text-accent font-mono text-xs">quiz.fullfunnel.com.br</code>
+                      <code className="bg-gray-100 px-2 py-0.5 rounded text-accent font-mono text-xs">quiz.fullfunnel.com.br</code>
                       <CopyButton text="quiz.fullfunnel.com.br" />
                     </span>
                   </li>
-                  <li>Aguarde a propagação DNS (pode levar <strong className="text-gray-300">até 48 horas</strong>)</li>
-                  <li>Clique em <strong className="text-gray-300">&quot;Verificar&quot;</strong> para confirmar a configuração</li>
+                  <li>Aguarde a propagação DNS (pode levar <strong className="text-gray-800">até 48 horas</strong>)</li>
+                  <li>Clique em <strong className="text-gray-800">&quot;Verificar&quot;</strong> para confirmar a configuração</li>
                 </ol>
               </div>
             </div>
@@ -263,10 +311,10 @@ export default function DomainsSettingsPage() {
 
         {/* Header + Add Button */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-semibold text-gray-800">
             Seus Domínios
             {domains.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-gray-400">
+              <span className="ml-2 text-sm font-normal text-gray-500">
                 ({domains.length})
               </span>
             )}
@@ -282,10 +330,10 @@ export default function DomainsSettingsPage() {
 
         {/* Add Domain Form */}
         {showForm && (
-          <div className="bg-card border border-card-border rounded-xl p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <form onSubmit={handleAddDomain} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Domínio
                 </label>
                 <input
@@ -293,7 +341,7 @@ export default function DomainsSettingsPage() {
                   value={newDomain}
                   onChange={(e) => setNewDomain(e.target.value)}
                   placeholder="quiz.seusite.com.br"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -302,13 +350,13 @@ export default function DomainsSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Quiz associado <span className="text-gray-500">(opcional)</span>
                 </label>
                 <select
                   value={newQuizId}
                   onChange={(e) => setNewQuizId(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                 >
                   <option value="">Selecionar depois...</option>
                   {quizzes.map((q) => (
@@ -320,7 +368,7 @@ export default function DomainsSettingsPage() {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-400 text-sm bg-red-900/20 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">
                   <AlertCircle size={16} />
                   {error}
                 </div>
@@ -347,9 +395,9 @@ export default function DomainsSettingsPage() {
 
         {/* Domains List */}
         {domains.length === 0 && !showForm ? (
-          <div className="bg-card border border-card-border rounded-xl p-12 text-center">
-            <Globe size={48} className="mx-auto mb-4 text-gray-600" />
-            <h3 className="text-lg font-medium text-gray-300 mb-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center shadow-sm">
+            <Globe size={48} className="mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-medium text-gray-700 mb-2">
               Nenhum domínio configurado
             </h3>
             <p className="text-sm text-gray-500 mb-4">
@@ -367,13 +415,13 @@ export default function DomainsSettingsPage() {
             {domains.map((domain) => (
               <div
                 key={domain.id}
-                className="bg-card border border-card-border rounded-xl p-5"
+                className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <Globe size={18} className="text-accent shrink-0" />
-                      <span className="font-mono text-white font-medium truncate">
+                      <span className="font-mono text-gray-800 font-medium truncate">
                         {domain.domain}
                       </span>
                       <StatusBadge
@@ -388,7 +436,7 @@ export default function DomainsSettingsPage() {
                       <select
                         value={domain.quizId || ''}
                         onChange={(e) => handleQuizChange(domain.id, e.target.value)}
-                        className="bg-gray-800 border border-gray-700 rounded-md px-2.5 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-accent"
+                        className="border border-gray-300 rounded-md px-2.5 py-1 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-accent"
                       >
                         <option value="">Nenhum quiz selecionado</option>
                         {quizzes.map((q) => (
@@ -413,7 +461,7 @@ export default function DomainsSettingsPage() {
                     {/* CNAME target info */}
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-xs text-gray-500">CNAME →</span>
-                      <code className="text-xs font-mono text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded">
+                      <code className="text-xs font-mono text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">
                         {domain.cnameTarget}
                       </code>
                       <CopyButton text={domain.cnameTarget} />
@@ -424,8 +472,8 @@ export default function DomainsSettingsPage() {
                       <div
                         className={`mt-2 text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ${
                           verifyMessage[domain.id].type === 'success'
-                            ? 'bg-green-900/20 text-green-400'
-                            : 'bg-red-900/20 text-red-400'
+                            ? 'bg-green-50 text-green-700'
+                            : 'bg-red-50 text-red-700'
                         }`}
                       >
                         {verifyMessage[domain.id].type === 'success' ? (
@@ -443,7 +491,7 @@ export default function DomainsSettingsPage() {
                     <button
                       onClick={() => handleVerify(domain.id)}
                       disabled={checkingId === domain.id}
-                      className="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50"
                       title="Verificar DNS"
                     >
                       <RefreshCw
@@ -454,7 +502,7 @@ export default function DomainsSettingsPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(domain.id)}
-                      className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-900/20 transition-colors"
+                      className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                       title="Remover domínio"
                     >
                       <Trash2 size={16} />
@@ -467,14 +515,14 @@ export default function DomainsSettingsPage() {
         )}
 
         {/* DNS Example Card */}
-        <div className="bg-card border border-card-border rounded-xl p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <div className="flex items-start gap-3">
             <Info size={18} className="text-gray-500 shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-sm font-medium text-gray-300 mb-2">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">
                 Exemplo de configuração DNS
               </h4>
-              <div className="bg-gray-800 rounded-lg p-4 font-mono text-xs text-gray-400 overflow-x-auto">
+              <div className="bg-gray-100 rounded-lg p-4 font-mono text-xs text-gray-600 overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="text-gray-500">
@@ -495,13 +543,14 @@ export default function DomainsSettingsPage() {
                 </table>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Neste exemplo, <code className="text-gray-400">quiz.seudominio.com.br</code> será
+                Neste exemplo, <code className="text-gray-600">quiz.seudominio.com.br</code> será
                 redirecionado para o seu quiz.
               </p>
             </div>
           </div>
         </div>
       </div>
+      </main>
     </div>
   );
 }

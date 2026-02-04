@@ -3,6 +3,8 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Sidebar from '@/components/Layout/Sidebar';
 import {
   Users,
   UserPlus,
@@ -131,9 +133,25 @@ export default function TeamPage() {
     }
   };
 
+  const handleCreateQuiz = async () => {
+    try {
+      const res = await fetch('/api/quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Meu Novo Quiz', workspaceId: selectedWsId }),
+      });
+      if (res.ok) {
+        const quiz = await res.json();
+        router.push(`/builder/${quiz.id}`);
+      }
+    } catch (err) {
+      console.error('Failed to create quiz:', err);
+    }
+  };
+
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Loader2 className="animate-spin text-accent" size={32} />
       </div>
     );
@@ -142,24 +160,33 @@ export default function TeamPage() {
   const selectedWs = workspaces.find(w => w.id === selectedWsId);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <button onClick={() => router.push('/settings')} className="text-gray-500 hover:text-gray-700">
-            <ChevronLeft size={24} />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <Users size={24} className="text-accent" />
-              Time & Workspace
-            </h1>
-            <p className="text-sm text-gray-500">Gerencie membros e permissões</p>
-          </div>
-        </div>
-      </div>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar
+        onCreateQuiz={handleCreateQuiz}
+        onOpenTemplates={() => router.push('/templates')}
+        userName={session?.user?.name || session?.user?.email}
+        activeWorkspaceId={selectedWsId}
+        onWorkspaceChange={(wsId) => {
+          setSelectedWsId(wsId);
+          localStorage.setItem('activeWorkspaceId', wsId);
+        }}
+      />
 
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <main className="flex-1 p-8">
+        <div className="mb-8">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+            <Link href="/settings" className="hover:text-accent transition-colors">Configurações</Link>
+            <ChevronLeft size={14} className="rotate-180" />
+            <span className="text-gray-800">Time</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <Users size={28} className="text-accent" />
+            Time & Workspace
+          </h1>
+          <p className="text-gray-500">Gerencie membros e permissões</p>
+        </div>
+
+      <div className="max-w-4xl space-y-6">
         {/* Workspace Selector */}
         {workspaces.length > 1 && (
           <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -316,6 +343,7 @@ export default function TeamPage() {
           )}
         </div>
       </div>
+      </main>
     </div>
   );
 }

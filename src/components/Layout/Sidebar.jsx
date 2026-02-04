@@ -20,7 +20,10 @@ import {
   Building2,
   Check,
   Users,
+  Sun,
+  Moon,
 } from 'lucide-react';
+import { useTheme } from '@/components/Layout/ThemeProvider';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Quizzes', path: '/' },
@@ -40,6 +43,7 @@ const PLAN_BADGES = {
 
 export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard, userName, activeWorkspaceId, onWorkspaceChange }) {
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const [userPlan, setUserPlan] = useState('free');
   const [workspaces, setWorkspaces] = useState([]);
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false);
@@ -251,8 +255,20 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
         </div>
       )}
 
-      {/* User Profile */}
+      {/* Theme Toggle + User Profile */}
       <div className="p-4 border-t border-sidebar-hover">
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-4 py-2 mb-3 rounded-lg text-gray-400 hover:bg-sidebar-hover hover:text-white transition-colors"
+          title={theme === 'dark' ? 'Mudar para Light Mode' : 'Mudar para Dark Mode'}
+        >
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          <span className="text-sm font-medium">
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </span>
+        </button>
+
         <div className="flex items-center gap-3 px-2">
           <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center">
             <User size={20} className="text-white" />

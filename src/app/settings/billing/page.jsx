@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Sidebar from '@/components/Layout/Sidebar';
 import {
   CreditCard,
   ChevronLeft,
@@ -22,8 +23,8 @@ import { PLANS, FEATURE_LABELS } from '@/lib/plans';
 export default function BillingPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-violet-500"></div>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent"></div>
       </div>
     }>
       <BillingContent />
@@ -50,13 +51,13 @@ function UsageBar({ label, icon: Icon, current, limit, className }) {
   const isDanger = !isUnlimited && percentage >= 100;
 
   return (
-    <div className={`bg-white/[0.02] border border-white/10 rounded-xl p-5 ${className || ''}`}>
+    <div className={`bg-white border border-gray-200 rounded-xl p-5 shadow-sm ${className || ''}`}>
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
           <Icon size={18} className="text-accent" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium text-white">{label}</p>
+          <p className="text-sm font-medium text-gray-800">{label}</p>
           <p className="text-xs text-gray-500">
             {isUnlimited
               ? `${current} utilizados • Ilimitado`
@@ -67,10 +68,10 @@ function UsageBar({ label, icon: Icon, current, limit, className }) {
           <span
             className={`text-xs font-bold px-2 py-1 rounded-full ${
               isDanger
-                ? 'bg-red-500/10 text-red-400'
+                ? 'bg-red-100 text-red-600'
                 : isWarning
-                ? 'bg-amber-500/10 text-amber-400'
-                : 'bg-green-500/10 text-green-400'
+                ? 'bg-amber-100 text-amber-600'
+                : 'bg-green-100 text-green-600'
             }`}
           >
             {percentage}%
@@ -78,7 +79,7 @@ function UsageBar({ label, icon: Icon, current, limit, className }) {
         )}
       </div>
       {!isUnlimited && (
-        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               isDanger
@@ -145,9 +146,32 @@ function BillingContent() {
     }
   };
 
+  const [activeWorkspaceId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('activeWorkspaceId') || null;
+    }
+    return null;
+  });
+
+  const handleCreateQuiz = async () => {
+    try {
+      const res = await fetch('/api/quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Meu Novo Quiz', workspaceId: activeWorkspaceId }),
+      });
+      if (res.ok) {
+        const quiz = await res.json();
+        router.push(`/builder/${quiz.id}`);
+      }
+    } catch (err) {
+      console.error('Failed to create quiz:', err);
+    }
+  };
+
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent"></div>
       </div>
     );
@@ -158,31 +182,37 @@ function BillingContent() {
   const PlanIcon = PLAN_ICONS[plan];
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      {/* Header */}
-      <header className="border-b border-white/5 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
-          <Link
-            href="/settings"
-            className="text-gray-500 hover:text-white transition-colors"
-          >
-            <ChevronLeft size={20} />
-          </Link>
-          <div className="flex items-center gap-2">
-            <CreditCard size={20} className="text-accent" />
-            <h1 className="text-white font-semibold">Plano & Cobrança</h1>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar
+        onCreateQuiz={handleCreateQuiz}
+        onOpenTemplates={() => router.push('/templates')}
+        userName={session?.user?.name || session?.user?.email}
+        activeWorkspaceId={activeWorkspaceId}
+        onWorkspaceChange={(wsId) => localStorage.setItem('activeWorkspaceId', wsId)}
+      />
 
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <main className="flex-1 p-8">
+        <div className="mb-8">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+            <Link href="/settings" className="hover:text-accent transition-colors">Configurações</Link>
+            <ChevronLeft size={14} className="rotate-180" />
+            <span className="text-gray-800">Plano</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <CreditCard size={28} className="text-accent" />
+            Plano & Cobrança
+          </h1>
+          <p className="text-gray-500">Gerencie seu plano, veja uso e histórico de pagamentos</p>
+        </div>
+
+      <div className="max-w-4xl space-y-6">
         {/* Success Banner */}
         {success && (
-          <div className="bg-green-500/10 border border-green-500/20 text-green-300 px-5 py-4 rounded-xl flex items-center gap-3">
+          <div className="bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-xl flex items-center gap-3">
             <Check size={20} />
             <div>
               <p className="font-medium">Assinatura ativada com sucesso!</p>
-              <p className="text-sm text-green-400/70">
+              <p className="text-sm text-green-600">
                 Seu plano foi atualizado. Aproveite todas as funcionalidades.
               </p>
             </div>
@@ -190,7 +220,7 @@ function BillingContent() {
         )}
 
         {/* Current Plan Card */}
-        <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div
@@ -206,7 +236,7 @@ function BillingContent() {
               </div>
               <div>
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-gray-800">
                     Plano {planDetails.name}
                   </h2>
                   <span
@@ -221,7 +251,7 @@ function BillingContent() {
                     : `R$ ${planDetails.price.toFixed(2).replace('.', ',')} /mês`}
                 </p>
                 {billing?.planExpiresAt && (
-                  <p className="text-gray-600 text-xs mt-1">
+                  <p className="text-gray-500 text-xs mt-1">
                     Renova em{' '}
                     {new Date(billing.planExpiresAt).toLocaleDateString('pt-BR')}
                   </p>
@@ -234,7 +264,7 @@ function BillingContent() {
                 <button
                   onClick={handleManageSubscription}
                   disabled={portalLoading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
                 >
                   {portalLoading ? (
                     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -259,7 +289,7 @@ function BillingContent() {
 
         {/* Usage Section */}
         <div>
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+          <h3 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
             <BarChart3 size={18} className="text-accent" />
             Uso Atual
           </h3>
@@ -281,18 +311,18 @@ function BillingContent() {
 
         {/* Features */}
         <div>
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+          <h3 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
             <Zap size={18} className="text-accent" />
             Funcionalidades do Plano
           </h3>
-          <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="grid sm:grid-cols-2 gap-3">
               {planDetails.limits.features.map((feature) => (
                 <div key={feature} className="flex items-center gap-3 text-sm">
                   <div className="w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
                     <Check size={12} className="text-accent" />
                   </div>
-                  <span className="text-gray-300">
+                  <span className="text-gray-700">
                     {FEATURE_LABELS[feature] || feature}
                   </span>
                 </div>
@@ -305,10 +335,10 @@ function BillingContent() {
         {plan === 'free' && (
           <div className="bg-gradient-to-r from-accent/10 to-purple-500/10 border border-accent/20 rounded-2xl p-8 text-center">
             <Crown size={40} className="text-accent mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
               Desbloqueie todo o potencial
             </h3>
-            <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
+            <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
               Faça upgrade para o Pro e tenha acesso a templates, analytics
               avançado, webhooks e muito mais.
             </p>
@@ -322,6 +352,7 @@ function BillingContent() {
           </div>
         )}
       </div>
+      </main>
     </div>
   );
 }
