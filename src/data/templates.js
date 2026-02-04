@@ -54,7 +54,7 @@ const leadGenBasic = {
         data: {
           label: 'Interesse',
           elements: [
-            { id: 'q1-text', type: 'text', content: 'Vamos descobrir como podemos te ajudar!' },
+            { id: 'q1-text', type: 'text', content: 'Vamos descobrir como podemos te ajudar!', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
             {
               id: 'q1-question',
               type: 'question-single',
@@ -72,7 +72,7 @@ const leadGenBasic = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 750 },
+        position: { x: 150, y: 550 },
         data: {
           label: 'Porte',
           elements: [
@@ -93,7 +93,7 @@ const leadGenBasic = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 1350 },
+        position: { x: 150, y: 950 },
         data: {
           label: 'Orçamento',
           elements: [
@@ -114,7 +114,7 @@ const leadGenBasic = {
       {
         id: 'lead',
         type: 'composite',
-        position: { x: 150, y: 1950 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Formulário',
           elements: [
@@ -126,7 +126,7 @@ const leadGenBasic = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 2350 },
+        position: { x: 200, y: 1750 },
         data: { title: 'Seu Plano Recomendado' },
       },
     ],
@@ -171,7 +171,7 @@ const investorProfile = {
         data: {
           label: 'Experiência',
           elements: [
-            { id: 'ip-q1-text', type: 'text', content: 'Vamos descobrir seu perfil de investidor em 5 perguntas rápidas!' },
+            { id: 'ip-q1-text', type: 'text', content: 'Vamos descobrir seu perfil de investidor em 5 perguntas rápidas!', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
             {
               id: 'ip-q1-question',
               type: 'question-single',
@@ -189,7 +189,7 @@ const investorProfile = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 750 },
+        position: { x: 150, y: 550 },
         data: {
           label: 'Tolerância a Risco',
           elements: [
@@ -210,7 +210,7 @@ const investorProfile = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 1350 },
+        position: { x: 150, y: 950 },
         data: {
           label: 'Horizonte',
           elements: [
@@ -231,7 +231,7 @@ const investorProfile = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1950 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Conhecimento',
           elements: [
@@ -252,7 +252,7 @@ const investorProfile = {
       {
         id: 'q5',
         type: 'composite',
-        position: { x: 150, y: 2550 },
+        position: { x: 150, y: 1750 },
         data: {
           label: 'Objetivo',
           elements: [
@@ -273,7 +273,7 @@ const investorProfile = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 2950 },
+        position: { x: 200, y: 2150 },
         data: { title: 'Seu Perfil de Investidor' },
       },
     ],
@@ -319,7 +319,7 @@ const marketingDiag = {
         data: {
           label: 'Presença Digital',
           elements: [
-            { id: 'md-q1-text', type: 'text', content: 'Responda 5 perguntas e descubra o nível de maturidade digital do seu negócio!' },
+            { id: 'md-q1-text', type: 'text', content: 'Responda 5 perguntas e descubra o nível de maturidade digital do seu negócio!', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
             {
               id: 'md-q1-question',
               type: 'question-single',
@@ -337,7 +337,7 @@ const marketingDiag = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 750 },
+        position: { x: 150, y: 550 },
         data: {
           label: 'Redes Sociais',
           elements: [
@@ -358,7 +358,7 @@ const marketingDiag = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 1350 },
+        position: { x: 150, y: 950 },
         data: {
           label: 'Tráfego Pago',
           elements: [
@@ -379,7 +379,7 @@ const marketingDiag = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1950 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Email Marketing',
           elements: [
@@ -400,7 +400,7 @@ const marketingDiag = {
       {
         id: 'q5',
         type: 'composite',
-        position: { x: 150, y: 2550 },
+        position: { x: 150, y: 1750 },
         data: {
           label: 'Métricas',
           elements: [
@@ -421,7 +421,7 @@ const marketingDiag = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 2950 },
+        position: { x: 200, y: 2150 },
         data: { title: 'Seu Nível de Maturidade Digital' },
       },
     ],
@@ -467,15 +467,15 @@ const knowledgeQuiz = {
         data: {
           label: 'Pergunta 1 de 5',
           elements: [
-            { id: 'kq-q1-text', type: 'text', content: 'Teste seus conhecimentos sobre Marketing Digital! 🚀' },
+            { id: 'kq-q1-text', type: 'text', content: 'Teste seus conhecimentos sobre Marketing Digital! 🚀', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
             {
               id: 'kq-q1-question',
               type: 'question-single',
               question: 'O que significa a sigla SEO?',
               options: [
-                { text: 'Search Engine Optimization', score: 10 },
-                { text: 'Social Engagement Online', score: 0 },
-                { text: 'System for Electronic Operations', score: 0 },
+                { text: '✅ Search Engine Optimization', score: 10, emoji: '✅' },
+                { text: '❌ Social Engagement Online', score: 0, emoji: '❌' },
+                { text: '❌ System for Electronic Operations', score: 0, emoji: '❌' },
               ],
             },
           ],
@@ -484,7 +484,7 @@ const knowledgeQuiz = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 750 },
+        position: { x: 150, y: 550 },
         data: {
           label: 'Pergunta 2 de 5',
           elements: [
@@ -493,9 +493,9 @@ const knowledgeQuiz = {
               type: 'question-single',
               question: 'Qual métrica indica o custo para adquirir cada cliente?',
               options: [
-                { text: 'LTV (Lifetime Value)', score: 0 },
-                { text: 'CAC (Custo de Aquisição de Cliente)', score: 10 },
-                { text: 'ROI (Retorno sobre Investimento)', score: 0 },
+                { text: '❌ LTV (Lifetime Value)', score: 0, emoji: '❌' },
+                { text: '✅ CAC (Custo de Aquisição de Cliente)', score: 10, emoji: '✅' },
+                { text: '❌ ROI (Retorno sobre Investimento)', score: 0, emoji: '❌' },
               ],
             },
           ],
@@ -504,7 +504,7 @@ const knowledgeQuiz = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 1350 },
+        position: { x: 150, y: 950 },
         data: {
           label: 'Pergunta 3 de 5',
           elements: [
@@ -513,9 +513,9 @@ const knowledgeQuiz = {
               type: 'question-single',
               question: 'Qual ferramenta é usada para automação de email marketing?',
               options: [
-                { text: 'Canva', score: 0 },
-                { text: 'Google Analytics', score: 0 },
-                { text: 'Mailchimp / ActiveCampaign', score: 10 },
+                { text: '❌ Canva', score: 0, emoji: '❌' },
+                { text: '❌ Google Analytics', score: 0, emoji: '❌' },
+                { text: '✅ Mailchimp / ActiveCampaign', score: 10, emoji: '✅' },
               ],
             },
           ],
@@ -524,7 +524,7 @@ const knowledgeQuiz = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1950 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Pergunta 4 de 5',
           elements: [
@@ -533,9 +533,9 @@ const knowledgeQuiz = {
               type: 'question-single',
               question: 'O que é um "lead magnet"?',
               options: [
-                { text: 'Um tipo de anúncio no Google', score: 0 },
-                { text: 'Um conteúdo gratuito oferecido em troca de dados do lead', score: 10 },
-                { text: 'Uma ferramenta de análise de concorrentes', score: 0 },
+                { text: '❌ Um tipo de anúncio no Google', score: 0, emoji: '❌' },
+                { text: '✅ Um conteúdo gratuito oferecido em troca de dados do lead', score: 10, emoji: '✅' },
+                { text: '❌ Uma ferramenta de análise de concorrentes', score: 0, emoji: '❌' },
               ],
             },
           ],
@@ -544,7 +544,7 @@ const knowledgeQuiz = {
       {
         id: 'q5',
         type: 'composite',
-        position: { x: 150, y: 2550 },
+        position: { x: 150, y: 1750 },
         data: {
           label: 'Pergunta 5 de 5',
           elements: [
@@ -553,9 +553,9 @@ const knowledgeQuiz = {
               type: 'question-single',
               question: 'Qual é a taxa média de abertura de emails no Brasil?',
               options: [
-                { text: 'Cerca de 5%', score: 0 },
-                { text: 'Cerca de 20%', score: 10 },
-                { text: 'Cerca de 50%', score: 0 },
+                { text: '❌ Cerca de 5%', score: 0, emoji: '❌' },
+                { text: '✅ Cerca de 20%', score: 10, emoji: '✅' },
+                { text: '❌ Cerca de 50%', score: 0, emoji: '❌' },
               ],
             },
           ],
@@ -564,7 +564,7 @@ const knowledgeQuiz = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 2950 },
+        position: { x: 200, y: 2150 },
         data: { title: 'Sua Pontuação' },
       },
     ],
@@ -610,15 +610,15 @@ const styleQuiz = {
         data: {
           label: 'Rotina',
           elements: [
-            { id: 'sq-q1-text', type: 'text', content: 'Descubra qual é o seu estilo! Responda com sinceridade 😊' },
+            { id: 'sq-q1-text', type: 'text', content: 'Descubra qual é o seu estilo! Responda com sinceridade 😊', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
             {
               id: 'sq-q1-question',
               type: 'question-single',
               question: 'Como é sua manhã ideal?',
               options: [
-                { text: 'Acordo cedo, treino e planejo o dia', score: 10 },
-                { text: 'Café tranquilo com um bom livro', score: 5 },
-                { text: 'Durmo até tarde e improviso', score: 1 },
+                { text: '🏋️ Acordo cedo, treino e planejo o dia', score: 10, emoji: '🏋️' },
+                { text: '☕ Café tranquilo com um bom livro', score: 5, emoji: '☕' },
+                { text: '😴 Durmo até tarde e improviso', score: 1, emoji: '😴' },
               ],
             },
           ],
@@ -627,7 +627,7 @@ const styleQuiz = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 750 },
+        position: { x: 150, y: 550 },
         data: {
           label: 'Trabalho',
           elements: [
@@ -647,7 +647,7 @@ const styleQuiz = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 1350 },
+        position: { x: 150, y: 950 },
         data: {
           label: 'Lazer',
           elements: [
@@ -667,7 +667,7 @@ const styleQuiz = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1950 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Decisões',
           elements: [
@@ -687,7 +687,7 @@ const styleQuiz = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 2350 },
+        position: { x: 200, y: 1750 },
         data: { title: 'Seu Estilo Revelado!' },
       },
     ],
@@ -732,16 +732,16 @@ const npsQuiz = {
         data: {
           label: 'Recomendação',
           elements: [
-            { id: 'nps-q1-text', type: 'text', content: 'Sua opinião é muito importante para nós! Leva menos de 1 minuto.' },
+            { id: 'nps-q1-text', type: 'text', content: 'Sua opinião é muito importante para nós! Leva menos de 1 minuto.', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
             {
               id: 'nps-q1-question',
               type: 'question-single',
               question: 'De 0 a 10, o quanto você recomendaria nosso produto/serviço?',
               options: [
-                { text: '0 a 3 — Não recomendaria', score: 1 },
-                { text: '4 a 6 — Talvez recomendaria', score: 5 },
-                { text: '7 a 8 — Provavelmente recomendaria', score: 7 },
-                { text: '9 a 10 — Com certeza recomendaria!', score: 10 },
+                { text: '😞 0 a 3 — Não recomendaria', score: 1, emoji: '😞' },
+                { text: '😐 4 a 6 — Talvez recomendaria', score: 5, emoji: '😐' },
+                { text: '😊 7 a 8 — Provavelmente recomendaria', score: 7, emoji: '😊' },
+                { text: '⭐ 9 a 10 — Com certeza recomendaria!', score: 10, emoji: '⭐' },
               ],
             },
           ],
@@ -750,7 +750,7 @@ const npsQuiz = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 750 },
+        position: { x: 150, y: 550 },
         data: {
           label: 'Experiência',
           elements: [
@@ -771,7 +771,7 @@ const npsQuiz = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 1350 },
+        position: { x: 150, y: 950 },
         data: {
           label: 'Melhoria',
           elements: [
@@ -792,7 +792,7 @@ const npsQuiz = {
       {
         id: 'lead',
         type: 'composite',
-        position: { x: 150, y: 1950 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Contato',
           elements: [
@@ -804,7 +804,7 @@ const npsQuiz = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 2350 },
+        position: { x: 200, y: 1750 },
         data: { title: 'Obrigado pelo seu Feedback!' },
       },
     ],
@@ -849,7 +849,7 @@ const bantQualification = {
         data: {
           label: 'Budget (Orçamento)',
           elements: [
-            { id: 'bant-q1-text', type: 'text', content: 'Vamos entender melhor suas necessidades para oferecer a melhor solução!' },
+            { id: 'bant-q1-text', type: 'text', content: 'Vamos entender melhor suas necessidades para oferecer a melhor solução!', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
             {
               id: 'bant-q1-question',
               type: 'question-single',
@@ -867,7 +867,7 @@ const bantQualification = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 750 },
+        position: { x: 150, y: 550 },
         data: {
           label: 'Authority (Autoridade)',
           elements: [
@@ -888,7 +888,7 @@ const bantQualification = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 1350 },
+        position: { x: 150, y: 950 },
         data: {
           label: 'Need (Necessidade)',
           elements: [
@@ -909,7 +909,7 @@ const bantQualification = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1950 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Timeline (Prazo)',
           elements: [
@@ -930,7 +930,7 @@ const bantQualification = {
       {
         id: 'lead',
         type: 'composite',
-        position: { x: 150, y: 2550 },
+        position: { x: 150, y: 1750 },
         data: {
           label: 'Dados do Lead',
           elements: [
@@ -942,7 +942,7 @@ const bantQualification = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 2950 },
+        position: { x: 200, y: 2150 },
         data: { title: 'Resultado da Qualificação' },
       },
     ],
@@ -988,7 +988,7 @@ const onboardingQuiz = {
         data: {
           label: 'Boas-vindas',
           elements: [
-            { id: 'ob-q1-text', type: 'text', content: 'Bem-vindo! Vamos personalizar sua experiência. Leva menos de 1 minuto! 🎉' },
+            { id: 'ob-q1-text', type: 'text', content: 'Bem-vindo! Vamos personalizar sua experiência. Leva menos de 1 minuto! 🎉', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
             {
               id: 'ob-q1-question',
               type: 'question-single',
@@ -1006,7 +1006,7 @@ const onboardingQuiz = {
       {
         id: 'q2',
         type: 'composite',
-        position: { x: 150, y: 750 },
+        position: { x: 150, y: 550 },
         data: {
           label: 'Experiência',
           elements: [
@@ -1027,7 +1027,7 @@ const onboardingQuiz = {
       {
         id: 'q3',
         type: 'composite',
-        position: { x: 150, y: 1350 },
+        position: { x: 150, y: 950 },
         data: {
           label: 'Tamanho',
           elements: [
@@ -1048,7 +1048,7 @@ const onboardingQuiz = {
       {
         id: 'q4',
         type: 'composite',
-        position: { x: 150, y: 1950 },
+        position: { x: 150, y: 1350 },
         data: {
           label: 'Integrações',
           elements: [
@@ -1069,7 +1069,7 @@ const onboardingQuiz = {
       {
         id: 'result',
         type: 'result',
-        position: { x: 200, y: 2350 },
+        position: { x: 200, y: 1750 },
         data: { title: 'Sua Experiência Personalizada' },
       },
     ],
@@ -1089,6 +1089,129 @@ const onboardingQuiz = {
   settings: { ...defaultSettings },
 };
 
+// ═══════════════════════════════════════════════════════════════════
+// 9. Calculadora de ROI (Vendas)
+// ═══════════════════════════════════════════════════════════════════
+const roiCalculator = {
+  id: 'roi-calculator',
+  name: 'Calculadora de ROI',
+  description: 'Calcule o ROI do seu investimento em marketing com 3 perguntas estratégicas.',
+  category: 'Vendas',
+  icon: '📊',
+  thumbnail: null,
+  canvasData: {
+    nodes: [
+      {
+        id: 'start',
+        type: 'start',
+        position: { x: 250, y: 0 },
+        data: { label: 'Início' },
+      },
+      {
+        id: 'q1',
+        type: 'composite',
+        position: { x: 150, y: 150 },
+        data: {
+          label: 'Investimento Atual',
+          elements: [
+            { id: 'roi-q1-text', type: 'text', content: 'Calcule o ROI potencial do seu investimento em marketing! 💰', style: { fontSize: 18, fontWeight: '600', textColor: '#ffffff', alignment: 'center' } },
+            {
+              id: 'roi-q1-question',
+              type: 'question-single',
+              question: 'Quanto você investe mensalmente em marketing?',
+              options: [
+                { text: 'Até R$ 2.000/mês', score: 2 },
+                { text: 'R$ 2.000 a R$ 10.000/mês', score: 5 },
+                { text: 'R$ 10.000 a R$ 50.000/mês', score: 8 },
+                { text: 'Acima de R$ 50.000/mês', score: 10 },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        id: 'q2',
+        type: 'composite',
+        position: { x: 150, y: 550 },
+        data: {
+          label: 'Leads Mensais',
+          elements: [
+            {
+              id: 'roi-q2-question',
+              type: 'question-single',
+              question: 'Quantos leads qualificados você gera por mês?',
+              options: [
+                { text: 'Menos de 50 leads', score: 2 },
+                { text: '50 a 200 leads', score: 5 },
+                { text: '200 a 1.000 leads', score: 8 },
+                { text: 'Mais de 1.000 leads', score: 10 },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        id: 'q3',
+        type: 'composite',
+        position: { x: 150, y: 950 },
+        data: {
+          label: 'Taxa de Conversão',
+          elements: [
+            {
+              id: 'roi-q3-question',
+              type: 'question-single',
+              question: 'Qual sua taxa de conversão de leads para vendas?',
+              options: [
+                { text: 'Menos de 2%', score: 2 },
+                { text: '2% a 5%', score: 5 },
+                { text: '5% a 15%', score: 8 },
+                { text: 'Acima de 15%', score: 10 },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        id: 'cta-button',
+        type: 'composite',
+        position: { x: 150, y: 1350 },
+        data: {
+          label: 'Resultado',
+          elements: [
+            { id: 'roi-cta-text', type: 'text', content: 'Baseado nas suas respostas, calculamos seu potencial de ROI! Clique no botão abaixo para ver a análise completa:' },
+            { 
+              id: 'roi-cta-button', 
+              type: 'button', 
+              text: 'Ver Minha Análise de ROI',
+              action: 'url',
+              url: '#resultado'
+            },
+          ],
+        },
+      },
+      {
+        id: 'result',
+        type: 'result',
+        position: { x: 200, y: 1750 },
+        data: { title: 'Seu Potencial de ROI' },
+      },
+    ],
+    edges: [
+      edge('e-start-q1', 'start', 'q1'),
+      edge('e-q1-q2', 'q1', 'q2'),
+      edge('e-q2-q3', 'q2', 'q3'),
+      edge('e-q3-cta', 'q3', 'cta-button'),
+      edge('e-cta-result', 'cta-button', 'result'),
+    ],
+  },
+  scoreRanges: [
+    { id: 'sr-1', label: 'ROI Inicial', min: 0, max: 12, description: 'Você está no início da jornada. Com otimizações estratégicas, podemos aumentar seu ROI em até 200%!' },
+    { id: 'sr-2', label: 'ROI Moderado', min: 13, max: 24, description: 'Bom desempenho! Com automações e funis otimizados, há potencial para dobrar seus resultados.' },
+    { id: 'sr-3', label: 'ROI Avançado', min: 25, max: 30, description: 'Excelente performance! Você pode escalar ainda mais com IA, personalização e canais premium.' },
+  ],
+  settings: { ...defaultSettings },
+};
+
 // ── Export all templates ─────────────────────────────────────────
 
 export const templates = [
@@ -1100,6 +1223,7 @@ export const templates = [
   npsQuiz,
   bantQualification,
   onboardingQuiz,
+  roiCalculator,
 ];
 
 export const categories = [
