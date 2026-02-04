@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
-import { AVAILABLE_VARIABLES, parseVariableSegments } from '@/lib/dynamicVariables';
+import { AVAILABLE_VARIABLES, parseVariableSegments, getAvailableVariables } from '@/lib/dynamicVariables';
 import EmojiPicker from '@/components/EmojiPicker';
 import { useClickOutside } from '@/hooks/useClickOutside';
 
@@ -266,8 +266,22 @@ function VariableText({ text }) {
 
 // ── Variable Hint Tooltip ───────────────────────────────────────
 
-function VariableHint() {
+function VariableHint({ onInsertVariable }) {
   const [open, setOpen] = useState(false);
+  const variables = getAvailableVariables(10); // Show variables for up to 10 questions
+
+  // Group variables by type for better organization
+  const basicVars = variables.filter(v => ['nome', 'email', 'score', 'total_perguntas'].includes(v.key));
+  const answerVars = variables.filter(v => v.key.startsWith('q') && !v.key.includes('_score'));
+  const scoreVars = variables.filter(v => v.key.includes('_score'));
+
+  const insertVariable = (varKey, e) => {
+    e.stopPropagation();
+    if (onInsertVariable) {
+      onInsertVariable(varKey);
+    }
+    setOpen(false);
+  };
 
   return (
     <div className="mt-1 relative">
@@ -281,21 +295,72 @@ function VariableHint() {
         <Info size={10} /> Variáveis disponíveis
       </button>
       {open && (
-        <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2.5 z-50 min-w-[220px]">
+        <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2.5 z-50 min-w-[280px] max-w-[320px] max-h-[300px] overflow-y-auto">
           <p className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
             Variáveis disponíveis
           </p>
-          {AVAILABLE_VARIABLES.map((v) => (
-            <div key={v.key} className="flex items-center gap-1.5 py-0.5">
-              <code className="text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
-                {`{{${v.key}}}`}
-              </code>
-              <span className="text-[10px] text-gray-400">{v.description}</span>
+          
+          {/* Basic Variables */}
+          <div className="mb-2">
+            <p className="text-[9px] text-gray-400 mb-1 font-medium">Básicas</p>
+            {basicVars.map((v) => (
+              <div key={v.key} className="flex items-center gap-1.5 py-0.5 group">
+                <button
+                  onClick={(e) => insertVariable(v.key, e)}
+                  className="text-[10px] bg-accent/10 hover:bg-accent hover:text-white text-accent px-1.5 py-0.5 rounded font-mono whitespace-nowrap transition-colors cursor-pointer"
+                  title="Clique para inserir"
+                >
+                  {`{{${v.key}}}`}
+                </button>
+                <span className="text-[10px] text-gray-400 flex-1">{v.description}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Answer Variables */}
+          <div className="mb-2">
+            <p className="text-[9px] text-gray-400 mb-1 font-medium">Respostas das Perguntas</p>
+            <div className="grid grid-cols-2 gap-1">
+              {answerVars.slice(0, 6).map((v) => (
+                <button
+                  key={v.key}
+                  onClick={(e) => insertVariable(v.key, e)}
+                  className="text-[10px] bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 px-1.5 py-0.5 rounded font-mono transition-colors cursor-pointer text-center"
+                  title={v.description}
+                >
+                  {`{{${v.key}}}`}
+                </button>
+              ))}
             </div>
-          ))}
-          <p className="text-[9px] text-gray-300 mt-1.5 border-t border-gray-100 pt-1">
-            Duplo clique no texto para editar e inserir variáveis
-          </p>
+            {answerVars.length > 6 && (
+              <p className="text-[9px] text-gray-300 mt-1">
+                ... e mais {answerVars.length - 6} variáveis ({{q7}}, {{q8}}, etc.)
+              </p>
+            )}
+          </div>
+
+          {/* Score Variables */}
+          <div className="mb-2">
+            <p className="text-[9px] text-gray-400 mb-1 font-medium">Scores das Perguntas</p>
+            <div className="grid grid-cols-2 gap-1">
+              {scoreVars.slice(0, 6).map((v) => (
+                <button
+                  key={v.key}
+                  onClick={(e) => insertVariable(v.key, e)}
+                  className="text-[10px] bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-700 px-1.5 py-0.5 rounded font-mono transition-colors cursor-pointer text-center"
+                  title={v.description}
+                >
+                  {`{{${v.key}}}`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-1.5 mt-1.5">
+            <p className="text-[9px] text-gray-300">
+              💡 <strong>Dica:</strong> As variáveis de pergunta ({{q1}}, {{q2}}) são numeradas pela ordem de resposta do usuário, não pela posição no canvas.
+            </p>
+          </div>
         </div>
       )}
     </div>
@@ -1112,6 +1177,12 @@ function TextElement({ element, nodeId }) {
     });
   };
 
+  const handleInsertVariable = (varKey) => {
+    const currentContent = element.content || '';
+    const newContent = currentContent + `{{${varKey}}}`;
+    updateNodeElement(nodeId, element.id, { content: newContent });
+  };
+
   return (
     <div className="p-2 relative">
       {showToolbar && (
@@ -1134,7 +1205,7 @@ function TextElement({ element, nodeId }) {
         />
       </div>
       
-      <VariableHint />
+      <VariableHint onInsertVariable={handleInsertVariable} />
     </div>
   );
 }
@@ -1222,7 +1293,13 @@ function QuestionElement({ element, nodeId }) {
         onSave={(val) => updateNodeElement(nodeId, element.id, { question: val })}
         className="text-gray-800 font-medium text-sm mb-2 block"
         placeholder="Digite a pergunta…"
+        renderValue={(val) => <VariableText text={val} />}
       />
+      <VariableHint onInsertVariable={(varKey) => {
+        const currentQuestion = element.question || '';
+        const newQuestion = currentQuestion + `{{${varKey}}}`;
+        updateNodeElement(nodeId, element.id, { question: newQuestion });
+      }} />
       <div className="space-y-1.5">
         {(element.options || []).map((opt, idx) => {
           const handleId = `${element.id}-option-${idx}`;

@@ -15,6 +15,14 @@ import {
 } from 'lucide-react';
 import Sidebar from '@/components/Layout/Sidebar';
 
+// Convert ISO country code to flag emoji (e.g. "BR" → 🇧🇷)
+function countryFlag(code) {
+  if (!code || code.length !== 2) return '';
+  return String.fromCodePoint(
+    ...code.toUpperCase().split('').map(c => 0x1F1E6 + c.charCodeAt(0) - 65)
+  );
+}
+
 export default function LeadsPage() {
   const params = useParams();
   const router = useRouter();
@@ -288,6 +296,9 @@ export default function LeadsPage() {
                         Resultado
                       </th>
                       <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Localização
+                      </th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Data
                       </th>
                     </tr>
@@ -319,6 +330,19 @@ export default function LeadsPage() {
                             </span>
                           ) : (
                             <span className="text-gray-400 text-sm">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-gray-500 text-sm">
+                          {lead.city || lead.region || lead.country ? (
+                            <span className="inline-flex items-center gap-1">
+                              {lead.country && <span>{countryFlag(lead.country)}</span>}
+                              <span>
+                                {[lead.city, lead.region].filter(Boolean).join(', ')}
+                                {!lead.city && !lead.region && lead.country ? lead.country : ''}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-gray-500 text-sm">

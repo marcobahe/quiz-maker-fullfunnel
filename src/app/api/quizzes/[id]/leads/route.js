@@ -86,6 +86,11 @@ export async function POST(request, { params }) {
       );
     }
 
+    // Geolocation via Vercel headers (free, no API key needed)
+    const country = request.headers.get('x-vercel-ip-country') || null;
+    const region = request.headers.get('x-vercel-ip-country-region') || null;
+    const city = request.headers.get('x-vercel-ip-city') ? decodeURIComponent(request.headers.get('x-vercel-ip-city')) : null;
+
     const lead = await prisma.lead.create({
       data: {
         quizId,
@@ -96,6 +101,9 @@ export async function POST(request, { params }) {
         score: body.score || 0,
         resultCategory: body.resultCategory || null,
         metadata: body.metadata ? JSON.stringify(body.metadata) : '{}',
+        country,
+        region,
+        city,
       },
     });
 

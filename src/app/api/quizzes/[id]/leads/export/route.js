@@ -85,7 +85,7 @@ export async function GET(request, { params }) {
     const questions = extractQuestionLabels(quiz.canvasData);
 
     // Build CSV headers
-    const baseHeaders = ['Nome', 'Email', 'Telefone', 'Pontuação', 'Resultado', 'Data'];
+    const baseHeaders = ['Nome', 'Email', 'Telefone', 'Pontuação', 'Resultado', 'País', 'Estado', 'Cidade', 'Data'];
     const questionHeaders = questions.map((q) => q.question);
     const allHeaders = [...baseHeaders, ...questionHeaders];
 
@@ -107,6 +107,9 @@ export async function GET(request, { params }) {
         lead.phone || '',
         lead.score ?? 0,
         lead.resultCategory || '',
+        lead.country || '',
+        lead.region || '',
+        lead.city || '',
         new Date(lead.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
       ];
 

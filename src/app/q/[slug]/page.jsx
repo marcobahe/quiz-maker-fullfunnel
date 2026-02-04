@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, Suspense, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircle, Play, Video, Music, Image as ImageIcon, ExternalLink } from 'lucide-react';
-import { replaceVariables } from '@/lib/dynamicVariables';
+import { replaceVariables, buildAnswersMap } from '@/lib/dynamicVariables';
 import { initTracking, trackEvent } from '@/lib/tracking';
 import { getPatternStyle } from '@/lib/patterns';
 import SpinWheel from '@/components/Player/SpinWheel';
@@ -806,6 +806,7 @@ function QuizPlayer() {
   const [questionTimer, setQuestionTimer] = useState(null);
   const [shuffledNodes, setShuffledNodes] = useState([]); // nós embaralhados
   const [timerActive, setTimerActive] = useState(false);
+  const [questionOrder, setQuestionOrder] = useState([]); // ordem das perguntas para variáveis
 
   // ── Custom favicon ───────────────────────────────────────────
   useEffect(() => {
@@ -917,12 +918,20 @@ function QuizPlayer() {
     return count;
   }, [nodes]);
 
-  const variableValues = useMemo(() => ({
-    nome: leadForm.name || '',
-    email: leadForm.email || '',
-    score: String(score),
-    total_perguntas: String(totalQuestions),
-  }), [leadForm.name, leadForm.email, score, totalQuestions]);
+  const variableValues = useMemo(() => {
+    // Build base variables
+    const baseVars = {
+      nome: leadForm.name || '',
+      email: leadForm.email || '',
+      score: String(score),
+      total_perguntas: String(totalQuestions),
+    };
+
+    // Build answer variables (q1, q2, q1_score, q2_score, etc.)
+    const answersMap = buildAnswersMap(answers, questionOrder);
+
+    return { ...baseVars, ...answersMap };
+  }, [leadForm.name, leadForm.email, score, totalQuestions, answers, questionOrder]);
 
   /** Replace dynamic variables in text */
   const rv = useCallback(
@@ -1175,6 +1184,21 @@ function QuizPlayer() {
         }
       }
 
+      // Track question order for answer piping variables
+      if (currentNode && (
+        currentNode.type === 'single-choice' || 
+        currentNode.type === 'multiple-choice' ||
+        (currentNode.type === 'composite' && 
+         (currentNode.data.elements || []).some(el => el.type.startsWith('question-')))
+      )) {
+        setQuestionOrder(prev => {
+          if (!prev.includes(currentNodeId)) {
+            return [...prev, currentNodeId];
+          }
+          return prev;
+        });
+      }
+
       const isLeadForm =
         nextNode?.type === 'lead-form' ||
         (nextNode?.type === 'composite' &&
@@ -1423,6 +1447,10 @@ function QuizPlayer() {
   const handleGoBack = () => {
     if (history.length === 0) return;
     const prevId = history[history.length - 1];
+    
+    // Remove current node from question order if it was a question
+    setQuestionOrder(prev => prev.filter(id => id !== currentNodeId));
+    
     setHistory((prev) => prev.slice(0, -1));
     setCurrentNodeId(prevId);
     setShowLeadForm(false);

@@ -15,6 +15,14 @@
   var scriptSrc = currentScript.src || '';
   var baseUrl = scriptSrc.replace(/\/embed\.js(\?.*)?$/, '');
 
+  // Parse configuration from data attributes
+  var quizSlug = currentScript.getAttribute('data-quiz');
+  var triggerType = currentScript.getAttribute('data-trigger') || 'immediate';
+  var delay = parseInt(currentScript.getAttribute('data-delay')) || 5000;
+  var scrollPercent = parseInt(currentScript.getAttribute('data-scroll')) || 50;
+  var showOnce = currentScript.getAttribute('data-show-once') === 'true';
+  var displayMode = currentScript.getAttribute('data-mode') || 'popup';
+
   // ── Styles (injected once) ──────────────────────────────────
   var STYLE_ID = 'quizmaker-embed-styles';
   function injectStyles() {
@@ -22,6 +30,7 @@
     var style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = [
+      // Popup mode (default)
       '.qm-overlay {',
       '  position: fixed; top: 0; left: 0; width: 100%; height: 100%;',
       '  background: rgba(0,0,0,0.6); z-index: 999999;',
@@ -41,6 +50,37 @@
       '.qm-overlay.qm-visible .qm-modal {',
       '  transform: translateY(0) scale(1);',
       '}',
+      
+      // Slide-right mode
+      '.qm-overlay.qm-slide-right {',
+      '  background: transparent; align-items: flex-start; justify-content: flex-end;',
+      '  padding: 20px;',
+      '}',
+      '.qm-overlay.qm-slide-right .qm-modal {',
+      '  width: 400px; max-width: 90vw; height: calc(100vh - 40px);',
+      '  max-height: none; transform: translateX(100%);',
+      '  border-radius: 12px 0 0 12px;',
+      '}',
+      '.qm-overlay.qm-slide-right.qm-visible .qm-modal {',
+      '  transform: translateX(0);',
+      '}',
+      
+      // Slide-bottom mode  
+      '.qm-overlay.qm-slide-bottom {',
+      '  background: transparent; align-items: flex-end; justify-content: center;',
+      '  padding: 0;',
+      '}',
+      '.qm-overlay.qm-slide-bottom .qm-modal {',
+      '  width: 100%; max-width: 640px; height: 70vh;',
+      '  max-height: 600px; transform: translateY(100%);',
+      '  border-radius: 16px 16px 0 0;',
+      '  margin: 0 auto;',
+      '}',
+      '.qm-overlay.qm-slide-bottom.qm-visible .qm-modal {',
+      '  transform: translateY(0);',
+      '}',
+      
+      // Close button
       '.qm-close {',
       '  position: absolute; top: 12px; right: 12px; z-index: 10;',
       '  width: 36px; height: 36px; border-radius: 50%;',
@@ -50,12 +90,25 @@
       '}',
       '.qm-close:hover { background: rgba(0,0,0,0.7); }',
       '.qm-close svg { width: 18px; height: 18px; color: #fff; }',
+      
+      // Iframe
       '.qm-iframe {',
       '  width: 100%; height: 100%; border: none;',
       '}',
+      
+      // Mobile responsive
       '@media (max-width: 640px) {',
       '  .qm-modal { width: 100%; height: 100%; max-height: 100%;',
       '    border-radius: 0; }',
+      '  .qm-overlay.qm-slide-right .qm-modal,',
+      '  .qm-overlay.qm-slide-bottom .qm-modal {',
+      '    width: 100%; height: 100%; max-height: 100%;',
+      '    border-radius: 0; transform: translateY(100%);',
+      '  }',
+      '  .qm-overlay.qm-slide-right.qm-visible .qm-modal,',
+      '  .qm-overlay.qm-slide-bottom.qm-visible .qm-modal {',
+      '    transform: translateY(0);',
+      '  }',
       '}',
     ].join('\n');
     document.head.appendChild(style);
