@@ -69,12 +69,17 @@ export const authOptions = {
                 password: null, // No password for OAuth users
               },
             });
-          } else if (!existingUser.image && user.image) {
-            // Update image if not set
-            await prisma.user.update({
-              where: { email: user.email },
-              data: { image: user.image },
-            });
+          } else {
+            // Sync name and image from Google on each login
+            const updates = {};
+            if (user.name && user.name !== existingUser.name) updates.name = user.name;
+            if (user.image && user.image !== existingUser.image) updates.image = user.image;
+            if (Object.keys(updates).length > 0) {
+              await prisma.user.update({
+                where: { email: user.email },
+                data: updates,
+              });
+            }
           }
         } catch (error) {
           console.error('Error during Google sign-in:', error);
