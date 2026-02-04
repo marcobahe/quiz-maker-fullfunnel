@@ -64,6 +64,34 @@ const defaultQuizSettings = {
     shuffleQuestions: false,
     questionTimer: null, // segundos por pergunta (null = sem timer)
   },
+  gamification: {
+    // Engajamento
+    progressBar: true,
+    progressStyle: 'simple', // simple | milestones | xp
+    streak: true,
+    streakMultiplier: 2,
+    streakAfter: 3,
+    streakEffect: 'fire', // fire | stars | lightning
+    timer: false,
+    timerSeconds: 30,
+    speedBonus: 'none', // none | low | medium | high
+    
+    // Experiência
+    confetti: true,
+    sounds: true,
+    soundLevel: 'medium', // subtle | medium | high
+    
+    // Mecânicas
+    lives: false,
+    livesCount: 3,
+    livesAction: 'email', // email | partial | redirect
+    livesRedirectUrl: '',
+    
+    // Social
+    leaderboard: false,
+    challenge: false,
+    challengeText: 'Acabei de fazer este quiz e consegui {{score}} pontos! Será que você consegue superar? 🔥',
+  },
 };
 
 const useQuizStore = create((set, get) => ({

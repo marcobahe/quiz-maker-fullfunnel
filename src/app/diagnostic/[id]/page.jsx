@@ -7,7 +7,8 @@ import { useEffect, useRef } from 'react';
 import TopBar from '@/components/Layout/TopBar';
 import ScoreRangesEditor from '@/components/ScoreRanges/ScoreRangesEditor';
 import ThemeEditor from '@/components/Settings/ThemeEditor';
-import { AlertCircle, CheckCircle, AlertTriangle, Info, Palette, Sparkles, Activity } from 'lucide-react';
+import GamificationSettings from '@/components/Settings/GamificationSettings';
+import { AlertCircle, CheckCircle, AlertTriangle, Info, Palette, Sparkles, Activity, Gamepad2 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { defaultQuizSettings } from '@/store/quizStore';
 
@@ -546,6 +547,20 @@ export default function DiagnosticPage() {
 
           {/* ── Tracking & Pixels Section ──────────────── */}
           <TrackingEditor />
+
+          {/* ── Gamification Settings ──────────────── */}
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <Gamepad2 size={20} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Gamificação</h2>
+                <p className="text-sm text-gray-500">Configure mecânicas de engajamento para aumentar a conversão</p>
+              </div>
+            </div>
+            <GamificationSettings />
+          </div>
 
           {/* Theme & Branding Editor */}
           <div className="mt-8">
