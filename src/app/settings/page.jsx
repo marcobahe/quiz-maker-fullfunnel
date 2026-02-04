@@ -5,9 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Layout/Sidebar';
 import Link from 'next/link';
-import { Globe, Settings, ChevronRight, CreditCard, Users } from 'lucide-react';
+import { Globe, Settings, ChevronRight, CreditCard, Users, User } from 'lucide-react';
 
 const settingsItems = [
+  {
+    icon: User,
+    title: 'Minha Conta',
+    description: 'Atualize seu nome, email, senha e dados pessoais',
+    href: '/settings/account',
+  },
   {
     icon: Users,
     title: 'Time & Workspace',
