@@ -1,9 +1,14 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import prisma from './prisma';
 
 export const authOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -45,10 +50,53 @@ export const authOptions = {
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account }) {
+      // For Google OAuth: create or link user in our database
+      if (account?.provider === 'google') {
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+
+          if (!existingUser) {
+            // Create new user from Google account
+            await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                password: null, // No password for OAuth users
+              },
+            });
+          } else if (!existingUser.image && user.image) {
+            // Update image if not set
+            await prisma.user.update({
+              where: { email: user.email },
+              data: { image: user.image },
+            });
+          }
+        } catch (error) {
+          console.error('Error during Google sign-in:', error);
+          return false;
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
-        token.plan = user.plan || 'free';
+        // For Google OAuth, fetch the DB user to get the correct id
+        if (account?.provider === 'google') {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.plan = dbUser.plan || 'free';
+          }
+        } else {
+          token.id = user.id;
+          token.plan = user.plan || 'free';
+        }
       }
       return token;
     },
