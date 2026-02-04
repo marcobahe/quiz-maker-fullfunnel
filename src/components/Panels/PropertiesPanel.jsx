@@ -5,7 +5,7 @@ import {
   X, Plus, Trash2, GripVertical, ChevronDown, ChevronRight,
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
   Type, FileText, UserPlus, PanelRightClose, Disc, Gift, MessageSquare,
-  Star, Info, MousePointerClick,
+  Star, Info, MousePointerClick, Package, FlipVertical, Dices,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { createDefaultElement } from '@/components/Canvas/CompositeNode';
@@ -30,6 +30,9 @@ const ELEMENT_META = {
   script:            { label: 'Script',          icon: FileText,    color: 'teal' },
   'spin-wheel':      { label: 'Roleta',          icon: Disc,        color: 'orange' },
   'scratch-card':    { label: 'Raspadinha',       icon: Gift,        color: 'orange' },
+  'mystery-box':     { label: 'Mystery Box',     icon: Package,     color: 'orange' },
+  'card-flip':       { label: 'Card Flip',       icon: FlipVertical, color: 'orange' },
+  'slot-machine':    { label: 'Slot Machine',    icon: Dices,       color: 'orange' },
 };
 
 const ELEMENT_TYPES = [
@@ -48,6 +51,9 @@ const ELEMENT_TYPES = [
   { type: 'script',            label: 'Script' },
   { type: 'spin-wheel',        label: 'Roleta' },
   { type: 'scratch-card',      label: 'Raspadinha' },
+  { type: 'mystery-box',       label: 'Mystery Box' },
+  { type: 'card-flip',         label: 'Card Flip' },
+  { type: 'slot-machine',      label: 'Slot Machine' },
 ];
 
 const COLOR_CLASSES = {
@@ -1011,6 +1017,246 @@ function ScratchCardElementEditor({ element, nodeId }) {
   );
 }
 
+function MysteryBoxElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+        <input
+          type="text"
+          value={element.title || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { title: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Abra a caixa misteriosa!"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Texto Revelado</label>
+        <textarea
+          value={element.revealText || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { revealText: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm resize-none"
+          rows={2}
+          placeholder="Resultado aparece aqui"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cor de Fundo</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={element.bgColor || '#1e1b4b'}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { bgColor: e.target.value })}
+            className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
+          />
+          <span className="text-sm text-gray-500">{element.bgColor || '#1e1b4b'}</span>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cor da Caixa</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={element.boxColor || '#7c3aed'}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { boxColor: e.target.value })}
+            className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
+          />
+          <span className="text-sm text-gray-500">{element.boxColor || '#7c3aed'}</span>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação</label>
+        <input
+          type="number"
+          value={element.score || 0}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { score: parseInt(e.target.value) || 0 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
+function CardFlipElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const patterns = [
+    { value: 'geometric', label: 'Geométrico' },
+    { value: 'dots', label: 'Pontos' },
+    { value: 'stripes', label: 'Listras' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+        <input
+          type="text"
+          value={element.title || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { title: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Vire a carta!"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Texto Revelado</label>
+        <textarea
+          value={element.revealText || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { revealText: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm resize-none"
+          rows={2}
+          placeholder="Resultado aparece aqui"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cor da Frente</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={element.frontColor || '#ffffff'}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { frontColor: e.target.value })}
+            className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
+          />
+          <span className="text-sm text-gray-500">{element.frontColor || '#ffffff'}</span>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cor do Verso</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={element.backColor || '#7c3aed'}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { backColor: e.target.value })}
+            className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
+          />
+          <span className="text-sm text-gray-500">{element.backColor || '#7c3aed'}</span>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Padrão do Verso</label>
+        <div className="grid grid-cols-3 gap-1">
+          {patterns.map((p) => (
+            <button
+              key={p.value}
+              onClick={() => updateNodeElement(nodeId, element.id, { backPattern: p.value })}
+              className={`py-2 text-sm font-medium rounded-lg border transition-colors ${
+                (element.backPattern || 'geometric') === p.value
+                  ? 'bg-accent text-white border-accent'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-accent/40'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação</label>
+        <input
+          type="number"
+          value={element.score || 0}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { score: parseInt(e.target.value) || 0 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
+function SlotMachineElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+        <input
+          type="text"
+          value={element.title || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { title: e.target.value })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          placeholder="Puxe a alavanca!"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Resultados dos Slots</label>
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Slot 1</label>
+            <input
+              type="text"
+              value={element.slot1 || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { slot1: e.target.value })}
+              className="w-full p-2 border border-gray-200 rounded text-sm text-center"
+              placeholder="🎰"
+              maxLength="2"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Slot 2</label>
+            <input
+              type="text"
+              value={element.slot2 || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { slot2: e.target.value })}
+              className="w-full p-2 border border-gray-200 rounded text-sm text-center"
+              placeholder="💎"
+              maxLength="2"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Slot 3</label>
+            <input
+              type="text"
+              value={element.slot3 || ''}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { slot3: e.target.value })}
+              className="w-full p-2 border border-gray-200 rounded text-sm text-center"
+              placeholder="🎉"
+              maxLength="2"
+            />
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">Use emojis ou texto curto para cada slot</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Emojis Disponíveis (para animação)</label>
+        <textarea
+          value={(element.slotEmojis || []).join(' ')}
+          onChange={(e) => {
+            const emojis = e.target.value.split(/\s+/).filter(Boolean);
+            updateNodeElement(nodeId, element.id, { slotEmojis: emojis });
+          }}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm resize-none"
+          rows={2}
+          placeholder="🎰 💎 🎉 🍒 ⭐ 💰 🔥 🎪"
+        />
+        <p className="text-xs text-gray-500 mt-1">Separados por espaço. Usados durante a animação de spin.</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cor de Fundo</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={element.bgColor || '#1e1b4b'}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { bgColor: e.target.value })}
+            className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
+          />
+          <span className="text-sm text-gray-500">{element.bgColor || '#1e1b4b'}</span>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação</label>
+        <input
+          type="number"
+          value={element.score || 0}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { score: parseInt(e.target.value) || 0 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
 function ButtonElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const nodes = useQuizStore((s) => s.nodes);
@@ -1180,6 +1426,12 @@ function ElementEditor({ element, nodeId }) {
       return <SpinWheelElementEditor element={element} nodeId={nodeId} />;
     case 'scratch-card':
       return <ScratchCardElementEditor element={element} nodeId={nodeId} />;
+    case 'mystery-box':
+      return <MysteryBoxElementEditor element={element} nodeId={nodeId} />;
+    case 'card-flip':
+      return <CardFlipElementEditor element={element} nodeId={nodeId} />;
+    case 'slot-machine':
+      return <SlotMachineElementEditor element={element} nodeId={nodeId} />;
     default:
       return <div className="text-gray-400 text-sm">Editor não disponível para {element.type}</div>;
   }

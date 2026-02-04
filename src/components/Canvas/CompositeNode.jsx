@@ -22,6 +22,9 @@ import {
   MessageSquare,
   Star,
   MousePointerClick,
+  Package,
+  FlipVertical,
+  Dices,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
@@ -46,6 +49,9 @@ const ICONS = {
   script: FileText,
   'spin-wheel': Disc,
   'scratch-card': Gift,
+  'mystery-box': Package,
+  'card-flip': FlipVertical,
+  'slot-machine': Dices,
 };
 
 const COLORS = {
@@ -64,6 +70,9 @@ const COLORS = {
   script: { bg: 'bg-teal-100', text: 'text-teal-600' },
   'spin-wheel': { bg: 'bg-orange-100', text: 'text-orange-600' },
   'scratch-card': { bg: 'bg-orange-100', text: 'text-orange-600' },
+  'mystery-box': { bg: 'bg-orange-100', text: 'text-orange-600' },
+  'card-flip': { bg: 'bg-orange-100', text: 'text-orange-600' },
+  'slot-machine': { bg: 'bg-orange-100', text: 'text-orange-600' },
 };
 
 const ELEMENT_TYPES = [
@@ -82,6 +91,9 @@ const ELEMENT_TYPES = [
   { type: 'script', label: 'Script' },
   { type: 'spin-wheel', label: 'Roleta' },
   { type: 'scratch-card', label: 'Raspadinha' },
+  { type: 'mystery-box', label: 'Mystery Box' },
+  { type: 'card-flip', label: 'Card Flip' },
+  { type: 'slot-machine', label: 'Slot Machine' },
 ];
 
 // ── Factory ─────────────────────────────────────────────────────
@@ -229,6 +241,39 @@ export function createDefaultElement(type) {
         revealText: '🎉 20% de desconto!',
         coverColor: '#7c3aed',
         coverPattern: 'dots',
+        score: 0,
+      };
+    case 'mystery-box':
+      return {
+        id,
+        type: 'mystery-box',
+        title: 'Abra a caixa misteriosa!',
+        revealText: 'Resultado aparece aqui',
+        bgColor: '#1e1b4b',
+        boxColor: '#7c3aed',
+        score: 0,
+      };
+    case 'card-flip':
+      return {
+        id,
+        type: 'card-flip',
+        title: 'Vire a carta!',
+        revealText: 'Resultado aparece aqui',
+        frontColor: '#ffffff',
+        backColor: '#7c3aed',
+        backPattern: 'geometric',
+        score: 0,
+      };
+    case 'slot-machine':
+      return {
+        id,
+        type: 'slot-machine',
+        title: 'Puxe a alavanca!',
+        slot1: '🎰',
+        slot2: '💎',
+        slot3: '🎉',
+        slotEmojis: ['🎰', '💎', '🎉', '🍒', '⭐', '💰', '🔥', '🎪'],
+        bgColor: '#1e1b4b',
         score: 0,
       };
     default:
@@ -2010,6 +2055,423 @@ function ScratchCardPreview({ element, nodeId }) {
   );
 }
 
+// ── Mystery Box Preview ─────────────────────────────────────────
+
+function MysteryBoxPreview({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const [showToolbar, setShowToolbar] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="p-2 relative">
+      {showToolbar && (
+        <div
+          className="absolute -top-12 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 nodrag nopan nowheel"
+          style={{
+            minWidth: '200px'
+          }}
+        >
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs text-gray-400">Título:</span>
+            <input
+              type="text"
+              value={element.title || ''}
+              onChange={(e) => handleChange({ title: e.target.value })}
+              className="flex-1 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+              placeholder="Título..."
+            />
+          </div>
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs text-gray-400">Revelado:</span>
+            <input
+              type="text"
+              value={element.revealText || ''}
+              onChange={(e) => handleChange({ revealText: e.target.value })}
+              className="flex-1 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+              placeholder="Texto revelado..."
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-gray-400">Fundo:</span>
+            <input
+              type="color"
+              value={element.bgColor || '#1e1b4b'}
+              onChange={(e) => handleChange({ bgColor: e.target.value })}
+              className="w-5 h-5 rounded border border-gray-200 cursor-pointer"
+            />
+            <span className="text-xs text-gray-400">Caixa:</span>
+            <input
+              type="color"
+              value={element.boxColor || '#7c3aed'}
+              onChange={(e) => handleChange({ boxColor: e.target.value })}
+              className="w-5 h-5 rounded border border-gray-200 cursor-pointer"
+            />
+          </div>
+        </div>
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
+        <div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
+          <Package size={12} className="text-orange-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Mystery Box</span>
+      </div>
+      <p className="text-gray-800 font-medium text-sm mb-2">{element.title || 'Abra a caixa misteriosa!'}</p>
+      <div
+        className="rounded-lg h-20 flex items-center justify-center relative overflow-hidden cursor-pointer transition-all duration-300"
+        style={{ backgroundColor: element.bgColor || '#1e1b4b' }}
+        onClick={handleClick}
+      >
+        {!isOpen ? (
+          <div 
+            className={`w-12 h-12 rounded-lg relative transition-all duration-300 ${!isOpen ? 'animate-pulse' : ''}`}
+            style={{
+              backgroundColor: element.boxColor || '#7c3aed',
+              transform: 'perspective(100px) rotateX(10deg)',
+              animation: 'shake 2s infinite',
+              borderTop: `3px solid ${element.boxColor || '#7c3aed'}dd`,
+              borderRight: `2px solid ${element.boxColor || '#7c3aed'}bb`,
+              borderLeft: `1px solid ${element.boxColor || '#7c3aed'}cc`,
+            }}
+          >
+            <div className="absolute inset-0 rounded-lg">
+              <div className="absolute top-1 left-1 w-2 h-1 bg-yellow-300 rounded-full opacity-80"></div>
+              <div className="absolute top-2 right-2 w-1 h-2 bg-yellow-400 rounded-full opacity-60"></div>
+              <div className="absolute top-6 left-3 text-yellow-200 text-xs">🎁</div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center animate-bounce">
+            <div className="text-2xl mb-1">✨</div>
+            <span className="text-white text-xs font-medium bg-black/20 px-2 py-1 rounded">
+              {element.revealText || 'Resultado aparece aqui'}
+            </span>
+          </div>
+        )}
+      </div>
+      <style jsx>{`
+        @keyframes shake {
+          0%, 100% { transform: perspective(100px) rotateX(10deg) translateX(0); }
+          25% { transform: perspective(100px) rotateX(10deg) translateX(-1px); }
+          75% { transform: perspective(100px) rotateX(10deg) translateX(1px); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ── Card Flip Preview ───────────────────────────────────────────
+
+function CardFlipPreview({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const [showToolbar, setShowToolbar] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    setIsFlipped(!isFlipped);
+  };
+
+  const getPatternStyle = () => {
+    const pattern = element.backPattern || 'geometric';
+    switch (pattern) {
+      case 'dots':
+        return {
+          backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)`,
+          backgroundSize: '10px 10px'
+        };
+      case 'stripes':
+        return {
+          backgroundImage: `linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%)`,
+          backgroundSize: '8px 8px'
+        };
+      default: // geometric
+        return {
+          backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%)`,
+          backgroundSize: '12px 12px'
+        };
+    }
+  };
+
+  return (
+    <div className="p-2 relative">
+      {showToolbar && (
+        <div
+          className="absolute -top-20 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 nodrag nopan nowheel"
+          style={{
+            minWidth: '250px'
+          }}
+        >
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs text-gray-400">Título:</span>
+            <input
+              type="text"
+              value={element.title || ''}
+              onChange={(e) => handleChange({ title: e.target.value })}
+              className="flex-1 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+              placeholder="Título..."
+            />
+          </div>
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs text-gray-400">Revelado:</span>
+            <input
+              type="text"
+              value={element.revealText || ''}
+              onChange={(e) => handleChange({ revealText: e.target.value })}
+              className="flex-1 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+              placeholder="Texto revelado..."
+            />
+          </div>
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs text-gray-400">Frente:</span>
+            <input
+              type="color"
+              value={element.frontColor || '#ffffff'}
+              onChange={(e) => handleChange({ frontColor: e.target.value })}
+              className="w-4 h-4 rounded border border-gray-200 cursor-pointer"
+            />
+            <span className="text-xs text-gray-400">Verso:</span>
+            <input
+              type="color"
+              value={element.backColor || '#7c3aed'}
+              onChange={(e) => handleChange({ backColor: e.target.value })}
+              className="w-4 h-4 rounded border border-gray-200 cursor-pointer"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-gray-400">Padrão:</span>
+            {['geometric', 'dots', 'stripes'].map((pattern) => (
+              <button
+                key={pattern}
+                onClick={() => handleChange({ backPattern: pattern })}
+                className={`text-xs px-2 py-1 border rounded transition-colors ${
+                  (element.backPattern || 'geometric') === pattern
+                    ? 'bg-accent text-white border-accent'
+                    : 'bg-gray-100 text-gray-600 border-gray-200'
+                }`}
+              >
+                {pattern === 'geometric' ? '◆' : pattern === 'dots' ? '●' : '|||'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
+        <div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
+          <FlipVertical size={12} className="text-orange-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Card Flip</span>
+      </div>
+      <p className="text-gray-800 font-medium text-sm mb-2">{element.title || 'Vire a carta!'}</p>
+      <div 
+        className="w-full h-20 cursor-pointer relative"
+        style={{ perspective: '1000px' }}
+        onClick={handleClick}
+      >
+        <div 
+          className="relative w-full h-full transition-transform duration-700 preserve-3d"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+          }}
+        >
+          {/* Verso da carta */}
+          <div 
+            className="absolute inset-0 rounded-lg flex items-center justify-center backface-hidden"
+            style={{
+              backgroundColor: element.backColor || '#7c3aed',
+              ...getPatternStyle(),
+              backfaceVisibility: 'hidden'
+            }}
+          >
+            <span className="text-white font-bold text-sm">?</span>
+          </div>
+          
+          {/* Frente da carta */}
+          <div 
+            className="absolute inset-0 rounded-lg flex items-center justify-center backface-hidden"
+            style={{
+              backgroundColor: element.frontColor || '#ffffff',
+              transform: 'rotateY(180deg)',
+              backfaceVisibility: 'hidden',
+              border: '1px solid #e5e7eb'
+            }}
+          >
+            <span className="text-gray-800 text-xs font-medium text-center px-2">
+              {element.revealText || 'Resultado aparece aqui'}
+            </span>
+          </div>
+        </div>
+      </div>
+      <style jsx>{`
+        .preserve-3d {
+          transform-style: preserve-3d;
+        }
+        .backface-hidden {
+          backface-visibility: hidden;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ── Slot Machine Preview ────────────────────────────────────────
+
+function SlotMachinePreview({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const [showToolbar, setShowToolbar] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (!isSpinning) {
+      setIsSpinning(true);
+      setTimeout(() => setIsSpinning(false), 2000);
+    }
+  };
+
+  const emojis = element.slotEmojis || ['🎰', '💎', '🎉', '🍒', '⭐', '💰', '🔥', '🎪'];
+
+  return (
+    <div className="p-2 relative">
+      {showToolbar && (
+        <div
+          className="absolute -top-20 left-0 z-50 bg-white shadow-lg border border-gray-200 rounded-lg p-1.5 nodrag nopan nowheel"
+          style={{
+            minWidth: '250px'
+          }}
+        >
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs text-gray-400">Título:</span>
+            <input
+              type="text"
+              value={element.title || ''}
+              onChange={(e) => handleChange({ title: e.target.value })}
+              className="flex-1 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+              placeholder="Título..."
+            />
+          </div>
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs text-gray-400">Slot 1:</span>
+            <input
+              type="text"
+              value={element.slot1 || ''}
+              onChange={(e) => handleChange({ slot1: e.target.value })}
+              className="w-10 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white text-center"
+              maxLength="2"
+            />
+            <span className="text-xs text-gray-400">Slot 2:</span>
+            <input
+              type="text"
+              value={element.slot2 || ''}
+              onChange={(e) => handleChange({ slot2: e.target.value })}
+              className="w-10 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white text-center"
+              maxLength="2"
+            />
+            <span className="text-xs text-gray-400">Slot 3:</span>
+            <input
+              type="text"
+              value={element.slot3 || ''}
+              onChange={(e) => handleChange({ slot3: e.target.value })}
+              className="w-10 text-xs border border-gray-200 rounded px-1 py-0.5 bg-white text-center"
+              maxLength="2"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-gray-400">Fundo:</span>
+            <input
+              type="color"
+              value={element.bgColor || '#1e1b4b'}
+              onChange={(e) => handleChange({ bgColor: e.target.value })}
+              className="w-5 h-5 rounded border border-gray-200 cursor-pointer"
+            />
+          </div>
+        </div>
+      )}
+      
+      <div 
+        className="flex items-center gap-1.5 mb-1.5 cursor-pointer"
+        onClick={() => setShowToolbar(true)}
+      >
+        <div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
+          <Dices size={12} className="text-orange-600" />
+        </div>
+        <span className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Slot Machine</span>
+      </div>
+      <p className="text-gray-800 font-medium text-sm mb-2">{element.title || 'Puxe a alavanca!'}</p>
+      <div
+        className="rounded-lg h-16 flex items-center justify-center relative overflow-hidden cursor-pointer"
+        style={{ backgroundColor: element.bgColor || '#1e1b4b' }}
+        onClick={handleClick}
+      >
+        <div className="flex gap-2">
+          {[1, 2, 3].map((slotNum, i) => {
+            const slotValue = element[`slot${slotNum}`] || emojis[i] || '🎰';
+            return (
+              <div 
+                key={i} 
+                className="w-8 h-10 bg-white rounded border-2 border-gray-300 flex items-center justify-center relative overflow-hidden"
+              >
+                {isSpinning ? (
+                  <div 
+                    className="animate-spin-fast flex flex-col absolute"
+                    style={{
+                      animationDuration: `${0.5 + i * 0.3}s`,
+                      animationTimingFunction: 'ease-out'
+                    }}
+                  >
+                    {emojis.map((emoji, idx) => (
+                      <span key={idx} className="text-lg leading-10 h-10 flex items-center justify-center">
+                        {emoji}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-lg">{slotValue}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="absolute top-1 right-2 text-yellow-300 text-xs">🎲</div>
+      </div>
+      <style jsx>{`
+        @keyframes spin-fast {
+          from { transform: translateY(0); }
+          to { transform: translateY(-100%); }
+        }
+        .animate-spin-fast {
+          animation: spin-fast linear infinite;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function ButtonElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const edges = useQuizStore((s) => s.edges);
@@ -2179,6 +2641,12 @@ function ElementRenderer({ element, nodeId }) {
       return <SpinWheelPreview element={element} nodeId={nodeId} />;
     case 'scratch-card':
       return <ScratchCardPreview element={element} nodeId={nodeId} />;
+    case 'mystery-box':
+      return <MysteryBoxPreview element={element} nodeId={nodeId} />;
+    case 'card-flip':
+      return <CardFlipPreview element={element} nodeId={nodeId} />;
+    case 'slot-machine':
+      return <SlotMachinePreview element={element} nodeId={nodeId} />;
     default:
       return <div className="p-2 text-gray-400 text-xs">Elemento: {element.type}</div>;
   }

@@ -17,6 +17,9 @@ import {
   MessageSquare,
   Star,
   MousePointerClick,
+  Package,
+  FlipVertical,
+  Dices,
 } from 'lucide-react';
 
 const elements = [
@@ -58,6 +61,9 @@ const elements = [
     items: [
       { type: 'spin-wheel', icon: Disc, label: 'Roleta' },
       { type: 'scratch-card', icon: Gift, label: 'Raspadinha' },
+      { type: 'mystery-box', icon: Package, label: 'Mystery Box' },
+      { type: 'card-flip', icon: FlipVertical, label: 'Card Flip' },
+      { type: 'slot-machine', icon: Dices, label: 'Slot Machine' },
     ]
   },
   {
