@@ -17,6 +17,7 @@ const APP_HOSTNAMES = new Set([
 const PRODUCTION_DOMAINS = [
   'quizmaker.fullfunnel.com.br',
   'quiz-maker-fullfunnel.vercel.app',
+  'go.quizmebaby.app',
 ];
 PRODUCTION_DOMAINS.forEach((d) => APP_HOSTNAMES.add(d));
 
