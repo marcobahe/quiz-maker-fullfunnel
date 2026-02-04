@@ -4,6 +4,12 @@ import { Providers } from './providers';
 export const metadata = {
   title: 'QuizMeBaby - Crie Quizzes que Convertem',
   description: 'Crie quizzes interativos para capturar leads e aumentar conversões',
+  icons: {
+    icon: [
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
+  },
 };
 
 // Inline script to prevent FOUC (flash of unstyled content) on theme load
