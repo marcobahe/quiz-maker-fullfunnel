@@ -48,6 +48,7 @@ async function _dispatch({ quiz, lead, answers, score, resultCategory, scoreRang
       result: result
         ? { title: result.title || result.label || resultCategory, range: `${result.min}-${result.max}` }
         : { title: resultCategory || null, range: null },
+      attribution: lead.attribution || {},
       timestamp: new Date().toISOString(),
     };
 
@@ -142,6 +143,20 @@ async function sendToGHL(integration, payload) {
       tags: tags || ['quiz-lead'],
       source: `Quiz: ${payload.quiz.name}`,
     };
+
+    // Add attribution data to GHL (native fields)
+    if (payload.attribution) {
+      contactBody.attributionSource = {
+        url: payload.attribution.url,
+        utmSource: payload.attribution.utmSource,
+        utmMedium: payload.attribution.utmMedium,
+        utmContent: payload.attribution.utmContent,
+        campaign: payload.attribution.campaign,
+        fbclid: payload.attribution.fbclid,
+        gclid: payload.attribution.gclid,
+        referrer: payload.attribution.referrer,
+      };
+    }
 
     // Build custom fields from mappings + answers (v2 uses field_value instead of value)
     if (customFieldMappings && typeof customFieldMappings === 'object') {

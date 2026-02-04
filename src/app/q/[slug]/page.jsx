@@ -795,6 +795,9 @@ function QuizPlayer() {
   const [trackingConfig, setTrackingConfig] = useState(null);
   const trackingInitRef = useRef(false);
   const quizStartTrackedRef = useRef(false);
+  
+  // Attribution tracking state
+  const [attribution, setAttribution] = useState(null);
 
   // Canvas data
   const [nodes, setNodes] = useState([]);
@@ -831,6 +834,26 @@ function QuizPlayer() {
     trackingInitRef.current = true;
     initTracking(trackingConfig);
   }, [trackingConfig]);
+
+  // ── Attribution: capture UTMs and campaign data ──────────────
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const params = new URLSearchParams(window.location.search);
+    const attributionData = {
+      url: window.location.href,
+      utmSource: params.get('utm_source') || '',
+      utmMedium: params.get('utm_medium') || '',
+      utmContent: params.get('utm_content') || '',
+      utmTerm: params.get('utm_term') || '',
+      campaign: params.get('utm_campaign') || '',
+      fbclid: params.get('fbclid') || '',
+      gclid: params.get('gclid') || '',
+      referrer: document.referrer || '',
+    };
+    
+    setAttribution(attributionData);
+  }, []);
 
   // ── Embed: auto-resize via postMessage ───────────────────────
   useEffect(() => {
@@ -1416,6 +1439,7 @@ function QuizPlayer() {
           answers,
           score,
           resultCategory: getResultCategory(score),
+          attribution,
         }),
       });
       setLeadSaved(true);

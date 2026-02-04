@@ -104,6 +104,7 @@ export async function POST(request, { params }) {
         country,
         region,
         city,
+        attribution: body.attribution || null,
       },
     });
 

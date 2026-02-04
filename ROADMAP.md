@@ -133,3 +133,40 @@
 - **Fase atual:** Fase 1
 - **Próximo item:** 1.1 — Resultados com Faixas de Pontuação
 - **Última atualização:** 2026-02-02
+
+---
+
+## Fase 5 — Features Avançadas 🚀
+**Objetivo:** Diferenciação máxima no mercado.
+
+### 5.1 Calculadora / Estimador 🧮
+- [ ] Novo tipo de projeto: "Calculadora" (além de Quiz)
+- [ ] Campos numéricos com sliders, inputs, dropdowns
+- [ ] Fórmulas configuráveis (soma, multiplicação, regras condicionais)
+- [ ] Resultado calculado em tempo real
+- [ ] Templates: ROI, Orçamento, Economia, Preço Personalizado
+- [ ] Compartilha mesma infraestrutura de leads/integrações/embed do Quiz
+
+### 5.2 Agendamento Inteligente pós-Quiz 📅
+- [ ] Embed de calendário na tela de resultado (configurável por score range)
+- [ ] Integração nativa com calendários Full Funnel (Agende Conosco / Suporte)
+- [ ] API free-slots pra mostrar horários reais
+- [ ] Book automático ao selecionar horário
+- [ ] Dados do lead pré-preenchidos no agendamento
+
+### 5.3 Tracking de Campanhas (UTMs + Ad IDs) 📊
+- [ ] Capturar UTMs da URL no Quiz Player (utm_source, utm_medium, utm_campaign, utm_content, utm_term)
+- [ ] Capturar fbclid (Meta) e gclid (Google) automaticamente
+- [ ] Capturar referrer da página
+- [ ] Salvar dados de campanha no Lead (banco)
+- [ ] Incluir no payload do webhook (campo "attribution")
+- [ ] Incluir no payload da integração Full Funnel / GHL
+- [ ] Dashboard de analytics por campanha/source
+- [ ] Repassar como custom fields no GHL (utm_source → campo customizado)
+
+### 5.4 Gamificação Avançada 🎮
+- [ ] Mystery Box (elemento revelação)
+- [ ] Card Flip (elemento revelação)
+- [ ] Slot Machine (elemento revelação)
+- [ ] Aba Gamificação: progress bar, streak, timer, confetti, sons, vidas, leaderboard, share
+

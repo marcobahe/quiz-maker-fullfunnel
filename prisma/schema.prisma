@@ -98,6 +98,7 @@ model Lead {
   country        String?
   region         String?
   city           String?
+  attribution    Json?
   createdAt      DateTime @default(now())
 }
 
