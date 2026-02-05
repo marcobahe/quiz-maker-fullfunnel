@@ -1778,7 +1778,7 @@ function QuizPlayer() {
 
   if (loading) {
     return (
-      <div className={`${embedClass} flex items-center justify-center`} style={bgStyle}>
+      <div className={`${embedClass} flex items-center justify-center`} style={pageBgStyle}>
         <Loader2 className="animate-spin" size={48} style={{ color: theme.textColor }} />
       </div>
     );
@@ -1786,7 +1786,7 @@ function QuizPlayer() {
 
   if (error) {
     return (
-      <div className={`${embedClass} flex items-center justify-center p-4`} style={bgStyle}>
+      <div className={`${embedClass} flex items-center justify-center p-4`} style={pageBgStyle}>
         <div className="rounded-2xl p-8 max-w-md text-center" style={{ backgroundColor: '#ffffff' }}>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Oops!</h1>
           <p className="text-gray-500">{error}</p>
