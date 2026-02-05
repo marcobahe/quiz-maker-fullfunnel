@@ -10,6 +10,7 @@ import QuizTable from '@/components/Dashboard/QuizTable';
 import TemplateGallery from '@/components/Templates/TemplateGallery';
 import LandingPage from '@/components/Landing/LandingPage';
 import OnboardingTour from '@/components/Onboarding/OnboardingTour';
+import FirstQuizWizard from '@/components/Onboarding/FirstQuizWizard';
 import HelpButton from '@/components/Help/HelpButton';
 import AIWizardModal from '@/components/AIWizard/AIWizardModal';
 
@@ -114,6 +115,7 @@ function Dashboard({ session }) {
 
   const publishedCount = quizzes.filter(q => q.status === 'published').length;
   const totalLeads = quizzes.reduce((sum, q) => sum + (q._count?.leads || 0), 0);
+  const hasNoQuizzes = quizzes.length === 0;
 
   const metrics = [
     { icon: FileQuestion, label: 'Quizzes Ativos', value: String(publishedCount), change: String(quizzes.length), changeType: 'positive' },
@@ -121,6 +123,37 @@ function Dashboard({ session }) {
     { icon: Eye, label: 'Quizzes Criados', value: String(quizzes.length), change: '', changeType: 'positive' },
     { icon: TrendingUp, label: 'Taxa de Conversão', value: totalLeads > 0 ? '—' : '0%', change: '', changeType: 'positive' },
   ];
+
+  // Show First Quiz Wizard when user has no quizzes
+  if (hasNoQuizzes) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar onCreateQuiz={handleCreateQuiz} onOpenTemplates={() => setShowTemplates(true)} onOpenAIWizard={() => setShowAIWizard(true)} userName={session?.user?.name || session?.user?.email} activeWorkspaceId={activeWorkspaceId} onWorkspaceChange={handleWorkspaceChange} />
+        
+        <main className="flex-1 p-8">
+          <FirstQuizWizard
+            onSelectAI={() => setShowAIWizard(true)}
+            onSelectTemplate={() => setShowTemplates(true)}
+            onSelectBlank={handleCreateQuiz}
+          />
+        </main>
+
+        <TemplateGallery
+          isOpen={showTemplates}
+          onClose={() => setShowTemplates(false)}
+          onCreateBlank={handleCreateQuiz}
+        />
+
+        <AIWizardModal
+          isOpen={showAIWizard}
+          onClose={() => setShowAIWizard(false)}
+          activeWorkspaceId={activeWorkspaceId}
+        />
+
+        <HelpButton />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
