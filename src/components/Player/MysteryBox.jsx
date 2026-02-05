@@ -8,8 +8,8 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete }) {
   const [isShaking, setIsShaking] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
 
-  const bgColor = element.bgColor || '#1e1b4b';
-  const boxColor = element.boxColor || theme.primaryColor || '#7c3aed';
+  const bgColor = element.bgColor || 'linear-gradient(135deg, #1e1b4b, #312e81)';
+  const boxColor = element.boxColor || theme?.primaryColor || '#8b5cf6';
 
   const handleClick = useCallback(() => {
     if (isRevealed || isOpening) return;
@@ -36,26 +36,26 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete }) {
   }, [isRevealed, isOpening, onComplete]);
 
   return (
-    <div className="mb-4">
+    <div className="mb-6">
       {/* Title */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-3 mb-4">
         <div 
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: `${boxColor}20` }}
+          className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+          style={{ background: `linear-gradient(135deg, ${boxColor}, ${boxColor}cc)` }}
         >
-          <Package size={18} style={{ color: boxColor }} />
+          <Package size={24} className="text-white" />
         </div>
-        <h3 className="text-lg font-bold text-gray-800">
+        <h3 className="text-2xl font-bold text-gray-900">
           {element.title || 'Abra a caixa misteriosa!'}
         </h3>
       </div>
 
       {/* Mystery Box Container */}
       <div
-        className="relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
+        className="relative rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 shadow-2xl"
         style={{ 
-          backgroundColor: bgColor,
-          minHeight: '200px',
+          background: bgColor,
+          minHeight: '280px',
         }}
         onClick={handleClick}
       >

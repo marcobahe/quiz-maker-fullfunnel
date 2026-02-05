@@ -5,28 +5,31 @@ import { Timer, Heart, Star, Zap, Trophy, Flame } from 'lucide-react';
 
 // ── Progress Bar Gamificada ───────────────────────────────────────
 
-export function GamifiedProgressBar({ current, total, style = 'simple', primaryColor = '#7c3aed' }) {
+export function GamifiedProgressBar({ current, total, style = 'simple', primaryColor = '#8b5cf6' }) {
   const progress = Math.min(100, (current / Math.max(1, total)) * 100);
 
   if (style === 'milestones') {
     const milestones = Array.from({ length: Math.min(10, total) }, (_, i) => i + 1);
     
     return (
-      <div className="flex items-center gap-2 w-full px-4">
+      <div className="flex items-center gap-2.5 w-full px-4">
         {milestones.map((milestone) => {
           const isActive = current >= milestone;
           const isCurrent = current === milestone;
           return (
             <div
               key={milestone}
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+              className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                 isActive
-                  ? 'text-white shadow-lg scale-110'
-                  : 'bg-gray-200 text-gray-400'
-              } ${isCurrent ? 'animate-pulse' : ''}`}
-              style={isActive ? { backgroundColor: primaryColor } : {}}
+                  ? 'text-white shadow-lg scale-105'
+                  : 'bg-white/80 text-gray-400 border border-gray-200'
+              } ${isCurrent ? 'animate-pulse ring-4 ring-offset-2' : ''}`}
+              style={isActive ? { 
+                background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`,
+                boxShadow: `0 4px 16px ${primaryColor}40`,
+              } : {}}
             >
-              {milestone}
+              {isActive ? '✓' : milestone}
             </div>
           );
         })}
@@ -40,20 +43,29 @@ export function GamifiedProgressBar({ current, total, style = 'simple', primaryC
     const xpToNext = 2;
     
     return (
-      <div className="flex items-center gap-3 w-full px-4">
+      <div className="flex items-center gap-4 w-full px-4 bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-100 shadow-sm">
         <div className="flex items-center gap-2">
-          <Trophy size={20} style={{ color: primaryColor }} />
-          <span className="font-bold text-lg" style={{ color: primaryColor }}>
+          <div 
+            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
+            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
+          >
+            <Trophy size={20} className="text-white" />
+          </div>
+          <span className="font-bold text-xl" style={{ color: primaryColor }}>
             Nível {level}
           </span>
         </div>
-        <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden shadow-inner">
           <div 
-            className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-blue-500 to-purple-500"
-            style={{ width: `${(xpInLevel / xpToNext) * 100}%` }}
+            className="h-full rounded-full transition-all duration-500"
+            style={{ 
+              width: `${(xpInLevel / xpToNext) * 100}%`,
+              background: `linear-gradient(90deg, ${primaryColor}, ${primaryColor}cc)`,
+              boxShadow: `0 0 12px ${primaryColor}50`,
+            }}
           />
         </div>
-        <span className="text-sm text-gray-600">
+        <span className="text-base font-semibold text-gray-600 min-w-fit">
           {xpInLevel}/{xpToNext} XP
         </span>
       </div>
@@ -63,21 +75,21 @@ export function GamifiedProgressBar({ current, total, style = 'simple', primaryC
   // Simple (default)
   return (
     <div className="w-full px-4">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium text-gray-700">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-base font-semibold text-white/90">
           Progresso
         </span>
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-base font-bold text-white bg-white/20 px-3 py-1 rounded-full">
           {current}/{total}
         </span>
       </div>
-      <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
         <div 
           className="h-full rounded-full transition-all duration-500"
           style={{ 
             width: `${progress}%`,
-            backgroundColor: primaryColor,
-            boxShadow: progress > 0 ? `0 0 10px ${primaryColor}40` : 'none'
+            background: 'linear-gradient(90deg, #ffffff, #ffffffcc)',
+            boxShadow: progress > 0 ? '0 0 16px rgba(255,255,255,0.6)' : 'none'
           }}
         />
       </div>

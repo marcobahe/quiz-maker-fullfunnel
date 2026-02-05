@@ -25,12 +25,12 @@ import {
 
 // ── Default theme (matches store defaults) ───────────────────
 const DEFAULT_THEME = {
-  primaryColor: '#7c3aed',
-  secondaryColor: '#5b21b6',
-  backgroundColor: '#1e1b4b',
+  primaryColor: '#8b5cf6',
+  secondaryColor: '#6366f1',
+  backgroundColor: '#f8fafc',
   backgroundType: 'gradient',
-  backgroundGradient: 'from-purple-900 via-purple-800 to-indigo-900',
-  textColor: '#ffffff',
+  backgroundGradient: 'from-violet-600 via-purple-600 to-indigo-700',
+  textColor: '#1e293b',
   buttonStyle: 'rounded',
   fontFamily: 'Inter',
 };
@@ -41,14 +41,19 @@ const DEFAULT_BRANDING = {
   showBranding: true,
 };
 
-// ── Gradient CSS map ─────────────────────────────────────────
+// ── Gradient CSS map (vibrant, modern gradients) ─────────────
 const GRADIENT_CSS = {
-  'from-purple-900 via-purple-800 to-indigo-900': 'linear-gradient(135deg, #581c87, #6b21a8, #312e81)',
-  'from-blue-900 via-blue-800 to-cyan-900': 'linear-gradient(135deg, #1e3a5f, #1e40af, #164e63)',
-  'from-emerald-900 via-green-800 to-teal-900': 'linear-gradient(135deg, #064e3b, #166534, #134e4a)',
-  'from-orange-900 via-red-800 to-pink-900': 'linear-gradient(135deg, #7c2d12, #991b1b, #831843)',
-  'from-gray-900 via-slate-800 to-zinc-900': 'linear-gradient(135deg, #111827, #1e293b, #18181b)',
-  'from-rose-900 via-pink-800 to-fuchsia-900': 'linear-gradient(135deg, #881337, #9d174d, #701a75)',
+  'from-purple-900 via-purple-800 to-indigo-900': 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 35%, #6366f1 100%)',
+  'from-violet-600 via-purple-600 to-indigo-700': 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #6366f1 100%)',
+  'from-blue-900 via-blue-800 to-cyan-900': 'linear-gradient(135deg, #2563eb 0%, #3b82f6 35%, #0ea5e9 100%)',
+  'from-emerald-900 via-green-800 to-teal-900': 'linear-gradient(135deg, #059669 0%, #10b981 35%, #14b8a6 100%)',
+  'from-orange-900 via-red-800 to-pink-900': 'linear-gradient(135deg, #ea580c 0%, #f43f5e 50%, #ec4899 100%)',
+  'from-gray-900 via-slate-800 to-zinc-900': 'linear-gradient(135deg, #1e293b 0%, #334155 35%, #3f3f46 100%)',
+  'from-rose-900 via-pink-800 to-fuchsia-900': 'linear-gradient(135deg, #e11d48 0%, #ec4899 50%, #d946ef 100%)',
+  // New vibrant options
+  'from-sky-500 via-blue-500 to-indigo-600': 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #4f46e5 100%)',
+  'from-amber-500 via-orange-500 to-red-500': 'linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%)',
+  'from-teal-500 via-emerald-500 to-green-600': 'linear-gradient(135deg, #14b8a6 0%, #10b981 50%, #16a34a 100%)',
 };
 
 // ── Redirect utilities ───────────────────────────────────────
@@ -148,19 +153,19 @@ function StarsRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
   };
 
   return (
-    <div className="mb-4">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
+    <div className="mb-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 leading-tight">
         {rv(element.question || 'Dê sua nota')}
-        {isRequired && <span className="text-red-500 ml-1">*</span>}
+        {isRequired && <span className="text-rose-500 ml-1">*</span>}
       </h2>
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-sm border border-gray-100">
         {(element.labelMin || element.labelMax) && (
-          <div className="flex justify-between w-full text-xs text-gray-400 px-1">
+          <div className="flex justify-between w-full text-sm text-gray-500 px-2 font-medium">
             <span>{element.labelMin}</span>
             <span>{element.labelMax}</span>
           </div>
         )}
-        <div className="flex items-center gap-1" onMouseLeave={() => setHovered(null)}>
+        <div className="flex items-center gap-2" onMouseLeave={() => setHovered(null)}>
           {Array.from({ length: maxStars }).map((_, i) => {
             const starNum = i + 1;
             const isFilled = starNum <= (hovered ?? selected ?? 0);
@@ -169,17 +174,18 @@ function StarsRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
                 key={i}
                 onMouseEnter={() => setHovered(starNum)}
                 onClick={() => handleSelect(starNum)}
-                className="transition-all duration-150 focus:outline-none"
+                className="transition-all duration-200 focus:outline-none hover:scale-110"
                 style={{
-                  transform: hovered === starNum ? 'scale(1.2)' : 'scale(1)',
+                  transform: hovered === starNum ? 'scale(1.25)' : selected === starNum ? 'scale(1.1)' : 'scale(1)',
                   cursor: 'pointer',
+                  filter: isFilled ? 'drop-shadow(0 2px 4px rgba(245, 158, 11, 0.4))' : 'none',
                 }}
               >
                 <svg
-                  width="40"
-                  height="40"
+                  width="48"
+                  height="48"
                   viewBox="0 0 24 24"
-                  fill={isFilled ? '#f59e0b' : 'none'}
+                  fill={isFilled ? '#fbbf24' : 'none'}
                   stroke={isFilled ? '#f59e0b' : '#d1d5db'}
                   strokeWidth="1.5"
                   strokeLinecap="round"
@@ -192,21 +198,23 @@ function StarsRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
           })}
         </div>
         {selected !== null && (
-          <span className="text-sm text-gray-500 font-medium">{selected} de {maxStars}</span>
+          <span className="text-base text-gray-600 font-semibold bg-amber-50 px-4 py-1.5 rounded-full">
+            {selected} de {maxStars} ⭐
+          </span>
         )}
       </div>
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-4"
+        className="w-full text-white py-4 font-semibold text-lg flex items-center justify-center gap-2 transition-all mt-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
         style={{
           backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
           borderRadius: btnRadius,
           cursor: canSubmit ? 'pointer' : 'not-allowed',
-          opacity: canSubmit ? 1 : 0.7,
+          boxShadow: canSubmit ? `0 4px 14px ${theme.primaryColor}40` : 'none',
         }}
       >
-        Continuar <ChevronRight size={20} />
+        Continuar <ChevronRight size={22} />
       </button>
     </div>
   );
@@ -222,31 +230,31 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
   const isNps = minVal === 0 && maxVal === 10;
   const totalNumbers = maxVal - minVal + 1;
 
-  // Professional NPS colors with subtle gradients
+  // Vibrant NPS colors
   const getNpsColor = (val) => {
     if (val <= 6) {
-      // Detractors - subtle warm red
       return {
-        bg: '#fef2f2',
-        border: '#fecaca',
-        selectedBg: '#dc2626',
+        bg: 'linear-gradient(135deg, #fff5f5, #ffe4e4)',
+        border: '#fca5a5',
+        selectedBg: 'linear-gradient(135deg, #ef4444, #dc2626)',
         hoverBg: '#fee2e2',
+        textSelected: '#ffffff',
       };
     } else if (val <= 8) {
-      // Passives - subtle warm amber
       return {
-        bg: '#fffbeb',
-        border: '#fde68a',
-        selectedBg: '#d97706',
+        bg: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+        border: '#fcd34d',
+        selectedBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
         hoverBg: '#fef3c7',
+        textSelected: '#ffffff',
       };
     } else {
-      // Promoters - subtle green
       return {
-        bg: '#f0fdf4',
-        border: '#bbf7d0',
-        selectedBg: '#16a34a',
-        hoverBg: '#dcfce7',
+        bg: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
+        border: '#6ee7b7',
+        selectedBg: 'linear-gradient(135deg, #10b981, #059669)',
+        hoverBg: '#d1fae5',
+        textSelected: '#ffffff',
       };
     }
   };
@@ -254,10 +262,11 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
   const getColor = (val) => {
     if (isNps) return getNpsColor(val);
     return {
-      bg: '#f9fafb',
-      border: '#e5e7eb',
-      selectedBg: theme.primaryColor,
-      hoverBg: '#f3f4f6',
+      bg: '#f8fafc',
+      border: '#e2e8f0',
+      selectedBg: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+      hoverBg: '#f1f5f9',
+      textSelected: '#ffffff',
     };
   };
 
@@ -271,23 +280,23 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
   for (let i = minVal; i <= maxVal; i++) numbers.push(i);
 
   return (
-    <div className="mb-4">
-      <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">
+    <div className="mb-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center leading-tight">
         {rv(element.question || 'Dê sua nota')}
-        {isRequired && <span className="text-red-500 ml-1">*</span>}
+        {isRequired && <span className="text-rose-500 ml-1">*</span>}
       </h2>
       
-      {/* Scale Container */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      {/* Scale Container - Glass effect */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
         {/* Min/Max Labels */}
-        <div className="flex justify-between text-xs text-gray-400 mb-3 px-1">
-          <span>{element.labelMin || (isNps ? 'Nada provável' : '')}</span>
-          <span>{element.labelMax || (isNps ? 'Muito provável' : '')}</span>
+        <div className="flex justify-between text-sm text-gray-600 mb-4 px-1 font-medium">
+          <span>{element.labelMin || (isNps ? '😞 Nada provável' : '')}</span>
+          <span>{element.labelMax || (isNps ? 'Muito provável 😍' : '')}</span>
         </div>
 
-        {/* Numbers Grid - Single row on desktop, wraps gracefully on mobile */}
+        {/* Numbers Grid */}
         <div 
-          className="grid gap-1.5 sm:gap-2"
+          className="grid gap-2 sm:gap-3"
           style={{ 
             gridTemplateColumns: `repeat(${Math.min(totalNumbers, 11)}, minmax(0, 1fr))`,
           }}
@@ -303,14 +312,14 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
                 onClick={() => setSelected(num)}
                 onMouseEnter={() => setHovered(num)}
                 onMouseLeave={() => setHovered(null)}
-                className="aspect-square rounded-lg sm:rounded-xl flex items-center justify-center font-semibold transition-all duration-150"
+                className="aspect-square rounded-xl flex items-center justify-center font-bold transition-all duration-200"
                 style={{
-                  backgroundColor: isSel ? colors.selectedBg : isHov ? colors.hoverBg : colors.bg,
-                  border: `2px solid ${isSel ? colors.selectedBg : colors.border}`,
-                  color: isSel ? '#ffffff' : '#1f2937',
-                  fontSize: totalNumbers > 10 ? '0.8rem' : '0.9rem',
-                  transform: isSel ? 'scale(1.08)' : isHov ? 'scale(1.03)' : 'scale(1)',
-                  boxShadow: isSel ? `0 4px 12px ${colors.selectedBg}40` : 'none',
+                  background: isSel ? colors.selectedBg : isHov ? colors.hoverBg : colors.bg,
+                  border: `2px solid ${isSel ? 'transparent' : colors.border}`,
+                  color: isSel ? colors.textSelected : '#1e293b',
+                  fontSize: totalNumbers > 10 ? '0.9rem' : '1rem',
+                  transform: isSel ? 'scale(1.1)' : isHov ? 'scale(1.05)' : 'scale(1)',
+                  boxShadow: isSel ? '0 8px 20px rgba(0,0,0,0.15)' : isHov ? '0 4px 12px rgba(0,0,0,0.08)' : 'none',
                 }}
               >
                 {num}
@@ -321,22 +330,19 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
 
         {/* NPS Category Labels */}
         {isNps && (
-          <div className="mt-4 pt-3 border-t border-gray-100">
-            <div className="flex justify-between items-center">
-              {/* Detractors */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-red-400 to-red-500"></div>
-                <span className="text-xs font-medium text-gray-600">0-6 Detratores</span>
+          <div className="mt-5 pt-4 border-t border-gray-100">
+            <div className="flex justify-between items-center text-xs sm:text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-red-400 to-red-600 shadow-sm"></div>
+                <span className="font-semibold text-gray-700">0-6 Detratores</span>
               </div>
-              {/* Passives */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 to-amber-500"></div>
-                <span className="text-xs font-medium text-gray-600">7-8 Neutros</span>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm"></div>
+                <span className="font-semibold text-gray-700">7-8 Neutros</span>
               </div>
-              {/* Promoters */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-green-400 to-green-500"></div>
-                <span className="text-xs font-medium text-gray-600">9-10 Promotores</span>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm"></div>
+                <span className="font-semibold text-gray-700">9-10 Promotores</span>
               </div>
             </div>
           </div>
@@ -345,15 +351,15 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
 
       {/* Selected Value Badge */}
       {selected !== null && (
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center mt-5">
           <div 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white shadow-md"
-            style={{ backgroundColor: getColor(selected).selectedBg }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-semibold text-white shadow-lg"
+            style={{ background: getColor(selected).selectedBg }}
           >
-            <span>Selecionado: {selected}</span>
+            <span>Nota: {selected}</span>
             {isNps && (
-              <span className="opacity-80 text-xs">
-                • {selected <= 6 ? 'Detrator' : selected <= 8 ? 'Neutro' : 'Promotor'}
+              <span className="opacity-90 text-sm ml-1">
+                {selected <= 6 ? '• Detrator' : selected <= 8 ? '• Neutro' : '• Promotor 🎉'}
               </span>
             )}
           </div>
@@ -364,28 +370,25 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-4 font-semibold flex items-center justify-center gap-2 transition-all duration-200 mt-6"
+        className="w-full text-white py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all duration-200 mt-6 shadow-lg hover:shadow-xl"
         style={{
-          backgroundColor: canSubmit ? theme.primaryColor : '#9ca3af',
+          background: canSubmit ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` : '#9ca3af',
           borderRadius: btnRadius,
           cursor: canSubmit ? 'pointer' : 'not-allowed',
-          boxShadow: canSubmit ? `0 4px 14px ${theme.primaryColor}35` : 'none',
           transform: 'translateY(0)',
         }}
         onMouseEnter={(e) => {
           if (canSubmit) {
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = `0 6px 20px ${theme.primaryColor}45`;
           }
         }}
         onMouseLeave={(e) => {
           if (canSubmit) {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = `0 4px 14px ${theme.primaryColor}35`;
           }
         }}
       >
-        Continuar <ChevronRight size={20} />
+        Continuar <ChevronRight size={22} />
       </button>
     </div>
   );
@@ -411,63 +414,69 @@ function SliderRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
   };
 
   return (
-    <div className="mb-4">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
+    <div className="mb-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 leading-tight">
         {rv(element.question || 'Dê sua nota')}
-        {isRequired && <span className="text-red-500 ml-1">*</span>}
+        {isRequired && <span className="text-rose-500 ml-1">*</span>}
       </h2>
-      <div className="flex flex-col items-center gap-2">
-        {/* Value badge */}
-        <div
-          className="text-white px-4 py-1.5 rounded-full text-lg font-bold shadow-md"
-          style={{ backgroundColor: theme.primaryColor }}
-        >
-          {value}{unit ? ` ${unit}` : ''}
-        </div>
-
-        {/* Slider */}
-        <div className="w-full relative mt-2">
-          <div className="relative">
-            {/* Background track with fill */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-2 rounded-full bg-gray-200 pointer-events-none" />
-            <div
-              className="absolute top-1/2 -translate-y-1/2 left-0 h-2 rounded-full pointer-events-none"
-              style={{
-                width: `${pct}%`,
-                background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
-              }}
-            />
-            <input
-              type="range"
-              min={sliderMin}
-              max={sliderMax}
-              step={sliderStep}
-              value={value}
-              onChange={(e) => { setValue(parseInt(e.target.value)); setTouched(true); }}
-              className="quiz-slider relative z-10 w-full"
-              style={{ '--slider-color': theme.primaryColor }}
-            />
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
+        <div className="flex flex-col items-center gap-4">
+          {/* Value badge - larger and more prominent */}
+          <div
+            className="text-white px-6 py-3 rounded-2xl text-2xl font-bold shadow-lg"
+            style={{ 
+              background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+              boxShadow: `0 8px 24px ${theme.primaryColor}40`,
+            }}
+          >
+            {value}{unit ? ` ${unit}` : ''}
           </div>
-        </div>
 
-        {/* Labels */}
-        <div className="flex justify-between w-full text-xs text-gray-400 px-1">
-          <span>{element.labelMin || sliderMin}</span>
-          <span>{element.labelMax || sliderMax}</span>
+          {/* Slider */}
+          <div className="w-full relative mt-4">
+            <div className="relative h-3">
+              {/* Background track */}
+              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-3 rounded-full bg-gray-200 shadow-inner" />
+              {/* Fill track */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 left-0 h-3 rounded-full transition-all duration-100"
+                style={{
+                  width: `${pct}%`,
+                  background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                  boxShadow: `0 2px 8px ${theme.primaryColor}50`,
+                }}
+              />
+              <input
+                type="range"
+                min={sliderMin}
+                max={sliderMax}
+                step={sliderStep}
+                value={value}
+                onChange={(e) => { setValue(parseInt(e.target.value)); setTouched(true); }}
+                className="quiz-slider relative z-10 w-full h-3 appearance-none bg-transparent cursor-pointer"
+                style={{ '--slider-color': theme.primaryColor }}
+              />
+            </div>
+          </div>
+
+          {/* Labels */}
+          <div className="flex justify-between w-full text-sm text-gray-600 px-1 font-medium">
+            <span>{element.labelMin || sliderMin}</span>
+            <span>{element.labelMax || sliderMax}</span>
+          </div>
         </div>
       </div>
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-4"
+        className="w-full text-white py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all mt-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
         style={{
-          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
+          background: canSubmit ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` : '#d1d5db',
           borderRadius: btnRadius,
           cursor: canSubmit ? 'pointer' : 'not-allowed',
-          opacity: canSubmit ? 1 : 0.7,
         }}
       >
-        Continuar <ChevronRight size={20} />
+        Continuar <ChevronRight size={22} />
       </button>
     </div>
   );
@@ -604,6 +613,7 @@ function RatingQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit 
 // ── Open Question Player Component ───────────────────────────
 function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit }) {
   const [text, setText] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const maxLen = element.maxLength || 500;
   const isRequired = element.required !== false;
   const canSubmit = !isRequired || text.trim().length > 0;
@@ -614,63 +624,69 @@ function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit })
   };
 
   return (
-    <div className="mb-4">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
+    <div className="mb-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 leading-tight">
         {rv(element.question || 'Pergunta')}
-        {isRequired && <span className="text-red-500 ml-1">*</span>}
+        {isRequired && <span className="text-rose-500 ml-1">*</span>}
       </h2>
-      {element.multiline ? (
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value.slice(0, maxLen))}
-          placeholder={element.placeholder || 'Digite sua resposta...'}
-          rows={4}
-          className="w-full px-4 py-3 border-2 border-gray-200 focus:border-transparent outline-none resize-none text-gray-800 text-sm transition-all"
-          style={{
-            borderRadius: btnRadius,
-            '--tw-ring-color': theme.primaryColor,
-          }}
-          onFocus={(e) => { e.target.style.borderColor = theme.primaryColor; e.target.style.boxShadow = `0 0 0 3px ${theme.primaryColor}20`; }}
-          onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; }}
-          maxLength={maxLen}
-        />
-      ) : (
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value.slice(0, maxLen))}
-          placeholder={element.placeholder || 'Digite sua resposta...'}
-          className="w-full px-4 py-3 border-2 border-gray-200 focus:border-transparent outline-none text-gray-800 text-sm transition-all"
-          style={{
-            borderRadius: btnRadius,
-            '--tw-ring-color': theme.primaryColor,
-          }}
-          onFocus={(e) => { e.target.style.borderColor = theme.primaryColor; e.target.style.boxShadow = `0 0 0 3px ${theme.primaryColor}20`; }}
-          onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; }}
-          maxLength={maxLen}
-          onKeyDown={(e) => { if (e.key === 'Enter' && canSubmit) handleSubmit(); }}
-        />
-      )}
-      <div className="flex items-center justify-between mt-2">
-        <span className="text-xs text-gray-400">
-          {text.length}/{maxLen}
+      <div 
+        className="bg-white/80 backdrop-blur-sm rounded-2xl border-2 transition-all duration-200 shadow-sm"
+        style={{
+          borderColor: isFocused ? theme.primaryColor : '#e2e8f0',
+          boxShadow: isFocused ? `0 0 0 4px ${theme.primaryColor}15, 0 4px 12px rgba(0,0,0,0.08)` : '0 2px 8px rgba(0,0,0,0.05)',
+        }}
+      >
+        {element.multiline ? (
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value.slice(0, maxLen))}
+            placeholder={element.placeholder || 'Digite sua resposta...'}
+            rows={5}
+            className="w-full px-5 py-4 bg-transparent outline-none resize-none text-gray-800 text-base leading-relaxed placeholder:text-gray-400"
+            style={{ borderRadius: btnRadius }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            maxLength={maxLen}
+          />
+        ) : (
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value.slice(0, maxLen))}
+            placeholder={element.placeholder || 'Digite sua resposta...'}
+            className="w-full px-5 py-4 bg-transparent outline-none text-gray-800 text-lg placeholder:text-gray-400"
+            style={{ borderRadius: btnRadius }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            maxLength={maxLen}
+            onKeyDown={(e) => { if (e.key === 'Enter' && canSubmit) handleSubmit(); }}
+          />
+        )}
+      </div>
+      <div className="flex items-center justify-between mt-3 px-1">
+        <span className={`text-sm font-medium transition-colors ${text.length > maxLen * 0.8 ? 'text-amber-500' : 'text-gray-400'}`}>
+          {text.length}/{maxLen} caracteres
         </span>
         {isRequired && text.trim().length === 0 && (
-          <span className="text-xs text-red-400">Resposta obrigatória</span>
+          <span className="text-sm text-rose-500 font-medium flex items-center gap-1">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            Obrigatório
+          </span>
         )}
       </div>
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-3"
+        className="w-full text-white py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all mt-5 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
         style={{
-          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
+          background: canSubmit ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` : '#d1d5db',
           borderRadius: btnRadius,
           cursor: canSubmit ? 'pointer' : 'not-allowed',
-          opacity: canSubmit ? 1 : 0.7,
         }}
       >
-        Continuar <ChevronRight size={20} />
+        Continuar <ChevronRight size={22} />
       </button>
     </div>
   );
@@ -2056,78 +2072,102 @@ function QuizPlayer() {
             return (
               <div className="space-y-6">
                 {showStatic && (
-                  <div className="rounded-2xl shadow-xl p-8 text-center" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
+                  <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
                     {matchedRange?.image ? (
                       <img
                         src={matchedRange.image}
                         alt={matchedRange.title}
-                        className="w-full h-48 object-cover rounded-xl mb-6"
+                        className="w-full h-56 object-cover rounded-2xl mb-8 shadow-lg"
                       />
                     ) : (
                       <div
-                        className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-                        style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
+                        className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg"
+                        style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` }}
                       >
-                        <Trophy className="text-white" size={40} />
+                        <Trophy className="text-white" size={48} />
                       </div>
                     )}
 
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight">
                       {rv(matchedRange?.title || currentNode?.data?.title || 'Seu Resultado')}
                     </h1>
 
                     {matchedRange?.description ? (
-                      <div className="text-gray-600 mb-6 text-left space-y-3">
+                      <div className="text-gray-600 mb-8 text-left space-y-4 text-lg leading-relaxed">
                         {rv(matchedRange.description).split('\n\n').map((paragraph, i) => (
-                          <p key={i} className="leading-relaxed">{paragraph.trim()}</p>
+                          <p key={i}>{paragraph.trim()}</p>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-6xl mb-4">
+                      <div className="text-7xl mb-6">
                         {getResultEmoji(getResultCategory(score))}
                       </div>
                     )}
 
+                    {/* Score Card - Premium Design */}
                     <div
-                      className="rounded-xl p-6 mb-6"
-                      style={{ backgroundColor: `${theme.primaryColor}10` }}
+                      className="rounded-2xl p-8 mb-8 relative overflow-hidden"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${theme.primaryColor}10, ${theme.primaryColor}05)`,
+                        border: `2px solid ${theme.primaryColor}20`,
+                      }}
                     >
-                      <p className="text-sm text-gray-500 mb-1">Sua pontuação</p>
-                      <p className="text-4xl font-bold" style={{ color: theme.primaryColor }}>{score} pts</p>
+                      {/* Decorative circles */}
+                      <div 
+                        className="absolute -top-4 -right-4 w-24 h-24 rounded-full opacity-10"
+                        style={{ background: theme.primaryColor }}
+                      />
+                      <div 
+                        className="absolute -bottom-2 -left-2 w-16 h-16 rounded-full opacity-10"
+                        style={{ background: theme.primaryColor }}
+                      />
+                      
+                      <p className="text-base text-gray-500 mb-2 font-medium relative z-10">Sua pontuação</p>
+                      <p className="text-5xl sm:text-6xl font-bold relative z-10" style={{ color: theme.primaryColor }}>
+                        {score} <span className="text-2xl font-semibold">pts</span>
+                      </p>
                       {!matchedRange && (
-                        <p className="text-lg font-medium mt-2" style={{ color: theme.secondaryColor }}>
+                        <div 
+                          className="inline-block mt-4 px-4 py-2 rounded-full text-white font-semibold text-base relative z-10"
+                          style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` }}
+                        >
                           {getResultCategory(score)}
-                        </p>
+                        </div>
                       )}
                     </div>
 
-                    {/* Respostas detalhadas ficam ocultas — foco no diagnóstico */}
-
+                    {/* CTA Buttons */}
                     {!showAi && _rMode === 'button' && _rUrl ? (
                       <a
                         href={_rUrl}
                         target={_rNewTab ? '_blank' : '_self'}
                         rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center gap-2 text-white py-3 font-medium transition-opacity hover:opacity-90 mb-3 text-center"
-                        style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                        className="w-full inline-flex items-center justify-center gap-2 text-white py-4 font-bold text-lg transition-all hover:shadow-xl hover:-translate-y-0.5 mb-4 shadow-lg"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                          borderRadius: '1rem',
+                          boxShadow: `0 8px 24px ${theme.primaryColor}40`,
+                        }}
                         onClick={() => trackRedirectEvent(_rUrl, _rResultTitle)}
                       >
                         {_rBtnText}
-                        <ExternalLink size={16} />
+                        <ExternalLink size={20} />
                       </a>
                     ) : null}
 
                     {!showAi && (
                       <button
                         onClick={() => window.location.reload()}
-                        className={`w-full py-3 font-medium transition-opacity hover:opacity-90`}
+                        className="w-full py-4 font-semibold text-lg transition-all hover:bg-gray-100"
                         style={{
-                          backgroundColor: (_rMode === 'button' && _rUrl) ? '#f3f4f6' : theme.primaryColor,
-                          color: (_rMode === 'button' && _rUrl) ? '#374151' : '#ffffff',
-                          borderRadius: btnRadius,
+                          background: (_rMode === 'button' && _rUrl) ? '#f8fafc' : `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                          color: (_rMode === 'button' && _rUrl) ? '#64748b' : '#ffffff',
+                          borderRadius: '1rem',
+                          border: (_rMode === 'button' && _rUrl) ? '2px solid #e2e8f0' : 'none',
+                          boxShadow: !(_rMode === 'button' && _rUrl) ? `0 8px 24px ${theme.primaryColor}40` : 'none',
                         }}
                       >
-                        Refazer Quiz
+                        🔄 Refazer Quiz
                       </button>
                     )}
                   </div>
@@ -2259,35 +2299,49 @@ function QuizPlayer() {
 
           {/* ── Lead Form ─────────────────────────────────── */}
           {showLeadForm && !showResult && (
-            <div className="rounded-2xl shadow-xl p-8" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
+            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
               {leadSaved ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="mx-auto mb-4" size={48} style={{ color: '#10b981' }} />
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                    Obrigado!
+                <div className="text-center py-10">
+                  <div 
+                    className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+                    style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                  >
+                    <CheckCircle className="text-white" size={40} />
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                    Obrigado! 🎉
                   </h2>
-                  <p className="text-gray-500">
+                  <p className="text-lg text-gray-500">
                     Seus dados foram salvos. Carregando resultado…
                   </p>
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                    {rv(currentNode?.data?.title ||
-                      (isComposite
-                        ? (currentNode?.data?.elements || []).find(
-                            (el) => el.type === 'lead-form',
-                          )?.title
-                        : null) ||
-                      'Quase lá!')}
-                  </h2>
-                  <p className="text-gray-500 mb-6">
-                    Preencha seus dados para ver o resultado
-                  </p>
-                  <form onSubmit={handleLeadSubmit} className="space-y-4">
+                  {/* Header with icon */}
+                  <div className="text-center mb-8">
+                    <div 
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
+                      style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` }}
+                    >
+                      <span className="text-3xl">📝</span>
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                      {rv(currentNode?.data?.title ||
+                        (isComposite
+                          ? (currentNode?.data?.elements || []).find(
+                              (el) => el.type === 'lead-form',
+                            )?.title
+                          : null) ||
+                        'Quase lá!')}
+                    </h2>
+                    <p className="text-lg text-gray-500">
+                      Preencha seus dados para ver o resultado
+                    </p>
+                  </div>
+                  <form onSubmit={handleLeadSubmit} className="space-y-5">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <User size={16} className="inline mr-1" /> Nome
+                      <label className="flex items-center gap-2 text-base font-semibold text-gray-700 mb-2">
+                        <User size={18} style={{ color: theme.primaryColor }} /> Nome
                       </label>
                       <input
                         type="text"
@@ -2295,15 +2349,28 @@ function QuizPlayer() {
                         onChange={(e) =>
                           setLeadForm((p) => ({ ...p, name: e.target.value }))
                         }
-                        className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:border-transparent outline-none"
-                        style={{ borderRadius: btnRadius, '--tw-ring-color': theme.primaryColor }}
-                        placeholder="Seu nome"
+                        className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 focus:border-transparent outline-none text-lg transition-all duration-200 placeholder:text-gray-400"
+                        style={{ 
+                          borderRadius: '1rem',
+                          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                        }}
+                        onFocus={(e) => { 
+                          e.target.style.borderColor = theme.primaryColor; 
+                          e.target.style.boxShadow = `0 0 0 4px ${theme.primaryColor}15`; 
+                          e.target.style.backgroundColor = 'white';
+                        }}
+                        onBlur={(e) => { 
+                          e.target.style.borderColor = '#e5e7eb'; 
+                          e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)'; 
+                          e.target.style.backgroundColor = '#f9fafb';
+                        }}
+                        placeholder="Seu nome completo"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <Mail size={16} className="inline mr-1" /> Email
+                      <label className="flex items-center gap-2 text-base font-semibold text-gray-700 mb-2">
+                        <Mail size={18} style={{ color: theme.primaryColor }} /> Email
                       </label>
                       <input
                         type="email"
@@ -2311,15 +2378,28 @@ function QuizPlayer() {
                         onChange={(e) =>
                           setLeadForm((p) => ({ ...p, email: e.target.value }))
                         }
-                        className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:border-transparent outline-none"
-                        style={{ borderRadius: btnRadius }}
+                        className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 focus:border-transparent outline-none text-lg transition-all duration-200 placeholder:text-gray-400"
+                        style={{ 
+                          borderRadius: '1rem',
+                          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                        }}
+                        onFocus={(e) => { 
+                          e.target.style.borderColor = theme.primaryColor; 
+                          e.target.style.boxShadow = `0 0 0 4px ${theme.primaryColor}15`; 
+                          e.target.style.backgroundColor = 'white';
+                        }}
+                        onBlur={(e) => { 
+                          e.target.style.borderColor = '#e5e7eb'; 
+                          e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)'; 
+                          e.target.style.backgroundColor = '#f9fafb';
+                        }}
                         placeholder="seu@email.com"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <Phone size={16} className="inline mr-1" /> Telefone
+                      <label className="flex items-center gap-2 text-base font-semibold text-gray-700 mb-2">
+                        <Phone size={18} style={{ color: theme.primaryColor }} /> Telefone
                       </label>
                       <input
                         type="tel"
@@ -2327,18 +2407,35 @@ function QuizPlayer() {
                         onChange={(e) =>
                           setLeadForm((p) => ({ ...p, phone: e.target.value }))
                         }
-                        className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:border-transparent outline-none"
-                        style={{ borderRadius: btnRadius }}
+                        className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 focus:border-transparent outline-none text-lg transition-all duration-200 placeholder:text-gray-400"
+                        style={{ 
+                          borderRadius: '1rem',
+                          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                        }}
+                        onFocus={(e) => { 
+                          e.target.style.borderColor = theme.primaryColor; 
+                          e.target.style.boxShadow = `0 0 0 4px ${theme.primaryColor}15`; 
+                          e.target.style.backgroundColor = 'white';
+                        }}
+                        onBlur={(e) => { 
+                          e.target.style.borderColor = '#e5e7eb'; 
+                          e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)'; 
+                          e.target.style.backgroundColor = '#f9fafb';
+                        }}
                         placeholder="(11) 99999-9999"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-                      style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                      className="w-full text-white py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all hover:shadow-xl hover:-translate-y-0.5 mt-6 shadow-lg"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                        borderRadius: '1rem',
+                        boxShadow: `0 8px 24px ${theme.primaryColor}40`,
+                      }}
                     >
                       Ver Meu Resultado
-                      <ChevronRight size={20} />
+                      <ChevronRight size={22} />
                     </button>
                   </form>
                 </>
@@ -2348,15 +2445,15 @@ function QuizPlayer() {
 
           {/* ── Legacy Question Node ──────────────────────── */}
           {!showLeadForm && !showResult && isLegacyQuestion && (
-            <div className="rounded-2xl shadow-xl p-8" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
+              <div className="flex items-center justify-between mb-6">
                 <div>
                   {history.length > 0 && (
                     <button
                       onClick={handleGoBack}
-                      className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm transition-colors"
+                      className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-base font-medium transition-colors hover:bg-gray-100 px-3 py-1.5 rounded-lg -ml-3"
                     >
-                      <ArrowLeft size={16} /> Voltar
+                      <ArrowLeft size={18} /> Voltar
                     </button>
                   )}
                 </div>
@@ -2370,10 +2467,10 @@ function QuizPlayer() {
                   />
                 )}
               </div>
-              <h2 className="text-xl font-bold text-gray-800 mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 leading-tight">
                 {rv(currentNode.data.question || 'Pergunta')}
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {(currentNode.data.options || []).map((option, index) => {
                   // Check if option text starts with emoji (first char is emoji)
                   const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u;
@@ -2385,45 +2482,69 @@ function QuizPlayer() {
                     ? option.text.slice(leadingEmoji.length).trim() 
                     : option.text;
                   
+                  const isSelected = selectedOption === index;
+                  const isOther = selectedOption !== null && !isSelected;
+                  
                   return (
                     <button
                       key={index}
                       onClick={(e) => handleOptionSelect(index, e)}
                       disabled={selectedOption !== null}
-                      className="w-full text-left p-4 border-2 transition-all flex items-center gap-3"
+                      className="w-full text-left p-5 border-2 transition-all duration-200 flex items-center gap-4 group"
                       style={{
-                        borderRadius: btnRadius,
-                        borderColor:
-                          selectedOption === index
-                            ? theme.primaryColor
-                            : selectedOption !== null
-                              ? '#e5e7eb'
-                              : '#e5e7eb',
-                        backgroundColor:
-                          selectedOption === index ? `${theme.primaryColor}10` : 'transparent',
-                        opacity: selectedOption !== null && selectedOption !== index ? 0.5 : 1,
-                        boxShadow:
-                          selectedOption === index
-                            ? `0 0 0 3px ${theme.primaryColor}20`
-                            : 'none',
+                        borderRadius: '1rem',
+                        borderColor: isSelected ? theme.primaryColor : '#e5e7eb',
+                        background: isSelected 
+                          ? `linear-gradient(135deg, ${theme.primaryColor}12, ${theme.primaryColor}08)` 
+                          : 'white',
+                        opacity: isOther ? 0.5 : 1,
+                        boxShadow: isSelected
+                          ? `0 0 0 4px ${theme.primaryColor}15, 0 8px 24px ${theme.primaryColor}15`
+                          : '0 2px 8px rgba(0,0,0,0.04)',
+                        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedOption === null) {
+                          e.currentTarget.style.borderColor = `${theme.primaryColor}60`;
+                          e.currentTarget.style.boxShadow = `0 4px 16px ${theme.primaryColor}15`;
+                          e.currentTarget.style.transform = 'scale(1.01)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected && selectedOption === null) {
+                          e.currentTarget.style.borderColor = '#e5e7eb';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }
                       }}
                     >
                       <span
-                        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200"
                         style={{
-                          backgroundColor:
-                            selectedOption === index ? theme.primaryColor : '#f3f4f6',
-                          color:
-                            selectedOption === index ? '#ffffff' : '#6b7280',
-                          fontSize: displayEmoji ? '1.25rem' : '0.875rem',
-                          fontWeight: displayEmoji ? 'normal' : '500',
+                          background: isSelected 
+                            ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` 
+                            : '#f1f5f9',
+                          color: isSelected ? '#ffffff' : '#64748b',
+                          fontSize: displayEmoji ? '1.5rem' : '1rem',
+                          fontWeight: displayEmoji ? 'normal' : '600',
+                          boxShadow: isSelected ? `0 4px 12px ${theme.primaryColor}40` : 'none',
                         }}
                       >
                         {displayEmoji || String.fromCharCode(65 + index)}
                       </span>
-                      <span className="font-medium text-gray-800 flex-1">
+                      <span className="text-lg font-semibold flex-1" style={{ color: isSelected ? theme.primaryColor : '#1e293b' }}>
                         {displayText}
                       </span>
+                      {isSelected && (
+                        <div 
+                          className="w-8 h-8 rounded-full flex items-center justify-center"
+                          style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` }}
+                        >
+                          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
                     </button>
                   );
                 })}
@@ -2433,15 +2554,15 @@ function QuizPlayer() {
 
           {/* ── Composite Node ────────────────────────────── */}
           {!showLeadForm && !showResult && isComposite && currentNode && (
-            <div className="rounded-2xl shadow-xl p-8" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
+              <div className="flex items-center justify-between mb-6">
                 <div>
                   {history.length > 0 && (
                     <button
                       onClick={handleGoBack}
-                      className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm transition-colors"
+                      className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-base font-medium transition-colors hover:bg-gray-100 px-3 py-1.5 rounded-lg -ml-3"
                     >
-                      <ArrowLeft size={16} /> Voltar
+                      <ArrowLeft size={18} /> Voltar
                     </button>
                   )}
                 </div>
@@ -3077,8 +3198,8 @@ function QuizPlayer() {
 
           {/* ── Content / Media legacy nodes ──────────────── */}
           {!showLeadForm && !showResult && isContentOrMedia && (
-            <div className="rounded-2xl shadow-xl p-8 text-center" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
-              <p className="text-gray-800 font-medium mb-4">
+            <div className="bg-white rounded-3xl shadow-2xl p-10 text-center border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
+              <p className="text-gray-800 font-semibold text-lg mb-6">
                 {currentNode.data?.contentType ||
                   currentNode.data?.mediaType ||
                   'Conteúdo'}
@@ -3087,8 +3208,12 @@ function QuizPlayer() {
                 onClick={() =>
                   advanceToNode(getNextNode(currentNodeId))
                 }
-                className="text-white px-6 py-3 font-medium transition-opacity hover:opacity-90"
-                style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                className="text-white px-8 py-4 font-bold text-lg transition-all hover:shadow-xl hover:-translate-y-0.5 shadow-lg"
+                style={{ 
+                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                  borderRadius: '1rem',
+                  boxShadow: `0 8px 24px ${theme.primaryColor}40`,
+                }}
               >
                 Continuar
               </button>
@@ -3097,37 +3222,53 @@ function QuizPlayer() {
 
           {/* ── Start node ────────────────────────────────── */}
           {!showLeadForm && !showResult && isStart && (
-            <div className="rounded-2xl shadow-xl p-8 text-center" style={{ ...cardBgStyle, fontFamily: theme.fontFamily, color: theme.textColor }}>
+            <div className="bg-white rounded-3xl shadow-2xl p-10 sm:p-12 text-center border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
+              {/* Logo/Brand */}
               <div
-                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
-                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
+                className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` }}
               >
                 {branding.logoUrl ? (
                   <img
                     src={branding.logoUrl}
                     alt="Logo"
-                    className="w-10 h-10 rounded-full object-cover"
-                    onError={(e) => { e.target.outerHTML = '<span class="text-white text-2xl font-bold">Q</span>'; }}
+                    className="w-16 h-16 rounded-2xl object-cover"
+                    onError={(e) => { e.target.outerHTML = '<span class="text-white text-4xl font-bold">Q</span>'; }}
                   />
                 ) : (
-                  <span className="text-white text-2xl font-bold">Q</span>
+                  <span className="text-white text-4xl font-bold">Q</span>
                 )}
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              
+              {/* Title */}
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight">
                 {quiz?.name}
               </h2>
-              <p className="text-gray-500 mb-6">
+              
+              {/* Description */}
+              <p className="text-lg text-gray-500 mb-10 max-w-md mx-auto leading-relaxed">
                 {quiz?.description || 'Teste seus conhecimentos!'}
               </p>
+              
+              {/* Start Button */}
               <button
                 onClick={() =>
                   advanceToNode(getNextNode(currentNodeId))
                 }
-                className="text-white px-8 py-3 font-medium flex items-center gap-2 mx-auto transition-opacity hover:opacity-90"
-                style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                className="text-white px-12 py-5 font-bold text-xl flex items-center gap-3 mx-auto transition-all hover:shadow-xl hover:-translate-y-1 shadow-lg"
+                style={{ 
+                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                  borderRadius: '1rem',
+                  boxShadow: `0 8px 32px ${theme.primaryColor}40`,
+                }}
               >
-                Começar <ChevronRight size={20} />
+                Começar <ChevronRight size={24} />
               </button>
+              
+              {/* Optional: small hint */}
+              <p className="text-sm text-gray-400 mt-6">
+                ⏱ Leva apenas alguns minutos
+              </p>
             </div>
           )}
               </div>
