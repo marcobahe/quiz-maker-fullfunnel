@@ -25,14 +25,14 @@ import {
 
 // ── Default theme (matches store defaults) ───────────────────
 const DEFAULT_THEME = {
-  primaryColor: '#8b5cf6',
+  primaryColor: '#3B82F6',
   secondaryColor: '#6366f1',
-  backgroundColor: '#f8fafc',
+  backgroundColor: '#EEF2FF',
   backgroundType: 'gradient',
   backgroundGradient: 'from-violet-600 via-purple-600 to-indigo-700',
   textColor: '#1e293b',
-  buttonStyle: 'rounded',
-  fontFamily: 'Inter',
+  buttonStyle: 'pill',
+  fontFamily: 'Outfit',
 };
 
 const DEFAULT_BRANDING = {
@@ -41,19 +41,25 @@ const DEFAULT_BRANDING = {
   showBranding: true,
 };
 
-// ── Gradient CSS map (vibrant, modern gradients) ─────────────
+// ── Gradient CSS map (vibrant, modern gradients - Stich style) ─────────────
 const GRADIENT_CSS = {
   'from-purple-900 via-purple-800 to-indigo-900': 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 35%, #6366f1 100%)',
-  'from-violet-600 via-purple-600 to-indigo-700': 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #6366f1 100%)',
-  'from-blue-900 via-blue-800 to-cyan-900': 'linear-gradient(135deg, #2563eb 0%, #3b82f6 35%, #0ea5e9 100%)',
+  'from-violet-600 via-purple-600 to-indigo-700': 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 25%, #FFF1F2 50%, #F0FDF4 75%, #F0F9FF 100%)',
+  'from-blue-900 via-blue-800 to-cyan-900': 'radial-gradient(circle at 10% 20%, rgb(0, 107, 241) 0%, rgb(0, 52, 117) 90%)',
   'from-emerald-900 via-green-800 to-teal-900': 'linear-gradient(135deg, #059669 0%, #10b981 35%, #14b8a6 100%)',
   'from-orange-900 via-red-800 to-pink-900': 'linear-gradient(135deg, #ea580c 0%, #f43f5e 50%, #ec4899 100%)',
   'from-gray-900 via-slate-800 to-zinc-900': 'linear-gradient(135deg, #1e293b 0%, #334155 35%, #3f3f46 100%)',
   'from-rose-900 via-pink-800 to-fuchsia-900': 'linear-gradient(135deg, #e11d48 0%, #ec4899 50%, #d946ef 100%)',
-  // New vibrant options
-  'from-sky-500 via-blue-500 to-indigo-600': 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #4f46e5 100%)',
+  // Stich vibrant options
+  'from-sky-500 via-blue-500 to-indigo-600': 'radial-gradient(circle at center, #3b52ff 0%, #151931 100%)',
   'from-amber-500 via-orange-500 to-red-500': 'linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%)',
   'from-teal-500 via-emerald-500 to-green-600': 'linear-gradient(135deg, #14b8a6 0%, #10b981 50%, #16a34a 100%)',
+  // New pastel rainbow (Stich light theme)
+  'pastel-rainbow': 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 25%, #FFF1F2 50%, #F0FDF4 75%, #F0F9FF 100%)',
+  // Space blue gradient
+  'space-blue': 'radial-gradient(circle at 10% 20%, rgb(0, 107, 241) 0%, rgb(0, 52, 117) 90%)',
+  // Deep space
+  'deep-space': 'radial-gradient(circle at center, #3b52ff 0%, #151931 100%)',
 };
 
 // ── Redirect utilities ───────────────────────────────────────
@@ -93,13 +99,17 @@ function trackRedirectEvent(url, resultTitle) {
 
 // ── Google Fonts loader ──────────────────────────────────────
 function GoogleFontLink({ fontFamily }) {
-  if (!fontFamily || fontFamily === 'Inter') return null;
-  const fontName = fontFamily.replace(/ /g, '+');
+  // Always load Outfit as base font, plus any custom font
+  const fonts = ['Outfit'];
+  if (fontFamily && fontFamily !== 'Inter' && fontFamily !== 'Outfit') {
+    fonts.push(fontFamily);
+  }
+  const fontParams = fonts.map(f => `family=${f.replace(/ /g, '+')}:wght@400;500;600;700;800`).join('&');
   return (
     // eslint-disable-next-line @next/next/no-page-custom-font
     <link
       rel="stylesheet"
-      href={`https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;600;700&display=swap`}
+      href={`https://fonts.googleapis.com/css2?${fontParams}&display=swap`}
     />
   );
 }
@@ -1990,7 +2000,7 @@ function QuizPlayer() {
           </div>
         )}
 
-        {/* Progress Bar */}
+        {/* Progress Bar - Stich Style */}
         {!showResult && (
           <div className={isEmbed ? 'px-2 mb-4' : 'px-4 mb-6'}>
             {gamificationConfig?.progressBar ? (
@@ -2001,10 +2011,22 @@ function QuizPlayer() {
                 primaryColor={theme.primaryColor}
               />
             ) : (
-              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+              <div 
+                className="overflow-hidden p-0.5"
+                style={{ 
+                  height: '0.75rem',
+                  background: 'rgba(255,255,255,0.3)',
+                  borderRadius: '9999px',
+                }}
+              >
                 <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%`, backgroundColor: theme.textColor }}
+                  className="h-full transition-all duration-500"
+                  style={{ 
+                    width: `${progress}%`, 
+                    background: 'linear-gradient(to right, #6366f1, #8b5cf6)',
+                    borderRadius: '9999px',
+                    boxShadow: '0 0 10px rgba(99, 102, 241, 0.5)',
+                  }}
                 />
               </div>
             )}
@@ -2072,23 +2094,41 @@ function QuizPlayer() {
             return (
               <div className="space-y-6">
                 {showStatic && (
-                  <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
+                  <div 
+                    className="text-center relative overflow-hidden" 
+                    style={{ 
+                      fontFamily: theme.fontFamily,
+                      background: 'white',
+                      borderRadius: '2.5rem',
+                      padding: '2.5rem',
+                      boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+                    }}
+                  >
+                    {/* Decorative background circles */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-rose-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
+                    
                     {matchedRange?.image ? (
                       <img
                         src={matchedRange.image}
                         alt={matchedRange.title}
-                        className="w-full h-56 object-cover rounded-2xl mb-8 shadow-lg"
+                        className="w-full h-56 object-cover mb-8 relative z-10"
+                        style={{ borderRadius: '1.5rem', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
                       />
                     ) : (
                       <div
-                        className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg"
-                        style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` }}
+                        className="w-28 h-28 flex items-center justify-center mx-auto mb-8 relative z-10"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                          borderRadius: '2rem',
+                          boxShadow: `0 12px 24px -4px ${theme.primaryColor}50`,
+                        }}
                       >
-                        <Trophy className="text-white" size={48} />
+                        <Trophy className="text-white" size={52} />
                       </div>
                     )}
 
-                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+                    <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-6 leading-tight relative z-10 tracking-tight">
                       {rv(matchedRange?.title || currentNode?.data?.title || 'Seu Resultado')}
                     </h1>
 
@@ -2136,35 +2176,66 @@ function QuizPlayer() {
                       )}
                     </div>
 
-                    {/* CTA Buttons */}
+                    {/* CTA Buttons - 3D Tactile Style */}
                     {!showAi && _rMode === 'button' && _rUrl ? (
                       <a
                         href={_rUrl}
                         target={_rNewTab ? '_blank' : '_self'}
                         rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center gap-2 text-white py-4 font-bold text-lg transition-all hover:shadow-xl hover:-translate-y-0.5 mb-4 shadow-lg"
+                        className="w-full inline-flex items-center justify-center gap-3 text-white py-5 font-extrabold text-xl uppercase tracking-wider mb-4 transition-all active:translate-y-1"
                         style={{ 
-                          background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
-                          borderRadius: '1rem',
-                          boxShadow: `0 8px 24px ${theme.primaryColor}40`,
+                          background: theme.primaryColor,
+                          borderRadius: '9999px',
+                          boxShadow: `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`,
+                        }}
+                        onMouseDown={(e) => {
+                          e.currentTarget.style.transform = 'translateY(4px)';
+                          e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+                        }}
+                        onMouseUp={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
                         }}
                         onClick={() => trackRedirectEvent(_rUrl, _rResultTitle)}
                       >
                         {_rBtnText}
-                        <ExternalLink size={20} />
+                        <ExternalLink size={22} />
                       </a>
                     ) : null}
 
                     {!showAi && (
                       <button
                         onClick={() => window.location.reload()}
-                        className="w-full py-4 font-semibold text-lg transition-all hover:bg-gray-100"
+                        className="w-full py-5 font-extrabold text-xl uppercase tracking-wider transition-all active:translate-y-1"
                         style={{
-                          background: (_rMode === 'button' && _rUrl) ? '#f8fafc' : `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                          background: (_rMode === 'button' && _rUrl) ? 'white' : theme.primaryColor,
                           color: (_rMode === 'button' && _rUrl) ? '#64748b' : '#ffffff',
-                          borderRadius: '1rem',
-                          border: (_rMode === 'button' && _rUrl) ? '2px solid #e2e8f0' : 'none',
-                          boxShadow: !(_rMode === 'button' && _rUrl) ? `0 8px 24px ${theme.primaryColor}40` : 'none',
+                          borderRadius: '9999px',
+                          boxShadow: (_rMode === 'button' && _rUrl) 
+                            ? '0 6px 0 #cbd5e1, 0 10px 20px rgba(0, 0, 0, 0.1)' 
+                            : `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`,
+                        }}
+                        onMouseDown={(e) => {
+                          e.currentTarget.style.transform = 'translateY(4px)';
+                          e.currentTarget.style.boxShadow = (_rMode === 'button' && _rUrl) 
+                            ? '0 2px 0 #cbd5e1, 0 4px 10px rgba(0, 0, 0, 0.05)' 
+                            : `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+                        }}
+                        onMouseUp={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = (_rMode === 'button' && _rUrl) 
+                            ? '0 6px 0 #cbd5e1, 0 10px 20px rgba(0, 0, 0, 0.1)' 
+                            : `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = (_rMode === 'button' && _rUrl) 
+                            ? '0 6px 0 #cbd5e1, 0 10px 20px rgba(0, 0, 0, 0.1)' 
+                            : `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
                         }}
                       >
                         🔄 Refazer Quiz
@@ -2299,7 +2370,19 @@ function QuizPlayer() {
 
           {/* ── Lead Form ─────────────────────────────────── */}
           {showLeadForm && !showResult && (
-            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
+            <div 
+              className="relative overflow-hidden" 
+              style={{ 
+                fontFamily: theme.fontFamily,
+                background: 'white',
+                borderRadius: '2.5rem',
+                padding: '2.5rem',
+                boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+              }}
+            >
+              {/* Decorative background circles */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
               {leadSaved ? (
                 <div className="text-center py-10">
                   <div 
@@ -2427,15 +2510,27 @@ function QuizPlayer() {
                     </div>
                     <button
                       type="submit"
-                      className="w-full text-white py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all hover:shadow-xl hover:-translate-y-0.5 mt-6 shadow-lg"
+                      className="w-full text-white py-5 font-extrabold text-xl uppercase tracking-wider flex items-center justify-center gap-3 mt-8 transition-all active:translate-y-1 relative z-10"
                       style={{ 
-                        background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
-                        borderRadius: '1rem',
-                        boxShadow: `0 8px 24px ${theme.primaryColor}40`,
+                        background: theme.primaryColor,
+                        borderRadius: '9999px',
+                        boxShadow: `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`,
+                      }}
+                      onMouseDown={(e) => {
+                        e.currentTarget.style.transform = 'translateY(4px)';
+                        e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+                      }}
+                      onMouseUp={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
                       }}
                     >
                       Ver Meu Resultado
-                      <ChevronRight size={22} />
+                      <ChevronRight size={24} />
                     </button>
                   </form>
                 </>
@@ -2445,15 +2540,28 @@ function QuizPlayer() {
 
           {/* ── Legacy Question Node ──────────────────────── */}
           {!showLeadForm && !showResult && isLegacyQuestion && (
-            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
-              <div className="flex items-center justify-between mb-6">
+            <div 
+              className="relative overflow-hidden" 
+              style={{ 
+                fontFamily: theme.fontFamily,
+                background: 'white',
+                borderRadius: '2.5rem',
+                padding: '2.5rem',
+                boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+              }}
+            >
+              {/* Decorative background elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-rose-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
+              
+              <div className="flex items-center justify-between mb-6 relative z-10">
                 <div>
                   {history.length > 0 && (
                     <button
                       onClick={handleGoBack}
-                      className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-base font-medium transition-colors hover:bg-gray-100 px-3 py-1.5 rounded-lg -ml-3"
+                      className="flex items-center gap-2 text-slate-500 hover:text-slate-700 text-base font-semibold transition-all hover:bg-slate-100 px-4 py-2 rounded-xl -ml-3"
                     >
-                      <ArrowLeft size={18} /> Voltar
+                      <ArrowLeft size={20} /> Voltar
                     </button>
                   )}
                 </div>
@@ -2467,10 +2575,10 @@ function QuizPlayer() {
                   />
                 )}
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-10 leading-tight relative z-10 tracking-tight">
                 {rv(currentNode.data.question || 'Pergunta')}
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-4 relative z-10">
                 {(currentNode.data.options || []).map((option, index) => {
                   // Check if option text starts with emoji (first char is emoji)
                   const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u;
@@ -2490,57 +2598,59 @@ function QuizPlayer() {
                       key={index}
                       onClick={(e) => handleOptionSelect(index, e)}
                       disabled={selectedOption !== null}
-                      className="w-full text-left p-5 border-2 transition-all duration-200 flex items-center gap-4 group"
+                      className="w-full text-left p-6 transition-all duration-200 flex items-center gap-5 group"
                       style={{
-                        borderRadius: '1rem',
-                        borderColor: isSelected ? theme.primaryColor : '#e5e7eb',
-                        background: isSelected 
-                          ? `linear-gradient(135deg, ${theme.primaryColor}12, ${theme.primaryColor}08)` 
-                          : 'white',
+                        borderRadius: '1.5rem',
+                        border: isSelected ? `4px solid ${theme.primaryColor}` : '4px solid transparent',
+                        background: 'white',
                         opacity: isOther ? 0.5 : 1,
                         boxShadow: isSelected
-                          ? `0 0 0 4px ${theme.primaryColor}15, 0 8px 24px ${theme.primaryColor}15`
-                          : '0 2px 8px rgba(0,0,0,0.04)',
+                          ? `0 10px 25px -5px ${theme.primaryColor}30`
+                          : '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
                         transform: isSelected ? 'scale(1.02)' : 'scale(1)',
                       }}
                       onMouseEnter={(e) => {
                         if (selectedOption === null) {
-                          e.currentTarget.style.borderColor = `${theme.primaryColor}60`;
-                          e.currentTarget.style.boxShadow = `0 4px 16px ${theme.primaryColor}15`;
-                          e.currentTarget.style.transform = 'scale(1.01)';
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.border = `4px solid ${theme.primaryColor}`;
+                          e.currentTarget.style.boxShadow = `0 15px 35px -5px ${theme.primaryColor}25`;
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!isSelected && selectedOption === null) {
-                          e.currentTarget.style.borderColor = '#e5e7eb';
-                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
                           e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.border = '4px solid transparent';
+                          e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.05)';
                         }
                       }}
                     >
                       <span
-                        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200"
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-200"
                         style={{
                           background: isSelected 
                             ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` 
-                            : '#f1f5f9',
+                            : 'linear-gradient(135deg, #f8fafc, #f1f5f9)',
                           color: isSelected ? '#ffffff' : '#64748b',
-                          fontSize: displayEmoji ? '1.5rem' : '1rem',
-                          fontWeight: displayEmoji ? 'normal' : '600',
-                          boxShadow: isSelected ? `0 4px 12px ${theme.primaryColor}40` : 'none',
+                          fontSize: displayEmoji ? '2rem' : '1.25rem',
+                          fontWeight: displayEmoji ? 'normal' : '700',
+                          boxShadow: isSelected ? `0 6px 16px ${theme.primaryColor}40` : '0 4px 12px rgba(0,0,0,0.06)',
+                          filter: displayEmoji ? 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' : 'none',
                         }}
                       >
                         {displayEmoji || String.fromCharCode(65 + index)}
                       </span>
-                      <span className="text-lg font-semibold flex-1" style={{ color: isSelected ? theme.primaryColor : '#1e293b' }}>
+                      <span className="text-xl font-bold flex-1" style={{ color: isSelected ? theme.primaryColor : '#1e293b' }}>
                         {displayText}
                       </span>
                       {isSelected && (
                         <div 
-                          className="w-8 h-8 rounded-full flex items-center justify-center"
-                          style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` }}
+                          className="w-10 h-10 rounded-full flex items-center justify-center"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                            boxShadow: `0 4px 12px ${theme.primaryColor}50`,
+                          }}
                         >
-                          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
@@ -2554,15 +2664,28 @@ function QuizPlayer() {
 
           {/* ── Composite Node ────────────────────────────── */}
           {!showLeadForm && !showResult && isComposite && currentNode && (
-            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
-              <div className="flex items-center justify-between mb-6">
+            <div 
+              className="relative overflow-hidden" 
+              style={{ 
+                fontFamily: theme.fontFamily,
+                background: 'white',
+                borderRadius: '2.5rem',
+                padding: '2.5rem',
+                boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+              }}
+            >
+              {/* Decorative background elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-rose-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
+              
+              <div className="flex items-center justify-between mb-6 relative z-10">
                 <div>
                   {history.length > 0 && (
                     <button
                       onClick={handleGoBack}
-                      className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-base font-medium transition-colors hover:bg-gray-100 px-3 py-1.5 rounded-lg -ml-3"
+                      className="flex items-center gap-2 text-slate-500 hover:text-slate-700 text-base font-semibold transition-all hover:bg-slate-100 px-4 py-2 rounded-xl -ml-3"
                     >
-                      <ArrowLeft size={18} /> Voltar
+                      <ArrowLeft size={20} /> Voltar
                     </button>
                   )}
                 </div>
@@ -3222,51 +3345,86 @@ function QuizPlayer() {
 
           {/* ── Start node ────────────────────────────────── */}
           {!showLeadForm && !showResult && isStart && (
-            <div className="bg-white rounded-3xl shadow-2xl p-10 sm:p-12 text-center border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
+            <div 
+              className="text-center relative overflow-hidden" 
+              style={{ 
+                fontFamily: theme.fontFamily,
+                background: 'white',
+                borderRadius: '2.5rem',
+                padding: '3rem 2.5rem',
+                boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+              }}
+            >
+              {/* Decorative background elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-rose-50 rounded-full -ml-12 -mb-12 opacity-50"></div>
+              
               {/* Logo/Brand */}
               <div
-                className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg"
-                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` }}
+                className="w-28 h-28 flex items-center justify-center mx-auto mb-10 relative z-10"
+                style={{ 
+                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                  borderRadius: '2rem',
+                  boxShadow: `0 12px 28px -4px ${theme.primaryColor}50`,
+                }}
               >
                 {branding.logoUrl ? (
                   <img
                     src={branding.logoUrl}
                     alt="Logo"
-                    className="w-16 h-16 rounded-2xl object-cover"
-                    onError={(e) => { e.target.outerHTML = '<span class="text-white text-4xl font-bold">Q</span>'; }}
+                    className="w-20 h-20 object-cover"
+                    style={{ borderRadius: '1.5rem' }}
+                    onError={(e) => { e.target.outerHTML = '<span class="text-white text-5xl font-extrabold">Q</span>'; }}
                   />
                 ) : (
-                  <span className="text-white text-4xl font-bold">Q</span>
+                  <span className="text-white text-5xl font-extrabold">Q</span>
                 )}
               </div>
               
+              {/* Badge */}
+              <div className="inline-block px-6 py-2.5 bg-white/60 backdrop-blur-sm rounded-full mb-6 border border-white/50 shadow-sm relative z-10">
+                <span className="text-slate-800 font-extrabold text-lg tracking-tight">Let's Play 🚀</span>
+              </div>
+              
               {/* Title */}
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+              <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-5 leading-tight relative z-10 tracking-tight">
                 {quiz?.name}
               </h2>
               
               {/* Description */}
-              <p className="text-lg text-gray-500 mb-10 max-w-md mx-auto leading-relaxed">
+              <p className="text-xl text-slate-500 mb-12 max-w-lg mx-auto leading-relaxed relative z-10 font-medium">
                 {quiz?.description || 'Teste seus conhecimentos!'}
               </p>
               
-              {/* Start Button */}
+              {/* Start Button - 3D Tactile */}
               <button
                 onClick={() =>
                   advanceToNode(getNextNode(currentNodeId))
                 }
-                className="text-white px-12 py-5 font-bold text-xl flex items-center gap-3 mx-auto transition-all hover:shadow-xl hover:-translate-y-1 shadow-lg"
+                className="text-white px-14 py-6 font-extrabold text-2xl uppercase tracking-wider flex items-center gap-4 mx-auto transition-all active:translate-y-1 relative z-10"
                 style={{ 
-                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
-                  borderRadius: '1rem',
-                  boxShadow: `0 8px 32px ${theme.primaryColor}40`,
+                  background: theme.primaryColor,
+                  borderRadius: '9999px',
+                  boxShadow: `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`,
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translateY(4px)';
+                  e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
                 }}
               >
-                Começar <ChevronRight size={24} />
+                Começar <ChevronRight size={28} />
               </button>
               
               {/* Optional: small hint */}
-              <p className="text-sm text-gray-400 mt-6">
+              <p className="text-sm text-slate-400 mt-8 font-bold uppercase tracking-widest relative z-10">
                 ⏱ Leva apenas alguns minutos
               </p>
             </div>
