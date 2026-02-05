@@ -1473,18 +1473,20 @@ function QuestionElement({ element, nodeId }) {
                 )}
               </div>
               
-              <Handle
-                type="source"
-                position={Position.Bottom}
-                id={handleId}
-                className={
-                  isConnected
-                    ? '!bg-accent !w-4 !h-4 !bottom-[-10px] !border-2 !border-white !rounded-full'
-                    : '!bg-white !border-2 !border-accent/50 !w-4 !h-4 !bottom-[-10px] !rounded-full hover:!border-accent hover:!scale-125 !transition-all'
-                }
-                style={{ left: '50%', transform: 'translateX(-50%)', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
-                title="Conecte a uma pergunta ou resultado"
-              />
+              <div className="nodrag nopan nowheel absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
+                <Handle
+                  type="source"
+                  position={Position.Bottom}
+                  id={handleId}
+                  className={
+                    isConnected
+                      ? '!bg-accent !w-4 !h-4 !border-2 !border-white !rounded-full !relative !transform-none !inset-0'
+                      : '!bg-white !border-2 !border-accent/50 !w-4 !h-4 !rounded-full hover:!border-accent hover:!scale-125 !transition-all !relative !transform-none !inset-0'
+                  }
+                  style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
+                  title="Conecte a uma pergunta ou resultado"
+                />
+              </div>
             </div>
           );
         })}
@@ -1579,18 +1581,20 @@ function IconQuestionElement({ element, nodeId }) {
               {opt.score > 0 && (
                 <span className="text-[9px] text-accent font-medium">+{opt.score}</span>
               )}
-              <Handle
-                type="source"
-                position={Position.Bottom}
-                id={handleId}
-                className={
-                  isConnected
-                    ? '!bg-accent !w-4 !h-4 !bottom-[-10px] !border-2 !border-white !rounded-full'
-                    : '!bg-white !border-2 !border-accent/50 !w-4 !h-4 !bottom-[-10px] !rounded-full hover:!border-accent hover:!scale-125 !transition-all'
-                }
-                style={{ left: '50%', transform: 'translateX(-50%)', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
-                title="Conecte a uma pergunta ou resultado"
-              />
+              <div className="nodrag nopan nowheel absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
+                <Handle
+                  type="source"
+                  position={Position.Bottom}
+                  id={handleId}
+                  className={
+                    isConnected
+                      ? '!bg-accent !w-4 !h-4 !border-2 !border-white !rounded-full !relative !transform-none !inset-0'
+                      : '!bg-white !border-2 !border-accent/50 !w-4 !h-4 !rounded-full hover:!border-accent hover:!scale-125 !transition-all !relative !transform-none !inset-0'
+                  }
+                  style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
+                  title="Conecte a uma pergunta ou resultado"
+                />
+              </div>
             </div>
           );
         })}
@@ -1807,18 +1811,20 @@ function SwipePreview({ element, nodeId }) {
         <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
           {/* Left (Nope) */}
           <div className="relative flex items-center gap-1 bg-red-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
-            <Handle
-              type="source"
-              position={Position.Left}
-              id={leftHandleId}
-              className={
-                isLeftConnected
-                  ? '!bg-red-500 !w-4 !h-4 !left-[-12px] !border-2 !border-white !rounded-full'
-                  : '!bg-white !border-2 !border-red-400 !w-4 !h-4 !left-[-12px] !rounded-full hover:!border-red-500 hover:!scale-125 !transition-all'
-              }
-              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
-              title="Conectar: Swipe Left (Nope)"
-            />
+            <div className="nodrag nopan nowheel absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+              <Handle
+                type="source"
+                position={Position.Left}
+                id={leftHandleId}
+                className={
+                  isLeftConnected
+                    ? '!bg-red-500 !w-4 !h-4 !border-2 !border-white !rounded-full !relative !transform-none !inset-0'
+                    : '!bg-white !border-2 !border-red-400 !w-4 !h-4 !rounded-full hover:!border-red-500 hover:!scale-125 !transition-all !relative !transform-none !inset-0'
+                }
+                style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
+                title="Conectar: Swipe Left (Nope)"
+              />
+            </div>
             <span className="text-sm">{element.leftIcon || '👎'}</span>
             <span className="text-[10px] font-medium text-red-600">{element.leftLabel || 'Nope'}</span>
           </div>
@@ -1827,18 +1833,20 @@ function SwipePreview({ element, nodeId }) {
           <div className="relative flex items-center gap-1 bg-green-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
             <span className="text-[10px] font-medium text-green-600">{element.rightLabel || 'Like'}</span>
             <span className="text-sm">{element.rightIcon || '👍'}</span>
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={rightHandleId}
-              className={
-                isRightConnected
-                  ? '!bg-green-500 !w-4 !h-4 !right-[-12px] !border-2 !border-white !rounded-full'
-                  : '!bg-white !border-2 !border-green-400 !w-4 !h-4 !right-[-12px] !rounded-full hover:!border-green-500 hover:!scale-125 !transition-all'
-              }
-              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
-              title="Conectar: Swipe Right (Like)"
-            />
+            <div className="nodrag nopan nowheel absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 z-10">
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={rightHandleId}
+                className={
+                  isRightConnected
+                    ? '!bg-green-500 !w-4 !h-4 !border-2 !border-white !rounded-full !relative !transform-none !inset-0'
+                    : '!bg-white !border-2 !border-green-400 !w-4 !h-4 !rounded-full hover:!border-green-500 hover:!scale-125 !transition-all !relative !transform-none !inset-0'
+                }
+                style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
+                title="Conectar: Swipe Right (Like)"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -2899,18 +2907,20 @@ function ButtonElement({ element, nodeId }) {
         
         {/* Handle for next-node action */}
         {showHandle && (
-          <Handle
-            type="source"
-            position={Position.Bottom}
-            id={handleId}
-            className={
-              isConnected
-                ? '!bg-indigo-500 !w-4 !h-4 !bottom-[-10px] !border-2 !border-white !rounded-full'
-                : '!bg-white !border-2 !border-indigo-400 !w-4 !h-4 !bottom-[-10px] !rounded-full hover:!border-indigo-500 hover:!scale-125 !transition-all'
-            }
-            style={{ left: '50%', transform: 'translateX(-50%)', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
-            title="Conecte ao próximo node"
-          />
+          <div className="nodrag nopan nowheel absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
+            <Handle
+              type="source"
+              position={Position.Bottom}
+              id={handleId}
+              className={
+                isConnected
+                  ? '!bg-indigo-500 !w-4 !h-4 !border-2 !border-white !rounded-full !relative !transform-none !inset-0'
+                  : '!bg-white !border-2 !border-indigo-400 !w-4 !h-4 !rounded-full hover:!border-indigo-500 hover:!scale-125 !transition-all !relative !transform-none !inset-0'
+              }
+              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
+              title="Conecte ao próximo node"
+            />
+          </div>
         )}
       </div>
     </div>
@@ -3087,17 +3097,27 @@ export default function CompositeNode({ id, data, selected }) {
         {elements.map((el, idx) => (
           <div
             key={el.id}
-            className={`relative group nodrag transition-colors ${dragIdx === idx ? 'bg-accent/5 border-l-2 border-accent' : 'hover:bg-gray-50/50'}`}
-            draggable
-            onDragStart={(e) => onDragStart(e, idx)}
-            onDragOver={(e) => onDragOver(e, idx)}
-            onDragLeave={onDragLeave}
-            onDrop={(e) => onDrop(e, idx)}
+            className={`relative group transition-colors ${dragIdx === idx ? 'bg-accent/5 border-l-2 border-accent' : 'hover:bg-gray-50/50'}`}
           >
             {/* Grip + remove (visible on hover) */}
-            <div className="absolute top-2 left-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+            <div 
+              className="nodrag absolute top-2 left-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+              draggable
+              onDragStart={(e) => onDragStart(e, idx)}
+              onDragOver={(e) => onDragOver(e, idx)}
+              onDragLeave={onDragLeave}
+              onDrop={(e) => onDrop(e, idx)}
+            >
               <GripVertical size={14} className="text-gray-300 hover:text-gray-500" />
             </div>
+            {/* Drop zone for reordering */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              onDragOver={(e) => { e.preventDefault(); onDragOver(e, idx); }}
+              onDragLeave={onDragLeave}
+              onDrop={(e) => onDrop(e, idx)}
+              style={{ pointerEvents: dragIdx !== null ? 'auto' : 'none' }}
+            />
             <button
               onClick={() => removeNodeElement(id, el.id)}
               className="nodrag absolute top-2 right-2 z-10 w-5 h-5 bg-white hover:bg-red-50 text-gray-300 hover:text-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm border border-gray-100 hover:border-red-200"
