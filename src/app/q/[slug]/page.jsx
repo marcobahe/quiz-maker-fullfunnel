@@ -1345,6 +1345,9 @@ function QuizPlayer() {
     [edges, nodes],
   );
 
+  // Derived: current node (must be before advanceToNode which uses it)
+  const currentNode = nodes.find((n) => n.id === currentNodeId);
+
   const advanceToNode = useCallback(
     (nextId) => {
       if (!nextId) {
@@ -1419,10 +1422,6 @@ function QuizPlayer() {
     },
     [nodes, currentNodeId, trackingConfig, quiz?.name, score],
   );
-
-  // ── Derived data ────────────────────────────────────────────
-
-  const currentNode = nodes.find((n) => n.id === currentNodeId);
 
   // ── Auto-forward: advance after delay if enabled ────────────
   useEffect(() => {
