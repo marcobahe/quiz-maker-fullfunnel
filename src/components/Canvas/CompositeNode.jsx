@@ -1475,13 +1475,14 @@ function QuestionElement({ element, nodeId }) {
               
               <Handle
                 type="source"
-                position={Position.Right}
+                position={Position.Bottom}
                 id={handleId}
                 className={
                   isConnected
-                    ? '!bg-accent !w-2.5 !h-2.5 !right-[-5px] !border !border-white'
-                    : '!bg-white !border-2 !border-accent/40 !w-2.5 !h-2.5 !right-[-5px]'
+                    ? '!bg-accent !w-4 !h-4 !bottom-[-10px] !border-2 !border-white !rounded-full'
+                    : '!bg-white !border-2 !border-accent/50 !w-4 !h-4 !bottom-[-10px] !rounded-full hover:!border-accent hover:!scale-125 !transition-all'
                 }
+                style={{ left: '50%', transform: 'translateX(-50%)', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
                 title="Conecte a uma pergunta ou resultado"
               />
             </div>
@@ -1580,13 +1581,14 @@ function IconQuestionElement({ element, nodeId }) {
               )}
               <Handle
                 type="source"
-                position={Position.Right}
+                position={Position.Bottom}
                 id={handleId}
                 className={
                   isConnected
-                    ? '!bg-accent !w-2.5 !h-2.5 !right-[-5px] !border !border-white'
-                    : '!bg-white !border-2 !border-accent/40 !w-2.5 !h-2.5 !right-[-5px]'
+                    ? '!bg-accent !w-4 !h-4 !bottom-[-10px] !border-2 !border-white !rounded-full'
+                    : '!bg-white !border-2 !border-accent/50 !w-4 !h-4 !bottom-[-10px] !rounded-full hover:!border-accent hover:!scale-125 !transition-all'
                 }
+                style={{ left: '50%', transform: 'translateX(-50%)', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
                 title="Conecte a uma pergunta ou resultado"
               />
             </div>
@@ -1805,19 +1807,20 @@ function SwipePreview({ element, nodeId }) {
         <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
           {/* Left (Nope) */}
           <div className="relative flex items-center gap-1 bg-red-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
-            <span className="text-sm">{element.leftIcon || '👎'}</span>
-            <span className="text-[10px] font-medium text-red-600">{element.leftLabel || 'Nope'}</span>
             <Handle
               type="source"
               position={Position.Left}
               id={leftHandleId}
               className={
                 isLeftConnected
-                  ? '!bg-red-500 !w-2.5 !h-2.5 !left-[-8px] !border !border-white'
-                  : '!bg-white !border-2 !border-red-400 !w-2.5 !h-2.5 !left-[-8px]'
+                  ? '!bg-red-500 !w-4 !h-4 !left-[-12px] !border-2 !border-white !rounded-full'
+                  : '!bg-white !border-2 !border-red-400 !w-4 !h-4 !left-[-12px] !rounded-full hover:!border-red-500 hover:!scale-125 !transition-all'
               }
+              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
               title="Conectar: Swipe Left (Nope)"
             />
+            <span className="text-sm">{element.leftIcon || '👎'}</span>
+            <span className="text-[10px] font-medium text-red-600">{element.leftLabel || 'Nope'}</span>
           </div>
           
           {/* Right (Like) */}
@@ -1830,9 +1833,10 @@ function SwipePreview({ element, nodeId }) {
               id={rightHandleId}
               className={
                 isRightConnected
-                  ? '!bg-green-500 !w-2.5 !h-2.5 !right-[-8px] !border !border-white'
-                  : '!bg-white !border-2 !border-green-400 !w-2.5 !h-2.5 !right-[-8px]'
+                  ? '!bg-green-500 !w-4 !h-4 !right-[-12px] !border-2 !border-white !rounded-full'
+                  : '!bg-white !border-2 !border-green-400 !w-4 !h-4 !right-[-12px] !rounded-full hover:!border-green-500 hover:!scale-125 !transition-all'
               }
+              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
               title="Conectar: Swipe Right (Like)"
             />
           </div>
@@ -2897,13 +2901,14 @@ function ButtonElement({ element, nodeId }) {
         {showHandle && (
           <Handle
             type="source"
-            position={Position.Right}
+            position={Position.Bottom}
             id={handleId}
             className={
               isConnected
-                ? '!bg-indigo-500 !w-2.5 !h-2.5 !right-[-5px] !border !border-white'
-                : '!bg-white !border-2 !border-indigo-400 !w-2.5 !h-2.5 !right-[-5px]'
+                ? '!bg-indigo-500 !w-4 !h-4 !bottom-[-10px] !border-2 !border-white !rounded-full'
+                : '!bg-white !border-2 !border-indigo-400 !w-4 !h-4 !bottom-[-10px] !rounded-full hover:!border-indigo-500 hover:!scale-125 !transition-all'
             }
+            style={{ left: '50%', transform: 'translateX(-50%)', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}
             title="Conecte ao próximo node"
           />
         )}
@@ -3065,7 +3070,7 @@ export default function CompositeNode({ id, data, selected }) {
         <Trash2 size={12} />
       </button>
 
-      <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3 !border-2 !border-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+      <Handle type="target" position={Position.Top} className="!bg-accent !w-5 !h-5 !border-2 !border-white !rounded-full hover:!scale-125 !transition-all" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }} />
 
       {/* Header — dragging the node starts here */}
       <div className="px-4 py-3 border-b border-gray-50 bg-gradient-to-r from-gray-50/80 via-white to-accent/5 rounded-t-2xl">
@@ -3154,8 +3159,8 @@ export default function CompositeNode({ id, data, selected }) {
         type="source" 
         position={Position.Bottom} 
         id="all-answers"
-        className="!bg-accent !w-3 !h-3 !border-2 !border-white"
-        style={{ bottom: -6, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+        className="!bg-accent !w-5 !h-5 !border-2 !border-white !rounded-full hover:!scale-125 !transition-all"
+        style={{ bottom: -10, boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}
       />
     </div>
   );
