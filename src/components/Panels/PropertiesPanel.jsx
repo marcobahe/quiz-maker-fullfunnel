@@ -1268,6 +1268,16 @@ function SpinWheelElementEditor({ element, nodeId }) {
           className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
         />
       </div>
+      <div className="flex items-center justify-between py-2">
+        <label className="text-sm font-medium text-gray-700">Permitir tentar novamente</label>
+        <button
+          type="button"
+          onClick={() => updateNodeElement(nodeId, element.id, { allowRetry: !element.allowRetry })}
+          className={`relative w-11 h-6 rounded-full transition-colors ${element.allowRetry ? 'bg-accent' : 'bg-gray-200'}`}
+        >
+          <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${element.allowRetry ? 'translate-x-6' : 'translate-x-1'}`} />
+        </button>
+      </div>
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-gray-700">Segmentos</label>
