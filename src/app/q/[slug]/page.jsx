@@ -2672,16 +2672,18 @@ function QuizPlayer() {
                   const iconCols = el.columns || 2;
                   return (
                     <div key={el.id} className="mb-4">
-                      <h2 className="text-xl font-bold text-gray-800 mb-6">
+                      <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">
                         {rv(el.question || 'Pergunta')}
                       </h2>
                       <div
-                        className="grid gap-4"
+                        className="grid gap-3 sm:gap-4"
                         style={{ gridTemplateColumns: `repeat(${iconCols}, 1fr)` }}
                       >
                         {(el.options || []).map((opt, idx) => {
                           const selKey = `${el.id}-${idx}`;
                           const isSelected = selectedOption === selKey;
+                          const isDisabled = selectedOption !== null && !isSelected;
+                          
                           return (
                             <button
                               key={idx}
@@ -2689,54 +2691,83 @@ function QuizPlayer() {
                                 handleCompositeOptionSelect(el, idx, e)
                               }
                               disabled={selectedOption !== null}
-                              className="flex flex-col items-center justify-center p-5 transition-all duration-200"
+                              className="group relative flex flex-col items-center justify-center p-4 sm:p-6 transition-all duration-300 overflow-hidden"
                               style={{
-                                borderRadius: btnRadius,
+                                borderRadius: '1rem',
                                 border: isSelected 
-                                  ? `2px solid ${theme.primaryColor}` 
-                                  : '2px solid rgba(255,255,255,0.3)',
-                                backgroundColor: isSelected 
-                                  ? `${theme.primaryColor}15` 
-                                  : 'rgba(255,255,255,0.08)',
-                                backdropFilter: 'blur(10px)',
-                                WebkitBackdropFilter: 'blur(10px)',
-                                opacity: selectedOption !== null && !isSelected ? 0.5 : 1,
+                                  ? `3px solid ${theme.primaryColor}` 
+                                  : '2px solid transparent',
+                                background: isSelected 
+                                  ? `linear-gradient(135deg, ${theme.primaryColor}20, ${theme.primaryColor}10)` 
+                                  : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
+                                opacity: isDisabled ? 0.4 : 1,
                                 boxShadow: isSelected 
-                                  ? `0 8px 32px ${theme.primaryColor}30, inset 0 0 0 1px rgba(255,255,255,0.1)` 
-                                  : '0 4px 16px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.1)',
-                                transform: isSelected ? 'scale(1.05)' : 'scale(1)',
-                                aspectRatio: '1 / 1',
+                                  ? `0 8px 32px ${theme.primaryColor}25, 0 4px 12px rgba(0,0,0,0.08)` 
+                                  : '0 4px 20px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
+                                transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                                minHeight: '120px',
                               }}
                               onMouseEnter={(e) => {
                                 if (selectedOption === null) {
-                                  e.currentTarget.style.border = `2px solid ${theme.primaryColor}`;
-                                  e.currentTarget.style.transform = 'scale(1.05) translateY(-2px)';
-                                  e.currentTarget.style.boxShadow = `0 8px 24px ${theme.primaryColor}20, inset 0 0 0 1px rgba(255,255,255,0.15)`;
+                                  e.currentTarget.style.transform = 'scale(1.03) translateY(-4px)';
+                                  e.currentTarget.style.boxShadow = `0 12px 40px ${theme.primaryColor}20, 0 6px 16px rgba(0,0,0,0.1)`;
+                                  e.currentTarget.style.border = `2px solid ${theme.primaryColor}50`;
                                 }
                               }}
                               onMouseLeave={(e) => {
                                 if (!isSelected && selectedOption === null) {
-                                  e.currentTarget.style.border = '2px solid rgba(255,255,255,0.3)';
                                   e.currentTarget.style.transform = 'scale(1)';
-                                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.1)';
+                                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)';
+                                  e.currentTarget.style.border = '2px solid transparent';
                                 }
                               }}
                             >
+                              {/* Selection indicator */}
+                              {isSelected && (
+                                <div 
+                                  className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                                  style={{ backgroundColor: theme.primaryColor }}
+                                >
+                                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              )}
+                              
+                              {/* Icon/Image */}
                               {el.optionStyle === 'image' && opt.image ? (
-                                <img
-                                  src={opt.image}
-                                  alt={opt.text}
-                                  className="w-20 h-20 object-cover rounded-xl mb-3 shadow-sm"
-                                />
+                                <div className="relative mb-3">
+                                  <img
+                                    src={opt.image}
+                                    alt={opt.text}
+                                    className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl"
+                                    style={{
+                                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    }}
+                                  />
+                                </div>
                               ) : (
-                                <span 
-                                  className="mb-3 leading-none drop-shadow-sm"
-                                  style={{ fontSize: '3.5rem' }}
+                                <div 
+                                  className="mb-2 sm:mb-3 transition-transform duration-300"
+                                  style={{
+                                    fontSize: iconCols >= 3 ? '2.5rem' : '3.5rem',
+                                    lineHeight: 1,
+                                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                                    transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                                  }}
                                 >
                                   {opt.icon || '⭐'}
-                                </span>
+                                </div>
                               )}
-                              <span className="text-sm font-semibold text-gray-800 text-center leading-tight">
+                              
+                              {/* Text */}
+                              <span 
+                                className="text-sm sm:text-base font-semibold text-center leading-tight px-1"
+                                style={{ 
+                                  color: isSelected ? theme.primaryColor : '#374151',
+                                  maxWidth: '100%',
+                                }}
+                              >
                                 {opt.text}
                               </span>
                             </button>
