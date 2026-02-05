@@ -2,7 +2,386 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Animation for points balloons */
+/* ═══════════════════════════════════════════════════════════════════
+   QuizMeBaby Design System v2.0
+   Modern, playful, 3D tactile feel
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────
+   🎨 Base Layer - CSS Variables
+   ───────────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    /* Core Colors */
+    --color-primary: #6366f1;
+    --color-primary-dark: #4f46e5;
+    --color-accent: #F43F5E;
+    --color-gold: #F59E0B;
+    
+    /* Brand Palette */
+    --color-brand-blue: #3b82f6;
+    --color-brand-pink: #ec4899;
+    --color-brand-orange: #f97316;
+    
+    /* Backgrounds */
+    --bg-light: #f0f4ff;
+    --bg-dark: #0a0c1b;
+    
+    /* Slider Color */
+    --slider-color: var(--color-primary);
+    
+    /* Glass effect values */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-blur: 12px;
+  }
+  
+  .dark {
+    --bg-light: #0a0c1b;
+    --glass-bg: rgba(0, 0, 0, 0.3);
+    --glass-border: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🪟 Glass Morphism Components
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .glass-card-light {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+  
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🔘 3D Tactile Buttons
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .button-3d {
+    position: relative;
+    box-shadow: 
+      0 6px 0 var(--btn-shadow-color, #2563EB),
+      0 10px 20px -5px rgba(59, 130, 246, 0.5);
+    transition: all 0.1s ease;
+    transform: translateY(0);
+  }
+  
+  .button-3d:active {
+    transform: translateY(4px);
+    box-shadow: 
+      0 2px 0 var(--btn-shadow-color, #2563EB),
+      0 4px 10px -2px rgba(59, 130, 246, 0.4);
+  }
+  
+  .button-3d-white {
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+    box-shadow: 
+      0 6px 0 #cbd5e1,
+      0 12px 20px rgba(0, 0, 0, 0.1);
+    border: 2px solid #f8fafc;
+  }
+  
+  .button-3d-white:active {
+    transform: translateY(4px);
+    box-shadow: 
+      0 2px 0 #cbd5e1,
+      0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Gradient button with glow */
+  .button-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%);
+    box-shadow: 
+      0 8px 0 rgba(79, 70, 229, 0.8),
+      0 15px 30px -5px rgba(99, 102, 241, 0.4);
+    transition: all 0.15s ease;
+  }
+  
+  .button-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 10px 0 rgba(79, 70, 229, 0.8),
+      0 20px 40px -5px rgba(99, 102, 241, 0.5);
+  }
+  
+  .button-gradient:active {
+    transform: translateY(4px);
+    box-shadow: 
+      0 4px 0 rgba(79, 70, 229, 0.8),
+      0 8px 20px -5px rgba(99, 102, 241, 0.3);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🃏 Card Styles - 3D Depth
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .card-3d {
+    box-shadow: 
+      0 20px 50px -12px rgba(0, 0, 0, 0.12),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04),
+      inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  }
+  
+  .card-elevated {
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 10px 20px -5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .card-elevated:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 35px 60px -12px rgba(0, 0, 0, 0.3),
+      0 15px 30px -5px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Option card (quiz answers) */
+  .option-card {
+    @apply relative bg-white rounded-2xl p-5 border-2 border-transparent;
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+  }
+  
+  .option-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.12);
+  }
+  
+  .option-card.selected {
+    border-color: var(--color-primary);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+    box-shadow: 
+      0 8px 25px -5px rgba(99, 102, 241, 0.25),
+      inset 0 0 0 1px rgba(99, 102, 241, 0.1);
+  }
+  
+  /* Emoji option card */
+  .emoji-card {
+    @apply flex flex-col items-center justify-center p-6 rounded-3xl bg-white;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .emoji-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .emoji-card.selected {
+    border: 3px solid var(--color-primary);
+    box-shadow: 
+      0 15px 40px -5px rgba(99, 102, 241, 0.3),
+      0 0 0 4px rgba(99, 102, 241, 0.1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🎡 Spin Wheel Styles
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .wheel-3d-shadow {
+    box-shadow: 
+      0 15px 40px -5px rgba(59, 130, 246, 0.15),
+      inset 0 -6px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  .wheel-pointer {
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🎁 Mystery Box Styles
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .mystery-box {
+    transition: all 0.3s ease;
+  }
+  
+  .mystery-box:hover {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  .mystery-glow {
+    box-shadow: 
+      0 0 60px rgba(245, 158, 11, 0.4),
+      0 0 120px rgba(245, 158, 11, 0.2);
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+  
+  .sparkle {
+    position: absolute;
+    pointer-events: none;
+    animation: sparkle 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes sparkle {
+    0%, 100% { 
+      transform: scale(0) rotate(0deg);
+      opacity: 0;
+    }
+    50% { 
+      transform: scale(1) rotate(180deg);
+      opacity: 1;
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🎫 Scratch Card Styles
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .scratch-texture {
+    background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0);
+    background-size: 4px 4px;
+  }
+  
+  .coin-3d {
+    background: linear-gradient(45deg, #fcd34d 0%, #f59e0b 50%, #fcd34d 100%);
+    box-shadow: 
+      0 8px 16px rgba(245, 158, 11, 0.4),
+      inset 0 -4px 8px rgba(0, 0, 0, 0.2),
+      inset 0 4px 8px rgba(255, 255, 255, 0.4);
+    border: 3px solid #fff0a0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   💬 Swipe/Tinder Card Styles
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .swipe-card {
+    @apply bg-white rounded-3xl;
+    box-shadow: 
+      0 20px 60px -15px rgba(0, 0, 0, 0.2),
+      0 10px 20px -5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .swipe-button {
+    @apply flex items-center justify-center rounded-full;
+    width: 72px;
+    height: 72px;
+    box-shadow: 
+      0 8px 25px -5px rgba(0, 0, 0, 0.15),
+      inset 0 -4px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  .swipe-button:active {
+    transform: scale(0.95);
+    box-shadow: 
+      0 4px 15px -5px rgba(0, 0, 0, 0.1),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  .swipe-label-nope {
+    @apply absolute top-8 left-8 text-4xl font-black uppercase;
+    color: #ef4444;
+    border: 4px solid #ef4444;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transform: rotate(-20deg);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  .swipe-label-like {
+    @apply absolute top-8 right-8 text-4xl font-black uppercase;
+    color: #10b981;
+    border: 4px solid #10b981;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transform: rotate(20deg);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   📝 Lead Form Styles
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .input-modern {
+    @apply w-full px-5 py-4 rounded-xl bg-gray-50 border-2 border-transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .input-modern:focus {
+    @apply bg-white border-primary outline-none;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  }
+  
+  .input-with-icon {
+    @apply relative;
+  }
+  
+  .input-with-icon .icon {
+    @apply absolute left-4 top-1/2 -translate-y-1/2 text-gray-400;
+  }
+  
+  .input-with-icon input {
+    @apply pl-12;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🏆 Result Screen Styles
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .score-hero {
+    @apply text-6xl md:text-7xl font-black;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 50%, var(--color-brand-pink) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.3));
+  }
+  
+  .cta-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%);
+    box-shadow: 
+      0 10px 30px -5px rgba(99, 102, 241, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   📊 Progress Bar Styles
+   ───────────────────────────────────────────────────────────────────── */
+@layer components {
+  .progress-bar-container {
+    @apply w-full h-3 bg-gray-200 rounded-full overflow-hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .progress-bar-fill {
+    @apply h-full rounded-full;
+    background: linear-gradient(90deg, var(--color-primary) 0%, #8b5cf6 100%);
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🎈 Animations - Points Balloon
+   ───────────────────────────────────────────────────────────────────── */
 @keyframes balloon {
   0% {
     transform: translateY(0) scale(0.8);
@@ -22,7 +401,9 @@
   animation: balloon 1.5s ease-out forwards;
 }
 
-/* Quiz slider styles */
+/* ─────────────────────────────────────────────────────────────────────
+   🎚️ Quiz Slider Styles
+   ───────────────────────────────────────────────────────────────────── */
 .quiz-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -34,39 +415,45 @@
 .quiz-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: var(--slider-color);
   border-radius: 50%;
-  border: 3px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 4px solid white;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 4px rgba(99, 102, 241, 0.1);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .quiz-slider::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 6px 16px rgba(0, 0, 0, 0.25),
+    0 0 0 6px rgba(99, 102, 241, 0.15);
 }
 
 .quiz-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: var(--slider-color);
   border-radius: 50%;
-  border: 3px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 4px solid white;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 4px rgba(99, 102, 241, 0.1);
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
 }
 
 .quiz-slider::-moz-range-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Fade in animation */
+/* ─────────────────────────────────────────────────────────────────────
+   ✨ Utility Animations
+   ───────────────────────────────────────────────────────────────────── */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -76,4 +463,91 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 60px rgba(245, 158, 11, 0.6);
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(400px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti-fall {
+  animation: confetti-fall 3s ease-out forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   📱 Mobile Responsive Utilities
+   ───────────────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Touch-friendly minimum sizes */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Safe area padding for mobile */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+  
+  /* Smooth scrolling */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   🌙 Dark Mode Overrides
+   ───────────────────────────────────────────────────────────────────── */
+.dark .card-3d {
+  box-shadow: 
+    0 20px 50px -12px rgba(0, 0, 0, 0.5),
+    0 10px 10px -5px rgba(0, 0, 0, 0.3),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.dark .option-card {
+  @apply bg-slate-800;
+  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.dark .option-card.selected {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+}
+
+.dark .emoji-card {
+  @apply bg-slate-800;
+}
+
+.dark .input-modern {
+  @apply bg-slate-700 text-white;
+}
+
+.dark .input-modern:focus {
+  @apply bg-slate-800;
 }

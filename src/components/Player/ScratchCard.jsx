@@ -4,14 +4,17 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 
 /**
  * Interactive Scratch Card component for the Quiz Player.
- * Uses HTML5 Canvas with globalCompositeOperation for scratch effect.
+ * Premium design with 3D golden coin, tactile scratch texture, and celebration effects.
+ * 
+ * Design System v2.0 - QuizMeBaby
  */
 export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [revealed, setRevealed] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [cardSize, setCardSize] = useState({ w: 300, h: 200 });
+  const [scratchProgress, setScratchProgress] = useState(0);
+  const [cardSize, setCardSize] = useState({ w: 320, h: 200 });
   const isDrawingRef = useRef(false);
   const lastPosRef = useRef(null);
   const scratchedRef = useRef(0);
@@ -19,16 +22,16 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
   const revealTriggeredRef = useRef(false);
   const dprRef = useRef(1);
 
-  const coverColor = element.coverColor || '#7c3aed';
+  const coverColor = element.coverColor || '#6366f1';
   const coverPattern = element.coverPattern || 'dots';
-  const revealText = element.revealText || '🎉 Prêmio!';
+  const revealText = element.revealText || '🎉 Você ganhou!';
 
   // Responsive sizing
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
-        const w = Math.min(containerRef.current.offsetWidth - 16, 360);
-        setCardSize({ w, h: Math.round(w * 0.6) });
+        const w = Math.min(containerRef.current.offsetWidth - 16, 380);
+        setCardSize({ w, h: Math.round(w * 0.55) });
       }
     };
     handleResize();
@@ -36,7 +39,7 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Draw the cover layer
+  // Draw the cover layer with premium texture
   const drawCover = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -44,7 +47,6 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     const dpr = window.devicePixelRatio || 1;
     dprRef.current = dpr;
     
-    // Set canvas size accounting for DPR
     canvas.width = cardSize.w * dpr;
     canvas.height = cardSize.h * dpr;
     canvas.style.width = cardSize.w + 'px';
@@ -53,57 +55,71 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     totalPixelsRef.current = cardSize.w * cardSize.h;
     scratchedRef.current = 0;
     revealTriggeredRef.current = false;
+    setScratchProgress(0);
 
-    // Scale context ONCE for high DPI displays
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // Base cover color
-    ctx.fillStyle = coverColor;
+    // Gradient background for more depth
+    const gradient = ctx.createLinearGradient(0, 0, cardSize.w, cardSize.h);
+    gradient.addColorStop(0, lightenColor(coverColor, 15));
+    gradient.addColorStop(0.5, coverColor);
+    gradient.addColorStop(1, darkenColor(coverColor, 10));
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, cardSize.w, cardSize.h);
 
-    // Pattern overlay
+    // Scratch texture pattern
     if (coverPattern === 'dots') {
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      for (let x = 0; x < cardSize.w; x += 20) {
-        for (let y = 0; y < cardSize.h; y += 20) {
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      for (let x = 0; x < cardSize.w; x += 16) {
+        for (let y = 0; y < cardSize.h; y += 16) {
           ctx.beginPath();
-          ctx.arc(x + 10, y + 10, 4, 0, Math.PI * 2);
+          ctx.arc(x + 8, y + 8, 3, 0, Math.PI * 2);
           ctx.fill();
         }
       }
     } else if (coverPattern === 'stars') {
       ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      ctx.font = '16px sans-serif';
+      ctx.font = '14px sans-serif';
       const stars = ['⭐', '✨', '💫', '⭐', '✨'];
       let si = 0;
-      for (let x = 10; x < cardSize.w; x += 35) {
-        for (let y = 20; y < cardSize.h; y += 30) {
+      for (let x = 10; x < cardSize.w; x += 40) {
+        for (let y = 20; y < cardSize.h; y += 35) {
           ctx.fillText(stars[si % stars.length], x, y);
           si++;
         }
       }
     }
 
-    // "Raspe aqui" text
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = `bold ${Math.max(16, cardSize.w / 16)}px Inter, sans-serif`;
+    // Metallic shine effect at top
+    const shineGradient = ctx.createLinearGradient(0, 0, 0, cardSize.h * 0.4);
+    shineGradient.addColorStop(0, 'rgba(255,255,255,0.25)');
+    shineGradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = shineGradient;
+    ctx.fillRect(0, 0, cardSize.w, cardSize.h * 0.4);
+
+    // "Raspe aqui" text with shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.font = `bold ${Math.max(18, cardSize.w / 14)}px "Outfit", system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Raspe aqui ✨', cardSize.w / 2, cardSize.h / 2);
+    ctx.fillText('✨ Raspe aqui ✨', cardSize.w / 2, cardSize.h / 2);
+    ctx.shadowBlur = 0;
   }, [cardSize, coverColor, coverPattern]);
 
   useEffect(() => {
     if (!revealed) drawCover();
   }, [drawCover, revealed]);
 
-  // Get position from mouse or touch event - FIXED coordinate calculation
+  // Get position from mouse or touch event
   const getPos = useCallback((e) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     
     const rect = canvas.getBoundingClientRect();
     
-    // Get client coordinates
     let clientX, clientY;
     if (e.touches && e.touches.length > 0) {
       clientX = e.touches[0].clientX;
@@ -116,8 +132,6 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
       clientY = e.clientY;
     }
     
-    // Calculate position relative to canvas (in CSS pixels)
-    // Account for any scaling of the canvas element
     const scaleX = cardSize.w / rect.width;
     const scaleY = cardSize.h / rect.height;
     
@@ -127,7 +141,7 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     };
   }, [cardSize]);
 
-  // Scratch at position - FIXED to not double-scale
+  // Scratch at position
   const scratch = useCallback((pos) => {
     if (!pos) return;
     const canvas = canvasRef.current;
@@ -135,20 +149,15 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     const ctx = canvas.getContext('2d');
     const dpr = dprRef.current;
 
-    // Set the transform to account for DPR (same as drawCover)
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    
-    // Use destination-out to "erase" the cover
     ctx.globalCompositeOperation = 'destination-out';
     
-    const brushSize = 24;
+    const brushSize = 28;
     
-    // Draw circle at current position
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, brushSize, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw stroke from last position for smooth lines
     if (lastPosRef.current) {
       ctx.lineWidth = brushSize * 2;
       ctx.lineCap = 'round';
@@ -159,18 +168,16 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
       ctx.stroke();
     }
     
-    // Reset composite operation
     ctx.globalCompositeOperation = 'source-over';
-
     lastPosRef.current = pos;
 
-    // Track scratched area (approximate)
+    // Track progress
     scratchedRef.current += brushSize * brushSize * 4;
-    const scratchPercent = scratchedRef.current / totalPixelsRef.current;
+    const progress = Math.min(100, (scratchedRef.current / totalPixelsRef.current) * 100);
+    setScratchProgress(Math.round(progress));
     
-    if (scratchPercent > 0.5 && !revealTriggeredRef.current) {
+    if (progress > 45 && !revealTriggeredRef.current) {
       revealTriggeredRef.current = true;
-      // Auto-reveal with fade
       setTimeout(() => {
         setRevealed(true);
         setTimeout(() => setShowCelebration(true), 200);
@@ -183,14 +190,12 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     e.preventDefault();
     isDrawingRef.current = true;
     lastPosRef.current = null;
-    const pos = getPos(e);
-    scratch(pos);
+    scratch(getPos(e));
   };
   
   const onMouseMove = (e) => {
     if (!isDrawingRef.current) return;
-    const pos = getPos(e);
-    scratch(pos);
+    scratch(getPos(e));
   };
   
   const onMouseUp = () => {
@@ -203,15 +208,13 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     e.preventDefault();
     isDrawingRef.current = true;
     lastPosRef.current = null;
-    const pos = getPos(e);
-    scratch(pos);
+    scratch(getPos(e));
   };
   
   const onTouchMove = (e) => {
     e.preventDefault();
     if (!isDrawingRef.current) return;
-    const pos = getPos(e);
-    scratch(pos);
+    scratch(getPos(e));
   };
   
   const onTouchEnd = (e) => {
@@ -220,35 +223,67 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     lastPosRef.current = null;
   };
 
-  // Confetti-like particles
-  const particles = showCelebration ? Array.from({ length: 24 }, (_, i) => ({
+  // Celebration confetti particles
+  const particles = showCelebration ? Array.from({ length: 30 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     delay: Math.random() * 0.5,
-    duration: 1 + Math.random() * 1.5,
-    size: 6 + Math.random() * 10,
-    color: ['#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'][i % 5],
+    duration: 1.5 + Math.random() * 1.5,
+    size: 8 + Math.random() * 12,
+    color: ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'][i % 6],
+    rotation: Math.random() * 360,
   })) : [];
 
   return (
     <div ref={containerRef} className="flex flex-col items-center w-full">
-      <h2 className="text-xl font-bold text-gray-800 mb-2 text-center">
-        {element.title || 'Raspe e descubra!'}
-      </h2>
-      <p className="text-sm text-gray-500 mb-4 text-center">
-        {element.instruction || 'Passe o dedo para revelar seu prêmio'}
-      </p>
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6 w-full">
+        <div 
+          className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+          style={{ 
+            background: `linear-gradient(135deg, ${coverColor}, ${darkenColor(coverColor, 15)})`,
+            boxShadow: `0 8px 24px ${coverColor}40`,
+          }}
+        >
+          <span className="text-2xl">🎫</span>
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 font-display">
+            {element.title || 'Raspe e descubra!'}
+          </h2>
+          <p className="text-sm text-gray-500">
+            {element.instruction || 'Use o dedo para raspar'}
+          </p>
+        </div>
+      </div>
 
+      {/* Scratch Card */}
       <div
-        className="relative rounded-2xl overflow-hidden shadow-lg mb-6 select-none"
-        style={{ width: cardSize.w, height: cardSize.h }}
+        className="relative rounded-3xl overflow-hidden shadow-2xl mb-6 select-none"
+        style={{ 
+          width: cardSize.w, 
+          height: cardSize.h,
+          boxShadow: `
+            0 20px 50px -12px rgba(0, 0, 0, 0.25),
+            0 10px 20px -5px rgba(0, 0, 0, 0.1),
+            inset 0 1px 1px rgba(255, 255, 255, 0.1)
+          `,
+        }}
       >
         {/* Reveal layer (underneath) */}
         <div
-          className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100"
+          className="absolute inset-0 flex items-center justify-center p-6"
+          style={{ 
+            background: `linear-gradient(135deg, 
+              ${lightenColor(coverColor, 50)} 0%, 
+              ${lightenColor(coverColor, 40)} 50%, 
+              ${lightenColor(coverColor, 45)} 100%
+            )`,
+          }}
         >
           <div className="text-center">
-            <p className="text-3xl font-bold text-gray-800 leading-snug break-words">
+            <div className="text-4xl mb-2">🎁</div>
+            <p className="text-2xl font-bold text-gray-800 leading-snug break-words font-display">
               {revealText}
             </p>
           </div>
@@ -270,43 +305,96 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
           />
         )}
 
+        {/* Golden coin cursor hint */}
+        {!revealed && !isDrawingRef.current && (
+          <div 
+            className="absolute bottom-4 right-4 pointer-events-none"
+            style={{ animation: 'bounce-soft 2s ease-in-out infinite' }}
+          >
+            <div 
+              className="w-12 h-12 rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(145deg, #fcd34d 0%, #f59e0b 50%, #d97706 100%)',
+                boxShadow: `
+                  0 6px 16px rgba(245, 158, 11, 0.4),
+                  inset 0 -3px 6px rgba(0,0,0,0.2),
+                  inset 0 3px 6px rgba(255,255,255,0.4)
+                `,
+                border: '3px solid #fef3c7',
+              }}
+            >
+              <span className="text-white text-lg font-bold">⭐</span>
+            </div>
+          </div>
+        )}
+
         {/* Fade-out overlay when auto-revealing */}
         {revealed && (
-          <div className="absolute inset-0 pointer-events-none animate-coverFade" style={{ backgroundColor: coverColor }} />
+          <div 
+            className="absolute inset-0 pointer-events-none" 
+            style={{ 
+              backgroundColor: coverColor,
+              animation: 'fadeOut 0.6s ease forwards',
+            }} 
+          />
         )}
 
         {/* Celebration particles */}
         {showCelebration && particles.map((p) => (
           <div
             key={p.id}
-            className="absolute animate-confetti pointer-events-none"
+            className="absolute pointer-events-none"
             style={{
               left: `${p.x}%`,
               top: '-10%',
-              animationDelay: `${p.delay}s`,
-              animationDuration: `${p.duration}s`,
               width: p.size,
               height: p.size,
               backgroundColor: p.color,
-              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+              borderRadius: Math.random() > 0.5 ? '50%' : '3px',
+              animation: `confetti-fall ${p.duration}s ease-out forwards`,
+              animationDelay: `${p.delay}s`,
+              transform: `rotate(${p.rotation}deg)`,
             }}
           />
         ))}
       </div>
 
+      {/* Progress indicator */}
+      {!revealed && scratchProgress > 0 && (
+        <div className="w-full max-w-xs mb-4">
+          <div className="flex justify-between text-sm text-gray-500 mb-1">
+            <span>Progresso</span>
+            <span>{scratchProgress}%</span>
+          </div>
+          <div 
+            className="h-2 bg-gray-200 rounded-full overflow-hidden"
+            style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
+          >
+            <div 
+              className="h-full rounded-full transition-all duration-300"
+              style={{ 
+                width: `${scratchProgress}%`,
+                background: `linear-gradient(90deg, ${coverColor}, ${lightenColor(coverColor, 15)})`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Continue button after reveal */}
       {showCelebration && (
-        <div className="w-full max-w-xs animate-slideUp">
-          <div className="text-center mb-4">
-            <span className="text-4xl">🎊</span>
-            <p className="text-lg font-bold text-gray-800 mt-1">Revelado!</p>
+        <div className="w-full max-w-xs" style={{ animation: 'slideUp 0.5s ease-out' }}>
+          <div className="text-center mb-5">
+            <span className="text-5xl" style={{ animation: 'bounce-soft 1s ease-in-out infinite' }}>🎊</span>
+            <p className="text-xl font-bold text-gray-900 mt-2 font-display">Revelado!</p>
           </div>
           <button
             onClick={() => onComplete && onComplete({ text: revealText })}
-            className="w-full text-white py-3 font-medium transition-opacity hover:opacity-90"
+            className="w-full text-white py-4 font-bold text-lg transition-all hover:-translate-y-0.5"
             style={{
-              backgroundColor: theme?.primaryColor || '#7c3aed',
-              borderRadius: btnRadius || '0.75rem',
+              background: `linear-gradient(135deg, ${theme?.primaryColor || coverColor}, ${darkenColor(theme?.primaryColor || coverColor, 10)})`,
+              borderRadius: '1rem',
+              boxShadow: `0 6px 0 ${darkenColor(theme?.primaryColor || coverColor, 25)}, 0 10px 24px ${theme?.primaryColor || coverColor}40`,
             }}
           >
             Continuar →
@@ -315,22 +403,44 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
       )}
 
       <style jsx>{`
-        @keyframes coverFade {
+        @keyframes fadeOut {
           from { opacity: 1; }
           to { opacity: 0; }
         }
-        @keyframes confetti {
+        @keyframes confetti-fall {
           0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(300px) rotate(720deg); opacity: 0; }
+          100% { transform: translateY(350px) rotate(720deg); opacity: 0; }
         }
         @keyframes slideUp {
           from { transform: translateY(20px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
         }
-        .animate-coverFade { animation: coverFade 0.6s ease forwards; }
-        .animate-confetti { animation: confetti 2s ease-out forwards; }
-        .animate-slideUp { animation: slideUp 0.5s ease 0.3s both; }
+        @keyframes bounce-soft {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
       `}</style>
     </div>
   );
+}
+
+// Color utility functions
+function lightenColor(hex, percent) {
+  if (!hex) return '#a5b4fc';
+  const num = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.min(255, (num >> 16) + amt);
+  const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+  const B = Math.min(255, (num & 0x0000FF) + amt);
+  return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+}
+
+function darkenColor(hex, percent) {
+  if (!hex) return '#4f46e5';
+  const num = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.max(0, (num >> 16) - amt);
+  const G = Math.max(0, ((num >> 8) & 0x00FF) - amt);
+  const B = Math.max(0, (num & 0x0000FF) - amt);
+  return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
 }

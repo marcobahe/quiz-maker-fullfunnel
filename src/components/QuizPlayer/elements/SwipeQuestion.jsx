@@ -2,6 +2,12 @@
 
 import { useState, useRef } from 'react';
 
+/**
+ * Interactive Swipe/Tinder-style Question component.
+ * Premium 3D design with smooth animations, stacked cards, and tactile buttons.
+ * 
+ * Design System v2.0 - QuizMeBaby
+ */
 export default function SwipeQuestion({
   element,
   onAnswer,
@@ -26,7 +32,7 @@ export default function SwipeQuestion({
   const startX = useRef(0);
 
   const SWIPE_THRESHOLD = 100;
-  const MAX_ROTATION = 12;
+  const MAX_ROTATION = 15;
 
   // Calculate rotation based on drag
   const rotation = Math.min(Math.max((dragX / SWIPE_THRESHOLD) * MAX_ROTATION, -MAX_ROTATION), MAX_ROTATION);
@@ -107,7 +113,7 @@ export default function SwipeQuestion({
   const getCardStyle = () => {
     if (exitDirection) {
       return {
-        transform: `translateX(${exitDirection === 'right' ? '150%' : '-150%'}) rotate(${exitDirection === 'right' ? 30 : -30}deg)`,
+        transform: `translateX(${exitDirection === 'right' ? '150%' : '-150%'}) rotate(${exitDirection === 'right' ? 35 : -35}deg)`,
         opacity: 0,
         transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
       };
@@ -130,37 +136,45 @@ export default function SwipeQuestion({
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-sm mx-auto select-none py-2">
-      {/* Question text - larger and bolder */}
+    <div className="flex flex-col items-center w-full max-w-sm mx-auto select-none py-4">
+      {/* Question text */}
       <h3 
-        className="text-2xl font-bold text-center mb-6 px-4 leading-tight"
+        className="text-2xl font-bold text-center mb-8 px-4 leading-tight font-display"
         style={{ color: '#1e293b' }}
       >
         {question}
       </h3>
 
-      {/* Card Container with proper spacing */}
+      {/* Card Container */}
       <div className="relative w-full px-4" style={{ maxWidth: '340px' }}>
-        {/* Background cards for stack effect */}
+        {/* Background cards for premium stack effect */}
         <div 
-          className="absolute inset-x-6 -bottom-2 h-full rounded-3xl bg-gray-200/50 -z-10"
-          style={{ transform: 'scale(0.95)' }}
+          className="absolute inset-x-6 -bottom-3 h-full rounded-3xl -z-20"
+          style={{ 
+            transform: 'scale(0.92)',
+            background: 'rgba(255,255,255,0.4)',
+            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
+          }}
         />
         <div 
-          className="absolute inset-x-4 -bottom-1 h-full rounded-3xl bg-gray-200/30 -z-20"
-          style={{ transform: 'scale(0.9)' }}
+          className="absolute inset-x-4 -bottom-1.5 h-full rounded-3xl -z-10"
+          style={{ 
+            transform: 'scale(0.96)',
+            background: 'rgba(255,255,255,0.6)',
+            boxShadow: '0 8px 20px -5px rgba(0,0,0,0.08)',
+          }}
         />
 
         {/* Main Swipeable Card */}
         <div
           ref={cardRef}
-          className="relative w-full rounded-3xl overflow-hidden cursor-grab active:cursor-grabbing"
+          className="relative w-full rounded-3xl overflow-hidden cursor-grab active:cursor-grabbing bg-white"
           style={{
             ...getCardStyle(),
             aspectRatio: '3/4',
             boxShadow: isDragging 
-              ? '0 30px 60px -12px rgba(0, 0, 0, 0.4)' 
-              : '0 20px 50px -12px rgba(0, 0, 0, 0.25)',
+              ? '0 35px 70px -15px rgba(0, 0, 0, 0.35), 0 15px 30px -10px rgba(0,0,0,0.2)' 
+              : '0 25px 60px -15px rgba(0, 0, 0, 0.25), 0 10px 20px -5px rgba(0,0,0,0.1)',
           }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
@@ -179,13 +193,13 @@ export default function SwipeQuestion({
               draggable={false}
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
               <div 
-                className="transition-transform duration-300"
+                className="transition-all duration-300"
                 style={{ 
-                  fontSize: '8rem',
-                  filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))',
-                  transform: isDragging ? 'scale(1.1) rotate(-5deg)' : 'scale(1)',
+                  fontSize: '7rem',
+                  filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.15))',
+                  transform: isDragging ? 'scale(1.15) rotate(-8deg)' : 'scale(1)',
                 }}
               >
                 🎯
@@ -195,14 +209,20 @@ export default function SwipeQuestion({
 
           {/* Left swipe overlay (NOPE) */}
           <div 
-            className="absolute inset-0 bg-gradient-to-r from-rose-500/30 to-transparent pointer-events-none transition-opacity"
-            style={{ opacity: getSwipeIndicatorOpacity('left') }}
+            className="absolute inset-0 pointer-events-none transition-opacity duration-200"
+            style={{ 
+              opacity: getSwipeIndicatorOpacity('left'),
+              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, transparent 60%)',
+            }}
           />
 
           {/* Right swipe overlay (LIKE) */}
           <div 
-            className="absolute inset-0 bg-gradient-to-l from-emerald-500/30 to-transparent pointer-events-none transition-opacity"
-            style={{ opacity: getSwipeIndicatorOpacity('right') }}
+            className="absolute inset-0 pointer-events-none transition-opacity duration-200"
+            style={{ 
+              opacity: getSwipeIndicatorOpacity('right'),
+              background: 'linear-gradient(225deg, rgba(16, 185, 129, 0.35) 0%, transparent 60%)',
+            }}
           />
 
           {/* NOPE stamp (left swipe) */}
@@ -214,8 +234,14 @@ export default function SwipeQuestion({
               transition: isDragging ? 'none' : 'all 0.2s ease-out',
             }}
           >
-            <div className="px-6 py-3 rounded-xl border-4 border-rose-500 bg-white/95 shadow-lg">
-              <span className="text-3xl font-black text-rose-500 tracking-wider">
+            <div 
+              className="px-6 py-3 rounded-xl bg-white/95 shadow-xl"
+              style={{
+                border: '4px solid #ef4444',
+                boxShadow: '0 8px 24px rgba(239, 68, 68, 0.3)',
+              }}
+            >
+              <span className="text-3xl font-black text-rose-500 tracking-wider font-display">
                 {leftLabel.toUpperCase()}
               </span>
             </div>
@@ -230,21 +256,27 @@ export default function SwipeQuestion({
               transition: isDragging ? 'none' : 'all 0.2s ease-out',
             }}
           >
-            <div className="px-6 py-3 rounded-xl border-4 border-emerald-500 bg-white/95 shadow-lg">
-              <span className="text-3xl font-black text-emerald-500 tracking-wider">
+            <div 
+              className="px-6 py-3 rounded-xl bg-white/95 shadow-xl"
+              style={{
+                border: '4px solid #10b981',
+                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+              }}
+            >
+              <span className="text-3xl font-black text-emerald-500 tracking-wider font-display">
                 {rightLabel.toUpperCase()}
               </span>
             </div>
           </div>
 
-          {/* Bottom gradient for hint */}
+          {/* Bottom hint overlay */}
           {!answered && dragX === 0 && !isDragging && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent p-6 pt-16">
-              <div className="flex items-center justify-center gap-3">
-                <div className="flex items-center gap-2 text-white/90 text-base font-medium bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <span className="animate-pulse">👈</span>
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-6 pt-20">
+              <div className="flex items-center justify-center">
+                <div className="flex items-center gap-3 text-white/90 text-base font-semibold bg-white/20 backdrop-blur-sm px-5 py-2.5 rounded-full">
+                  <span style={{ animation: 'bounce-horizontal 1.5s ease-in-out infinite' }}>👈</span>
                   <span>Arraste para escolher</span>
-                  <span className="animate-pulse">👉</span>
+                  <span style={{ animation: 'bounce-horizontal 1.5s ease-in-out infinite reverse' }}>👉</span>
                 </div>
               </div>
             </div>
@@ -252,30 +284,36 @@ export default function SwipeQuestion({
         </div>
       </div>
 
-      {/* Action Buttons - Larger and more prominent */}
-      <div className="flex items-center justify-center gap-8 mt-8">
+      {/* Action Buttons - 3D Tactile Design */}
+      <div className="flex items-center justify-center gap-10 mt-10">
         {/* Nope Button */}
         <button
           onClick={handleLeftClick}
           disabled={answered}
-          className="group relative transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+          className="group relative transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ transform: answered ? 'scale(1)' : 'scale(1)' }}
+          onMouseEnter={(e) => !answered && (e.currentTarget.style.transform = 'scale(1.1) translateY(-4px)')}
+          onMouseLeave={(e) => !answered && (e.currentTarget.style.transform = 'scale(1)')}
+          onMouseDown={(e) => !answered && (e.currentTarget.style.transform = 'scale(0.95)')}
+          onMouseUp={(e) => !answered && (e.currentTarget.style.transform = 'scale(1.1) translateY(-4px)')}
         >
           <div 
-            className="w-18 h-18 rounded-full flex items-center justify-center text-3xl transition-all duration-200 border-3 shadow-lg"
+            className="flex items-center justify-center text-4xl transition-all duration-200"
             style={{
               width: '72px',
               height: '72px',
+              borderRadius: '50%',
               backgroundColor: dragX < -20 ? '#fee2e2' : 'white',
-              borderColor: dragX < -20 ? '#ef4444' : '#fecaca',
-              borderWidth: '3px',
+              border: `4px solid ${dragX < -20 ? '#ef4444' : '#fecaca'}`,
               boxShadow: dragX < -20 
-                ? '0 0 30px rgba(239, 68, 68, 0.5), 0 8px 24px rgba(0,0,0,0.15)' 
-                : '0 8px 24px rgba(0,0,0,0.12)',
+                ? '0 0 35px rgba(239, 68, 68, 0.5), 0 8px 0 #f87171, 0 12px 20px rgba(0,0,0,0.15)' 
+                : '0 6px 0 #fecaca, 0 10px 20px rgba(0,0,0,0.1)',
+              transform: dragX < -20 ? 'translateY(2px)' : 'translateY(0)',
             }}
           >
-            <span style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.1))' }}>{leftIcon}</span>
+            <span style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }}>{leftIcon}</span>
           </div>
-          <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-500 whitespace-nowrap">
+          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sm font-bold text-gray-500 whitespace-nowrap uppercase tracking-wide">
             {leftLabel}
           </span>
         </button>
@@ -284,28 +322,40 @@ export default function SwipeQuestion({
         <button
           onClick={handleRightClick}
           disabled={answered}
-          className="group relative transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+          className="group relative transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          onMouseEnter={(e) => !answered && (e.currentTarget.style.transform = 'scale(1.1) translateY(-4px)')}
+          onMouseLeave={(e) => !answered && (e.currentTarget.style.transform = 'scale(1)')}
+          onMouseDown={(e) => !answered && (e.currentTarget.style.transform = 'scale(0.95)')}
+          onMouseUp={(e) => !answered && (e.currentTarget.style.transform = 'scale(1.1) translateY(-4px)')}
         >
           <div 
-            className="w-18 h-18 rounded-full flex items-center justify-center text-3xl transition-all duration-200 border-3 shadow-lg"
+            className="flex items-center justify-center text-4xl transition-all duration-200"
             style={{
               width: '72px',
               height: '72px',
+              borderRadius: '50%',
               backgroundColor: dragX > 20 ? '#dcfce7' : 'white',
-              borderColor: dragX > 20 ? '#22c55e' : '#bbf7d0',
-              borderWidth: '3px',
+              border: `4px solid ${dragX > 20 ? '#10b981' : '#bbf7d0'}`,
               boxShadow: dragX > 20 
-                ? '0 0 30px rgba(34, 197, 94, 0.5), 0 8px 24px rgba(0,0,0,0.15)' 
-                : '0 8px 24px rgba(0,0,0,0.12)',
+                ? '0 0 35px rgba(16, 185, 129, 0.5), 0 8px 0 #34d399, 0 12px 20px rgba(0,0,0,0.15)' 
+                : '0 6px 0 #bbf7d0, 0 10px 20px rgba(0,0,0,0.1)',
+              transform: dragX > 20 ? 'translateY(2px)' : 'translateY(0)',
             }}
           >
-            <span style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.1))' }}>{rightIcon}</span>
+            <span style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }}>{rightIcon}</span>
           </div>
-          <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-500 whitespace-nowrap">
+          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sm font-bold text-gray-500 whitespace-nowrap uppercase tracking-wide">
             {rightLabel}
           </span>
         </button>
       </div>
+
+      <style jsx>{`
+        @keyframes bounce-horizontal {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-4px); }
+        }
+      `}</style>
     </div>
   );
 }

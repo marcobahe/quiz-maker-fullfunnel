@@ -4,19 +4,21 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 
 /**
  * Interactive Spin Wheel (Fortune Wheel) component for the Quiz Player.
- * Premium design with gradients, metallic border, and 3D effects.
+ * Premium 3D tactile design with gradients, metallic border, and smooth animations.
+ * 
+ * Design System v2.0 - QuizMeBaby
  */
 
 // Vibrant gradient color pairs for segments
 const GRADIENT_COLORS = [
-  { start: '#FF6B6B', end: '#FF3366' },  // Red
-  { start: '#4ECDC4', end: '#2BAB9F' },  // Teal
-  { start: '#FFE66D', end: '#FFD93D' },  // Yellow
-  { start: '#95E1D3', end: '#5DC0A6' },  // Mint
-  { start: '#A66CFF', end: '#8B5CF6' },  // Purple
-  { start: '#FF9F43', end: '#FF6B35' },  // Orange
-  { start: '#54A0FF', end: '#3B82F6' },  // Blue
-  { start: '#FF78C4', end: '#F472B6' },  // Pink
+  { start: '#6366f1', end: '#4f46e5' },  // Indigo (Primary)
+  { start: '#ec4899', end: '#db2777' },  // Pink
+  { start: '#f59e0b', end: '#d97706' },  // Amber (Gold)
+  { start: '#10b981', end: '#059669' },  // Emerald
+  { start: '#3b82f6', end: '#2563eb' },  // Blue
+  { start: '#f97316', end: '#ea580c' },  // Orange
+  { start: '#8b5cf6', end: '#7c3aed' },  // Violet
+  { start: '#14b8a6', end: '#0d9488' },  // Teal
 ];
 
 export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
@@ -46,7 +48,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Draw premium wheel
+  // Draw premium wheel with 3D effects
   const drawWheel = useCallback((angle = 0) => {
     const canvas = canvasRef.current;
     if (!canvas || segments.length === 0) return;
@@ -61,28 +63,34 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
 
     const cx = size / 2;
     const cy = size / 2;
-    const radius = size / 2 - 16;
+    const radius = size / 2 - 20;
 
     ctx.clearRect(0, 0, size, size);
 
+    // Outer shadow (3D depth)
+    ctx.beginPath();
+    ctx.arc(cx, cy + 6, radius + 12, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fill();
+
     // Outer metallic ring (gold/bronze gradient)
     const outerRing = ctx.createLinearGradient(0, 0, size, size);
-    outerRing.addColorStop(0, '#FFD700');
-    outerRing.addColorStop(0.3, '#FFA500');
-    outerRing.addColorStop(0.5, '#FFE55C');
-    outerRing.addColorStop(0.7, '#DAA520');
-    outerRing.addColorStop(1, '#B8860B');
+    outerRing.addColorStop(0, '#fcd34d');
+    outerRing.addColorStop(0.3, '#f59e0b');
+    outerRing.addColorStop(0.5, '#fbbf24');
+    outerRing.addColorStop(0.7, '#d97706');
+    outerRing.addColorStop(1, '#b45309');
     
     ctx.beginPath();
-    ctx.arc(cx, cy, radius + 10, 0, Math.PI * 2);
+    ctx.arc(cx, cy, radius + 12, 0, Math.PI * 2);
     ctx.fillStyle = outerRing;
     ctx.fill();
     
-    // Inner shadow for 3D effect
+    // Inner border of outer ring
     ctx.beginPath();
     ctx.arc(cx, cy, radius + 6, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 2;
     ctx.stroke();
 
     // Draw segments with gradients
@@ -94,8 +102,9 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
       const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
       const colors = GRADIENT_COLORS[i % GRADIENT_COLORS.length];
       const baseColor = seg.color || colors.start;
-      gradient.addColorStop(0, lightenColor(baseColor, 30));
-      gradient.addColorStop(0.5, baseColor);
+      gradient.addColorStop(0, lightenColor(baseColor, 40));
+      gradient.addColorStop(0.4, lightenColor(baseColor, 15));
+      gradient.addColorStop(0.8, baseColor);
       gradient.addColorStop(1, darkenColor(baseColor, 15));
       
       ctx.beginPath();
@@ -105,25 +114,35 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
       ctx.fillStyle = gradient;
       ctx.fill();
       
-      // Segment border (subtle white line)
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      // Segment border (subtle white line for 3D effect)
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Text with better styling
+      // Shine effect on segment
+      const shineGradient = ctx.createLinearGradient(
+        cx + Math.cos(startAngle + sweepAngle / 2) * radius * 0.3,
+        cy + Math.sin(startAngle + sweepAngle / 2) * radius * 0.3,
+        cx + Math.cos(startAngle + sweepAngle / 2) * radius,
+        cy + Math.sin(startAngle + sweepAngle / 2) * radius
+      );
+      shineGradient.addColorStop(0, 'rgba(255,255,255,0.15)');
+      shineGradient.addColorStop(1, 'rgba(255,255,255,0)');
+
+      // Text with premium styling
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(startAngle + sweepAngle / 2);
       ctx.textAlign = 'right';
       ctx.fillStyle = '#ffffff';
-      ctx.font = `bold ${Math.max(11, Math.min(15, radius / 9))}px Inter, system-ui, sans-serif`;
+      ctx.font = `bold ${Math.max(12, Math.min(16, radius / 8))}px "Outfit", system-ui, sans-serif`;
       ctx.shadowColor = 'rgba(0,0,0,0.5)';
       ctx.shadowBlur = 4;
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1;
       
       const text = seg.text || '';
-      const maxWidth = radius - 35;
+      const maxWidth = radius - 40;
       let displayText = text;
       if (ctx.measureText(text).width > maxWidth) {
         while (displayText.length > 3 && ctx.measureText(displayText + '…').width > maxWidth) {
@@ -131,7 +150,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
         }
         displayText += '…';
       }
-      ctx.fillText(displayText, radius - 20, 5);
+      ctx.fillText(displayText, radius - 25, 5);
       ctx.restore();
 
       startAngle += sweepAngle;
@@ -139,64 +158,78 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
 
     // Inner decorative ring
     ctx.beginPath();
-    ctx.arc(cx, cy, radius * 0.15, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,215,0,0.6)';
+    ctx.arc(cx, cy, radius * 0.18, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,215,0,0.5)';
     ctx.lineWidth = 3;
     ctx.stroke();
 
+    // Center hub shadow
+    ctx.beginPath();
+    ctx.arc(cx, cy + 2, 30, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fill();
+
     // Center hub (premium metallic)
-    const hubGradient = ctx.createRadialGradient(cx - 5, cy - 5, 0, cx, cy, 28);
+    const hubGradient = ctx.createRadialGradient(cx - 8, cy - 8, 0, cx, cy, 30);
     hubGradient.addColorStop(0, '#ffffff');
-    hubGradient.addColorStop(0.3, '#f8f8f8');
-    hubGradient.addColorStop(0.7, '#e0e0e0');
-    hubGradient.addColorStop(1, '#c0c0c0');
+    hubGradient.addColorStop(0.2, '#f8fafc');
+    hubGradient.addColorStop(0.5, '#e2e8f0');
+    hubGradient.addColorStop(0.8, '#cbd5e1');
+    hubGradient.addColorStop(1, '#94a3b8');
     
     ctx.beginPath();
-    ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 28, 0, Math.PI * 2);
     ctx.fillStyle = hubGradient;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.8)';
     ctx.lineWidth = 2;
     ctx.stroke();
 
     // Center gem/button
-    const gemGradient = ctx.createRadialGradient(cx - 2, cy - 2, 0, cx, cy, 10);
-    gemGradient.addColorStop(0, theme?.primaryColor || '#8B5CF6');
-    gemGradient.addColorStop(0.7, darkenColor(theme?.primaryColor || '#8B5CF6', 20));
-    gemGradient.addColorStop(1, darkenColor(theme?.primaryColor || '#8B5CF6', 40));
+    const gemGradient = ctx.createRadialGradient(cx - 3, cy - 3, 0, cx, cy, 14);
+    const primaryColor = theme?.primaryColor || '#6366f1';
+    gemGradient.addColorStop(0, lightenColor(primaryColor, 20));
+    gemGradient.addColorStop(0.5, primaryColor);
+    gemGradient.addColorStop(1, darkenColor(primaryColor, 30));
     
     ctx.beginPath();
-    ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 14, 0, Math.PI * 2);
     ctx.fillStyle = gemGradient;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    
+    // Gem highlight
+    ctx.beginPath();
+    ctx.arc(cx - 3, cy - 3, 4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fill();
 
-    // Pointer (premium triangle with shadow)
-    const pointerHeight = 28;
-    const pointerWidth = 22;
+    // Pointer (premium triangle with 3D shadow)
+    const pointerHeight = 32;
+    const pointerWidth = 26;
     
     // Pointer shadow
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 3;
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
     
     ctx.beginPath();
-    ctx.moveTo(cx, 6);
-    ctx.lineTo(cx - pointerWidth / 2, pointerHeight + 6);
-    ctx.lineTo(cx + pointerWidth / 2, pointerHeight + 6);
+    ctx.moveTo(cx, 4);
+    ctx.lineTo(cx - pointerWidth / 2, pointerHeight + 4);
+    ctx.lineTo(cx + pointerWidth / 2, pointerHeight + 4);
     ctx.closePath();
     
-    const pointerGradient = ctx.createLinearGradient(cx, 6, cx, pointerHeight + 6);
-    pointerGradient.addColorStop(0, '#FFD700');
-    pointerGradient.addColorStop(0.5, '#FFA500');
-    pointerGradient.addColorStop(1, '#DAA520');
+    // Pointer gradient (gold metallic)
+    const pointerGradient = ctx.createLinearGradient(cx - pointerWidth/2, 4, cx + pointerWidth/2, pointerHeight + 4);
+    pointerGradient.addColorStop(0, '#fcd34d');
+    pointerGradient.addColorStop(0.3, '#f59e0b');
+    pointerGradient.addColorStop(0.5, '#fbbf24');
+    pointerGradient.addColorStop(1, '#d97706');
     ctx.fillStyle = pointerGradient;
     ctx.fill();
     
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    // Pointer border
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.restore();
@@ -218,7 +251,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
     return segments.length - 1;
   };
 
-  // Spin animation
+  // Spin animation with smooth easing
   const spin = () => {
     if (spinning || segments.length === 0) return;
     if (hasSpun && !allowRetry) return;
@@ -243,7 +276,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
     const duration = 4500 + Math.random() * 1000;
     const startTime = performance.now();
 
-    // More dramatic easing
+    // Smooth easing for dramatic effect
     const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
 
     const animate = (now) => {
@@ -267,7 +300,6 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
 
   const handleRetry = () => {
     setResult(null);
-    // Don't reset hasSpun - we track if user ever spun
   };
 
   useEffect(() => {
@@ -276,60 +308,72 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
     };
   }, []);
 
-  // Helper to check if we can spin
   const canSpin = !spinning && (!hasSpun || allowRetry || !result);
 
   return (
     <div ref={containerRef} className="flex flex-col items-center w-full">
-      <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
+      {/* Title */}
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center font-display">
         {element.title || 'Gire a roleta!'}
       </h2>
 
-      {/* Clickable wheel container */}
+      {/* Wheel container with glow */}
       <div 
-        className="relative mb-5 cursor-pointer group"
+        className="relative mb-8 cursor-pointer group"
         onClick={canSpin ? spin : undefined}
         style={{ cursor: canSpin ? 'pointer' : 'default' }}
       >
-        {/* Glow effect on hover */}
+        {/* Glow effect */}
         <div 
-          className="absolute inset-0 rounded-full transition-opacity duration-300 pointer-events-none"
+          className="absolute inset-0 rounded-full transition-all duration-500 pointer-events-none"
           style={{
-            background: `radial-gradient(circle, ${theme?.primaryColor || '#8B5CF6'}30 0%, transparent 70%)`,
-            opacity: canSpin && !spinning ? 0.5 : 0,
-            transform: 'scale(1.1)',
+            background: `radial-gradient(circle, ${theme?.primaryColor || '#6366f1'}40 0%, transparent 60%)`,
+            opacity: canSpin && !spinning ? 0.6 : 0,
+            transform: 'scale(1.15)',
+            filter: 'blur(20px)',
           }}
         />
         
+        {/* Canvas */}
         <canvas 
           ref={canvasRef} 
-          className="block transition-transform duration-200"
+          className="block transition-all duration-300"
           style={{
-            filter: spinning ? 'none' : (canSpin ? 'drop-shadow(0 8px 24px rgba(0,0,0,0.2))' : 'grayscale(0.3) drop-shadow(0 4px 12px rgba(0,0,0,0.15))'),
+            filter: spinning 
+              ? 'drop-shadow(0 12px 32px rgba(0,0,0,0.25))' 
+              : (canSpin 
+                  ? 'drop-shadow(0 8px 24px rgba(0,0,0,0.2))' 
+                  : 'grayscale(0.3) drop-shadow(0 4px 12px rgba(0,0,0,0.15))'
+                ),
           }}
         />
         
-        {/* Click hint overlay */}
+        {/* Hover hint */}
         {canSpin && !spinning && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            <div className="bg-black/60 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full">
-              Clique para girar!
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+            <div className="bg-black/70 backdrop-blur-sm text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-lg">
+              ✨ Clique para girar!
             </div>
           </div>
         )}
       </div>
 
-      {/* Spin button (alternative to clicking wheel) */}
+      {/* 3D Spin Button */}
       {!result && (
         <button
           onClick={spin}
           disabled={!canSpin}
-          className="w-full max-w-xs text-white py-3.5 font-bold text-lg transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+          className="w-full max-w-xs text-white py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 uppercase tracking-wide font-display"
           style={{
-            backgroundColor: theme?.primaryColor || '#7c3aed',
-            borderRadius: btnRadius || '0.75rem',
-            transform: spinning ? 'scale(0.97)' : 'scale(1)',
-            boxShadow: canSpin ? `0 4px 20px ${theme?.primaryColor || '#7c3aed'}40` : 'none',
+            background: canSpin 
+              ? `linear-gradient(135deg, ${theme?.primaryColor || '#6366f1'}, ${darkenColor(theme?.primaryColor || '#6366f1', 10)})` 
+              : '#9ca3af',
+            borderRadius: '1rem',
+            boxShadow: canSpin 
+              ? `0 6px 0 ${darkenColor(theme?.primaryColor || '#6366f1', 25)}, 0 12px 24px ${theme?.primaryColor || '#6366f1'}40`
+              : 'none',
+            transform: spinning ? 'translateY(4px)' : 'translateY(0)',
+            cursor: canSpin ? 'pointer' : 'not-allowed',
           }}
         >
           {spinning ? (
@@ -341,46 +385,59 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
               Girando...
             </>
           ) : (
-            element.buttonText || 'GIRAR!'
+            <>
+              <span className="text-xl">🎰</span>
+              {element.buttonText || 'GIRAR!'}
+            </>
           )}
         </button>
       )}
 
       {/* Result modal */}
       {result && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center animate-bounceIn">
-            <div className="text-6xl mb-4">🎉</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">Parabéns!</h3>
-            <p className="text-lg text-gray-500 mb-3">Você ganhou:</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div 
+            className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center"
+            style={{ animation: 'scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
+          >
+            {/* Celebration */}
+            <div className="text-6xl mb-4" style={{ animation: 'float 2s ease-in-out infinite' }}>
+              🎉
+            </div>
+            
+            <h3 className="text-3xl font-bold text-gray-900 mb-2 font-display">Parabéns!</h3>
+            <p className="text-lg text-gray-500 mb-4">Você ganhou:</p>
+            
+            {/* Prize display */}
             <div
-              className="text-2xl font-bold py-4 px-6 rounded-xl inline-block mb-6"
+              className="text-2xl font-bold py-5 px-8 rounded-2xl inline-block mb-8"
               style={{
-                backgroundColor: `${result.color}15`,
-                color: result.color,
-                border: `2px solid ${result.color}30`,
+                background: `linear-gradient(135deg, ${result.color || theme?.primaryColor}20, ${result.color || theme?.primaryColor}10)`,
+                color: result.color || theme?.primaryColor,
+                border: `3px solid ${result.color || theme?.primaryColor}40`,
+                boxShadow: `0 8px 24px ${result.color || theme?.primaryColor}20`,
               }}
             >
-              {result.text}
+              ✨ {result.text}
             </div>
             
             <div className="space-y-3">
               <button
                 onClick={() => onComplete && onComplete(result)}
-                className="w-full text-white py-3 font-semibold transition-all hover:opacity-90 shadow-md"
+                className="w-full text-white py-4 font-bold text-lg transition-all hover:-translate-y-0.5 shadow-lg"
                 style={{
-                  backgroundColor: theme?.primaryColor || '#7c3aed',
-                  borderRadius: btnRadius || '0.75rem',
+                  background: `linear-gradient(135deg, ${theme?.primaryColor || '#6366f1'}, ${darkenColor(theme?.primaryColor || '#6366f1', 10)})`,
+                  borderRadius: '1rem',
+                  boxShadow: `0 6px 0 ${darkenColor(theme?.primaryColor || '#6366f1', 25)}, 0 10px 20px ${theme?.primaryColor || '#6366f1'}30`,
                 }}
               >
                 Continuar →
               </button>
               
-              {/* Retry button - only if allowRetry is true */}
               {allowRetry && (
                 <button
                   onClick={handleRetry}
-                  className="w-full py-3 font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors"
+                  className="w-full py-3 font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all"
                 >
                   🔄 Tentar novamente
                 </button>
@@ -391,17 +448,14 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
       )}
 
       <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes bounceIn {
+        @keyframes scaleIn {
           0% { transform: scale(0.5); opacity: 0; }
-          50% { transform: scale(1.05); }
           100% { transform: scale(1); opacity: 1; }
         }
-        .animate-fadeIn { animation: fadeIn 0.3s ease; }
-        .animate-bounceIn { animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
       `}</style>
     </div>
   );
