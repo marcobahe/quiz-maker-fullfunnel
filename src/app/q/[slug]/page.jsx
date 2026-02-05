@@ -2807,6 +2807,15 @@ function QuizPlayer() {
                       <div className="space-y-3">
                         {(el.options || []).map((opt, idx) => {
                           const selKey = `${el.id}-${idx}`;
+                          // Check if option text starts with emoji
+                          const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u;
+                          const textMatch = (opt.text || '').match(emojiRegex);
+                          const leadingEmoji = textMatch ? textMatch[0] : null;
+                          const displayEmoji = opt.emoji || leadingEmoji;
+                          const displayText = leadingEmoji 
+                            ? opt.text.slice(leadingEmoji.length).trim() 
+                            : opt.text;
+                          
                           return (
                             <button
                               key={idx}
@@ -2844,14 +2853,14 @@ function QuizPlayer() {
                                     selectedOption === selKey
                                       ? '#ffffff'
                                       : '#6b7280',
-                                  fontSize: opt.emoji ? '1.25rem' : '0.875rem',
-                                  fontWeight: opt.emoji ? 'normal' : '500',
+                                  fontSize: displayEmoji ? '1.25rem' : '0.875rem',
+                                  fontWeight: displayEmoji ? 'normal' : '500',
                                 }}
                               >
-                                {opt.emoji || String.fromCharCode(65 + idx)}
+                                {displayEmoji || String.fromCharCode(65 + idx)}
                               </span>
                               <span className="font-medium text-gray-800 flex-1">
-                                {opt.text}
+                                {displayText}
                               </span>
                             </button>
                           );
