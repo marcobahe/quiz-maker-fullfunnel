@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Check, Eye, Send, ChevronLeft, Save, Copy, ExternalLink, X, CheckCircle } from 'lucide-react';
+import { Check, Eye, Send, ChevronLeft, Save, Copy, ExternalLink, X, CheckCircle, Link2 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export default function TopBar({ quizId }) {
   const pathname = usePathname();
@@ -14,13 +14,28 @@ export default function TopBar({ quizId }) {
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [quizSlug, setQuizSlug] = useState(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
+  // Nova estrutura de abas - mais organizada
   const tabs = [
     { label: 'Canvas', path: `/builder/${quizId || 'new'}` },
-    { label: 'Diagnóstico', path: `/diagnostic/${quizId || 'new'}` },
+    { label: 'Configurações', path: `/diagnostic/${quizId || 'new'}` },
+    { label: 'Aparência', path: `/appearance/${quizId || 'new'}` },
     { label: 'Integração', path: `/integration/${quizId || 'new'}` },
-    { label: 'Analytics', path: `/analytics/${quizId || 'new'}` },
   ];
+
+  // Carregar slug do quiz para mostrar botão de link
+  useEffect(() => {
+    if (quizId && quizStatus === 'Publicado') {
+      fetch(`/api/quizzes/${quizId}/public`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.slug) setQuizSlug(data.slug);
+        })
+        .catch(() => {});
+    }
+  }, [quizId, quizStatus]);
 
   const handleNameChange = (e) => {
     setQuizName(e.target.value);
@@ -72,20 +87,33 @@ export default function TopBar({ quizId }) {
         const quiz = await res.json();
         useQuizStore.getState().publishQuiz();
         setPublishedSlug(quiz.slug);
+        setQuizSlug(quiz.slug);
         setShowPublishModal(true);
         setCopied(false);
       }
     } catch (err) {
       console.error('Failed to publish:', err);
     }
-  }, [quizId, quizName, nodes, edges, handleSave]);
+  }, [quizId, quizName, nodes, edges, handleSave, scoreRanges, quizSettings]);
 
-  const quizUrl = publishedSlug ? `${typeof window !== 'undefined' ? window.location.origin : ''}/q/${publishedSlug}` : '';
+  const quizUrl = publishedSlug 
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/q/${publishedSlug}` 
+    : '';
+
+  const permanentQuizUrl = quizSlug
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/q/${quizSlug}`
+    : '';
 
   const copyLink = () => {
     navigator.clipboard.writeText(quizUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyPermanentLink = () => {
+    navigator.clipboard.writeText(permanentQuizUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   const handlePreview = () => {
@@ -129,6 +157,13 @@ export default function TopBar({ quizId }) {
             <Check size={16} />
             {isSaved ? 'Salvo' : 'Não salvo'}
           </span>
+
+          {/* Status badge */}
+          {quizStatus === 'Publicado' && (
+            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+              Publicado
+            </span>
+          )}
         </div>
 
         {/* Center - Tabs */}
@@ -136,7 +171,8 @@ export default function TopBar({ quizId }) {
           {tabs.map((tab) => {
             const isActive = pathname === tab.path || 
               (tab.label === 'Canvas' && pathname.includes('/builder')) ||
-              (tab.label === 'Analytics' && pathname.includes('/analytics'));
+              (tab.label === 'Configurações' && pathname.includes('/diagnostic')) ||
+              (tab.label === 'Aparência' && pathname.includes('/appearance'));
             return (
               <Link
                 key={tab.path}
@@ -155,6 +191,22 @@ export default function TopBar({ quizId }) {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
+          {/* Botão de Link - aparece quando quiz está publicado */}
+          {quizSlug && (
+            <button 
+              onClick={copyPermanentLink}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                linkCopied
+                  ? 'bg-green-100 text-green-700 border border-green-200'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+              }`}
+              title="Copiar link do quiz"
+            >
+              {linkCopied ? <Check size={16} /> : <Link2 size={16} />}
+              {linkCopied ? 'Copiado!' : 'Link'}
+            </button>
+          )}
+          
           <button 
             onClick={handleSave}
             disabled={saving || isSaved}

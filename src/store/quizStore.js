@@ -208,6 +208,18 @@ const useQuizStore = create((set, get) => ({
       isSaved: false,
     })),
 
+  updateNotifications: (updates) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        notifications: {
+          ...(state.quizSettings.notifications || defaultQuizSettings.notifications),
+          ...updates,
+        },
+      },
+      isSaved: false,
+    })),
+
   updateBehavior: (updates) =>
     set((state) => ({
       quizSettings: {
