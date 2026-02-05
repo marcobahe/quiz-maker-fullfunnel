@@ -26,6 +26,7 @@ import {
   FlipVertical,
   Dices,
   Phone,
+  Heart,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
@@ -47,6 +48,7 @@ const ICONS = {
   'question-icons': LayoutGrid,
   'question-open': MessageSquare,
   'question-rating': Star,
+  'question-swipe': Heart,
   'lead-form': UserPlus,
   script: FileText,
   'spin-wheel': Disc,
@@ -69,6 +71,7 @@ const COLORS = {
   'question-icons': { bg: 'bg-accent/10', text: 'text-accent' },
   'question-open': { bg: 'bg-accent/10', text: 'text-accent' },
   'question-rating': { bg: 'bg-amber-100', text: 'text-amber-600' },
+  'question-swipe': { bg: 'bg-pink-100', text: 'text-pink-600' },
   'lead-form': { bg: 'bg-blue-100', text: 'text-blue-600' },
   script: { bg: 'bg-teal-100', text: 'text-teal-600' },
   'spin-wheel': { bg: 'bg-orange-100', text: 'text-orange-600' },
@@ -91,6 +94,7 @@ const ELEMENT_TYPES = [
   { type: 'question-icons', label: 'Escolha Visual' },
   { type: 'question-open', label: 'Pergunta Aberta' },
   { type: 'question-rating', label: 'Nota / Avaliação' },
+  { type: 'question-swipe', label: 'Swipe (Tinder)' },
   { type: 'lead-form', label: 'Formulário Lead' },
   { type: 'script', label: 'Script' },
   { type: 'spin-wheel', label: 'Roleta' },
@@ -217,6 +221,19 @@ export function createDefaultElement(type) {
         labelMax: '',
         scoreMultiplier: 1,
         required: true,
+      };
+    case 'question-swipe':
+      return {
+        id,
+        type: 'question-swipe',
+        question: 'Você gosta disso?',
+        image: '',
+        leftLabel: 'Nope',
+        rightLabel: 'Like',
+        leftIcon: '👎',
+        rightIcon: '👍',
+        leftScore: 0,
+        rightScore: 1,
       };
     case 'lead-form':
       return { id, type: 'lead-form', title: 'Capture seus dados', fields: ['name', 'email', 'phone'] };
@@ -1698,6 +1715,76 @@ function RatingElement({ element, nodeId }) {
   );
 }
 
+function SwipePreview({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const edges = useQuizStore((s) => s.edges);
+
+  const handleChange = (updates) => {
+    updateNodeElement(nodeId, element.id, updates);
+  };
+
+  const connectedHandles = useMemo(() => {
+    const set = new Set();
+    edges.forEach((e) => {
+      if (e.source === nodeId && e.sourceHandle) set.add(e.sourceHandle);
+    });
+    return set;
+  }, [edges, nodeId]);
+
+  return (
+    <div className="p-2 relative">
+      {/* Question */}
+      <InlineEdit
+        value={element.question || 'Você gosta disso?'}
+        onChange={(v) => handleChange({ question: v })}
+        className="font-medium text-sm text-gray-800 mb-2"
+        placeholder="Digite a pergunta…"
+      />
+
+      {/* Card preview */}
+      <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 mb-2">
+        {element.image ? (
+          <img 
+            src={element.image} 
+            alt="" 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Heart size={32} className="text-pink-300" />
+          </div>
+        )}
+        
+        {/* Swipe indicators */}
+        <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
+          <div className="flex items-center gap-1 bg-red-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
+            <span className="text-sm">{element.leftIcon || '👎'}</span>
+            <span className="text-[10px] font-medium text-red-600">{element.leftLabel || 'Nope'}</span>
+          </div>
+          <div className="flex items-center gap-1 bg-green-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
+            <span className="text-[10px] font-medium text-green-600">{element.rightLabel || 'Like'}</span>
+            <span className="text-sm">{element.rightIcon || '👍'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Swipe hint */}
+      <div className="text-center text-[9px] text-gray-400">
+        ← Arraste para escolher →
+      </div>
+
+      {/* General handle for flow connection */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id={`${element.id}-general`}
+        className="!w-3 !h-3 !bg-pink-500 !border-2 !border-white"
+        style={{ bottom: -8 }}
+      />
+    </div>
+  );
+}
+
 function OpenQuestionElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const edges = useQuizStore((s) => s.edges);
@@ -2777,6 +2864,8 @@ function ElementRenderer({ element, nodeId }) {
       return <OpenQuestionElement element={element} nodeId={nodeId} />;
     case 'question-rating':
       return <RatingElement element={element} nodeId={nodeId} />;
+    case 'question-swipe':
+      return <SwipePreview element={element} nodeId={nodeId} />;
     case 'lead-form':
       return <LeadFormElement element={element} nodeId={nodeId} />;
     case 'script':

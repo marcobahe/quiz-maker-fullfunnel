@@ -6,7 +6,7 @@ import {
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
   Type, FileText, UserPlus, PanelRightClose, Disc, Gift, MessageSquare,
   Star, Info, MousePointerClick, Package, FlipVertical, Dices, Phone,
-  Link2, Upload, ExternalLink,
+  Link2, Upload, ExternalLink, Heart,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { extractYouTubeId, youtubeThumbnail } from '@/lib/youtube';
@@ -28,6 +28,7 @@ const ELEMENT_META = {
   'question-icons':  { label: 'Escolha Visual',  icon: LayoutGrid,  color: 'purple' },
   'question-open':   { label: 'Pergunta Aberta', icon: MessageSquare, color: 'purple' },
   'question-rating': { label: 'Nota / Avaliação', icon: Star, color: 'amber' },
+  'question-swipe':  { label: 'Swipe (Tinder)', icon: Heart, color: 'pink' },
   'lead-form':       { label: 'Formulário Lead', icon: UserPlus,    color: 'blue' },
   script:            { label: 'Script',          icon: FileText,    color: 'teal' },
   'spin-wheel':      { label: 'Roleta',          icon: Disc,        color: 'orange' },
@@ -50,6 +51,7 @@ const ELEMENT_TYPES = [
   { type: 'question-icons',    label: 'Escolha Visual' },
   { type: 'question-open',     label: 'Pergunta Aberta' },
   { type: 'question-rating',   label: 'Nota / Avaliação' },
+  { type: 'question-swipe',    label: 'Swipe (Tinder)' },
   { type: 'lead-form',         label: 'Formulário Lead' },
   { type: 'script',            label: 'Script' },
   { type: 'spin-wheel',        label: 'Roleta' },
@@ -69,6 +71,7 @@ const COLOR_CLASSES = {
   amber:  'bg-amber-100 text-amber-600',
   green:  'bg-green-100 text-green-600',
   gray:   'bg-gray-100 text-gray-600',
+  pink:   'bg-pink-100 text-pink-600',
 };
 
 // ── GHL Media Tip ────────────────────────────────────────────────
@@ -1064,6 +1067,113 @@ function RatingElementEditor({ element, nodeId }) {
   );
 }
 
+function SwipeElementEditor({ element, nodeId }) {
+  const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+
+  return (
+    <div className="space-y-4">
+      {/* Question */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pergunta</label>
+        <textarea
+          value={element.question || ''}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { question: e.target.value })}
+          className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent resize-none text-sm"
+          rows={2}
+          placeholder="Você gosta disso?"
+        />
+      </div>
+
+      {/* Image URL */}
+      <MediaUrlField
+        label="Imagem do Card"
+        value={element.image || ''}
+        onChange={(val) => updateNodeElement(nodeId, element.id, { image: val })}
+        mediaType="image"
+        placeholder="URL da imagem ou upload"
+      />
+
+      {/* Left option */}
+      <div className="p-3 bg-red-50 rounded-lg border border-red-100">
+        <h4 className="text-sm font-semibold text-red-700 mb-3">👈 Swipe Esquerda (Não)</h4>
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Ícone</label>
+            <input
+              type="text"
+              value={element.leftIcon || '👎'}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { leftIcon: e.target.value })}
+              className="w-full p-2 border border-gray-200 rounded-lg text-center text-lg"
+              placeholder="👎"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Label</label>
+            <input
+              type="text"
+              value={element.leftLabel || 'Nope'}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { leftLabel: e.target.value })}
+              className="w-full p-2 border border-gray-200 rounded-lg text-sm"
+              placeholder="Nope"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Score</label>
+          <input
+            type="number"
+            value={element.leftScore ?? 0}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { leftScore: parseInt(e.target.value) || 0 })}
+            className="w-full p-2 border border-gray-200 rounded-lg text-sm"
+          />
+        </div>
+      </div>
+
+      {/* Right option */}
+      <div className="p-3 bg-green-50 rounded-lg border border-green-100">
+        <h4 className="text-sm font-semibold text-green-700 mb-3">👉 Swipe Direita (Sim)</h4>
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Ícone</label>
+            <input
+              type="text"
+              value={element.rightIcon || '👍'}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { rightIcon: e.target.value })}
+              className="w-full p-2 border border-gray-200 rounded-lg text-center text-lg"
+              placeholder="👍"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Label</label>
+            <input
+              type="text"
+              value={element.rightLabel || 'Like'}
+              onChange={(e) => updateNodeElement(nodeId, element.id, { rightLabel: e.target.value })}
+              className="w-full p-2 border border-gray-200 rounded-lg text-sm"
+              placeholder="Like"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Score</label>
+          <input
+            type="number"
+            value={element.rightScore ?? 1}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { rightScore: parseInt(e.target.value) || 0 })}
+            className="w-full p-2 border border-gray-200 rounded-lg text-sm"
+          />
+        </div>
+      </div>
+
+      {/* Info box */}
+      <div className="p-3 bg-purple-50 rounded-lg border border-purple-100 text-xs text-purple-700">
+        <p className="font-medium mb-1">💡 Dica</p>
+        <p>O respondente pode arrastar o card para esquerda/direita ou clicar nos botões. Perfeito para quizzes de preferência!</p>
+      </div>
+    </div>
+  );
+}
+
 function LeadFormElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   return (
@@ -1777,6 +1887,8 @@ function ElementEditor({ element, nodeId }) {
       return <OpenQuestionElementEditor element={element} nodeId={nodeId} />;
     case 'question-rating':
       return <RatingElementEditor element={element} nodeId={nodeId} />;
+    case 'question-swipe':
+      return <SwipeElementEditor element={element} nodeId={nodeId} />;
     case 'lead-form':
       return <LeadFormElementEditor element={element} nodeId={nodeId} />;
     case 'script':

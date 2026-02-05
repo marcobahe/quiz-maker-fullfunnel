@@ -10,6 +10,7 @@ import { extractYouTubeId, youtubeEmbedUrl } from '@/lib/youtube';
 import SpinWheel from '@/components/Player/SpinWheel';
 import ScratchCard from '@/components/Player/ScratchCard';
 import PhoneCallScreen from '@/components/Player/PhoneCallScreen';
+import SwipeQuestion from '@/components/QuizPlayer/elements/SwipeQuestion';
 import QuestionTimer from '@/components/Quiz/QuestionTimer';
 import {
   GamifiedProgressBar,
@@ -2602,7 +2603,31 @@ function QuizPlayer() {
                   );
                 }
 
-                if (el.type.startsWith('question-') && el.type !== 'question-open' && el.type !== 'question-rating' && el.type !== 'question-icons') {
+                if (el.type === 'question-swipe') {
+                  return (
+                    <SwipeQuestion
+                      key={el.id}
+                      element={el}
+                      themeColors={{ text: theme.primaryColor }}
+                      onAnswer={(result) => {
+                        const elScore = result.score || 0;
+                        if (elScore > 0) setScore((prev) => prev + elScore);
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [`${currentNodeId}__${el.id}`]: {
+                            question: el.question,
+                            answer: result.answerLabel,
+                            score: elScore,
+                            elementId: el.id,
+                          },
+                        }));
+                        advanceToNode(getNextNode(currentNodeId, null, el.id));
+                      }}
+                    />
+                  );
+                }
+
+                if (el.type.startsWith('question-') && el.type !== 'question-open' && el.type !== 'question-rating' && el.type !== 'question-icons' && el.type !== 'question-swipe') {
                   return (
                     <div key={el.id} className="mb-4">
                       <h2 className="text-xl font-bold text-gray-800 mb-4">
@@ -2777,6 +2802,30 @@ function QuizPlayer() {
                             elementId: el.id,
                             ratingValue,
                             ratingMax: maxVal,
+                          },
+                        }));
+                        advanceToNode(getNextNode(currentNodeId, null, el.id));
+                      }}
+                    />
+                  );
+                }
+
+                if (el.type === 'question-swipe') {
+                  return (
+                    <SwipeQuestion
+                      key={el.id}
+                      element={el}
+                      themeColors={{ text: theme.primaryColor }}
+                      onAnswer={(result) => {
+                        const elScore = result.score || 0;
+                        if (elScore > 0) setScore((prev) => prev + elScore);
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [`${currentNodeId}__${el.id}`]: {
+                            question: el.question,
+                            answer: result.answerLabel,
+                            score: elScore,
+                            elementId: el.id,
                           },
                         }));
                         advanceToNode(getNextNode(currentNodeId, null, el.id));

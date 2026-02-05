@@ -21,6 +21,7 @@ import {
   FlipVertical,
   Dices,
   Phone,
+  Heart,
 } from 'lucide-react';
 
 const elements = [
@@ -30,6 +31,7 @@ const elements = [
       { type: 'single-choice', icon: CircleDot, label: 'Escolha Única' },
       { type: 'multiple-choice', icon: CheckSquare, label: 'Múltipla Escolha' },
       { type: 'question-icons', icon: Grid2X2, label: 'Escolha Visual' },
+      { type: 'question-swipe', icon: Heart, label: 'Swipe (Tinder)' },
       { type: 'question-open', icon: MessageSquare, label: 'Pergunta Aberta' },
       { type: 'question-rating', icon: Star, label: 'Nota / Avaliação' },
     ]
