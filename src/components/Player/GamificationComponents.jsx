@@ -110,7 +110,7 @@ export function StreakCounter({
     switch (effect) {
       case 'stars': return <Star size={20} className="text-yellow-400" />;
       case 'lightning': return <Zap size={20} className="text-blue-400" />;
-      default: return <Fire size={20} className="text-orange-400" />;
+      default: return <Flame size={20} className="text-orange-400" />;
     }
   };
 

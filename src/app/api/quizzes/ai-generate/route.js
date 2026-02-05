@@ -433,13 +433,23 @@ Responda APENAS com JSON válido no seguinte formato exato:
     });
 
     // Normalize scoreRanges
-    quizData.scoreRanges = quizData.scoreRanges.map((range, idx) => ({
-      id: `range-${idx + 1}`,
-      min: typeof range.min === 'number' ? range.min : 0,
-      max: typeof range.max === 'number' ? range.max : 0,
-      title: range.title || `Resultado ${idx + 1}`,
-      description: range.description || '',
-    }));
+    quizData.scoreRanges = quizData.scoreRanges.map((range, idx) => {
+      let min = typeof range.min === 'number' ? range.min : 0;
+      let max = typeof range.max === 'number' ? range.max : 0;
+      
+      // Fix inverted min/max (AI sometimes generates them wrong)
+      if (min > max) {
+        [min, max] = [max, min];
+      }
+      
+      return {
+        id: `range-${idx + 1}`,
+        min,
+        max,
+        title: range.title || `Resultado ${idx + 1}`,
+        description: range.description || '',
+      };
+    });
 
     return NextResponse.json(quizData);
   } catch (error) {

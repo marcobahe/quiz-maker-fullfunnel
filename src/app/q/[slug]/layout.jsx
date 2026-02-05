@@ -4,9 +4,14 @@ export async function generateMetadata({ params }) {
   try {
     const slug = await params.slug;
     
-    // Buscar quiz no banco
+    // Buscar quiz no banco (por slug ou por ID para suportar preview)
     const quiz = await prisma.quiz.findFirst({
-      where: { slug },
+      where: {
+        OR: [
+          { slug },
+          { id: slug }, // Fallback para buscar por ID (usado no preview)
+        ],
+      },
       select: {
         id: true,
         name: true,

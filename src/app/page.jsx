@@ -118,7 +118,7 @@ function Dashboard({ session }) {
   const hasNoQuizzes = quizzes.length === 0;
 
   const metrics = [
-    { icon: FileQuestion, label: 'Quizzes Ativos', value: String(publishedCount), change: String(quizzes.length), changeType: 'positive' },
+    { icon: FileQuestion, label: 'Quizzes Ativos', value: String(publishedCount), change: '', changeType: 'positive' },
     { icon: Users, label: 'Leads Totais', value: String(totalLeads), change: '', changeType: 'positive' },
     { icon: Eye, label: 'Quizzes Criados', value: String(quizzes.length), change: '', changeType: 'positive' },
     { icon: TrendingUp, label: 'Taxa de Conversão', value: totalLeads > 0 ? '—' : '0%', change: '', changeType: 'positive' },
