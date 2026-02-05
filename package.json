@@ -17,6 +17,8 @@
     "seed": "node prisma/seed.mjs"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@prisma/client": "^5.22.0",
     "@stripe/stripe-js": "^8.7.0",
     "@uploadthing/react": "^7.3.3",

@@ -1731,6 +1731,25 @@ function SwipePreview({ element, nodeId }) {
     return set;
   }, [edges, nodeId]);
 
+  const leftHandleId = `${element.id}-left`;
+  const rightHandleId = `${element.id}-right`;
+  const isLeftConnected = connectedHandles.has(leftHandleId);
+  const isRightConnected = connectedHandles.has(rightHandleId);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      handleChange({ image: ev.target.result });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    handleChange({ image: '' });
+  };
+
   return (
     <div className="p-2 relative">
       {/* Question */}
@@ -1741,46 +1760,89 @@ function SwipePreview({ element, nodeId }) {
         placeholder="Digite a pergunta…"
       />
 
-      {/* Card preview */}
-      <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 mb-2">
+      {/* Card preview with image controls */}
+      <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 mb-2 group">
         {element.image ? (
-          <img 
-            src={element.image} 
-            alt="" 
-            className="w-full h-full object-cover"
-          />
+          <>
+            <img 
+              src={element.image} 
+              alt="" 
+              className="w-full h-full object-cover"
+            />
+            {/* Image controls overlay */}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <label className="nodrag cursor-pointer bg-white rounded-full p-2 hover:bg-gray-100 transition-colors">
+                <Image size={14} className="text-gray-700" />
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleImageUpload}
+                />
+              </label>
+              <button 
+                onClick={handleRemoveImage}
+                className="nodrag bg-white rounded-full p-2 hover:bg-red-50 transition-colors"
+              >
+                <Trash2 size={14} className="text-red-500" />
+              </button>
+            </div>
+          </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Heart size={32} className="text-pink-300" />
-          </div>
+          <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-pink-100/50 transition-colors nodrag">
+            <Heart size={32} className="text-pink-300 mb-1" />
+            <span className="text-[10px] text-pink-400">Clique para adicionar imagem</span>
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              onChange={handleImageUpload}
+            />
+          </label>
         )}
         
-        {/* Swipe indicators */}
+        {/* Swipe indicators with handles */}
         <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
-          <div className="flex items-center gap-1 bg-red-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
+          {/* Left (Nope) */}
+          <div className="relative flex items-center gap-1 bg-red-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
             <span className="text-sm">{element.leftIcon || '👎'}</span>
             <span className="text-[10px] font-medium text-red-600">{element.leftLabel || 'Nope'}</span>
+            <Handle
+              type="source"
+              position={Position.Left}
+              id={leftHandleId}
+              className={
+                isLeftConnected
+                  ? '!bg-red-500 !w-2.5 !h-2.5 !left-[-8px] !border !border-white'
+                  : '!bg-white !border-2 !border-red-400 !w-2.5 !h-2.5 !left-[-8px]'
+              }
+              title="Conectar: Swipe Left (Nope)"
+            />
           </div>
-          <div className="flex items-center gap-1 bg-green-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
+          
+          {/* Right (Like) */}
+          <div className="relative flex items-center gap-1 bg-green-100/90 backdrop-blur-sm px-2 py-1 rounded-full">
             <span className="text-[10px] font-medium text-green-600">{element.rightLabel || 'Like'}</span>
             <span className="text-sm">{element.rightIcon || '👍'}</span>
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={rightHandleId}
+              className={
+                isRightConnected
+                  ? '!bg-green-500 !w-2.5 !h-2.5 !right-[-8px] !border !border-white'
+                  : '!bg-white !border-2 !border-green-400 !w-2.5 !h-2.5 !right-[-8px]'
+              }
+              title="Conectar: Swipe Right (Like)"
+            />
           </div>
         </div>
       </div>
 
       {/* Swipe hint */}
       <div className="text-center text-[9px] text-gray-400">
-        ← Arraste para escolher →
+        ← Conecte cada direção separadamente →
       </div>
-
-      {/* General handle for flow connection */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id={`${element.id}-general`}
-        className="!w-3 !h-3 !bg-pink-500 !border-2 !border-white"
-        style={{ bottom: -8 }}
-      />
     </div>
   );
 }
@@ -2618,15 +2680,15 @@ function SlotMachinePreview({ element, nodeId }) {
 
 function PhoneCallPreview({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
-  const [phase, setPhase] = useState('ringing'); // ringing | answered | ended
 
-  const handleClick = (e) => {
-    e.stopPropagation();
-    if (phase === 'ringing') {
-      setPhase('answered');
-      setTimeout(() => setPhase('ended'), 2000);
-      setTimeout(() => setPhase('ringing'), 3500);
-    }
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      updateNodeElement(nodeId, element.id, { callerPhoto: ev.target.result });
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -2638,58 +2700,83 @@ function PhoneCallPreview({ element, nodeId }) {
         <span className="text-[10px] font-semibold text-green-600 uppercase tracking-wide">Chamada</span>
       </div>
 
-      {/* Mini phone mockup */}
+      {/* iPhone Call Screen Mockup */}
       <div
-        className="rounded-xl overflow-hidden cursor-pointer"
-        style={{ backgroundColor: '#111827' }}
-        onClick={handleClick}
+        className="rounded-[20px] overflow-hidden relative"
+        style={{ 
+          backgroundColor: '#1c1c1e',
+          aspectRatio: '9/16',
+          maxHeight: '200px',
+        }}
       >
-        <div className="p-3 flex flex-col items-center gap-1.5">
-          {/* Caller photo */}
-          <div className={`w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center border-2 border-green-400/50 ${phase === 'ringing' ? 'animate-pulse' : ''}`}>
-            {element.callerPhoto ? (
-              <img src={element.callerPhoto} alt="" className="w-full h-full rounded-full object-cover" />
-            ) : (
-              <Phone size={16} className="text-green-400" />
-            )}
+        {/* Background blur effect */}
+        <div 
+          className="absolute inset-0 opacity-30"
+          style={{
+            background: element.callerPhoto 
+              ? `url(${element.callerPhoto}) center/cover` 
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            filter: 'blur(30px)',
+          }}
+        />
+        
+        {/* Content */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-between py-4 px-3">
+          {/* Top section - Caller info */}
+          <div className="flex flex-col items-center">
+            {/* Caller photo */}
+            <label className="cursor-pointer nodrag group">
+              <div className={`w-16 h-16 rounded-full bg-gray-600/50 flex items-center justify-center overflow-hidden border-2 border-white/20 mb-2 group-hover:border-white/50 transition-colors`}>
+                {element.callerPhoto ? (
+                  <img src={element.callerPhoto} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-3xl">👤</div>
+                )}
+              </div>
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handlePhotoUpload}
+              />
+            </label>
+            
+            {/* Caller name */}
+            <InlineEdit
+              value={element.callerName || 'Consultor'}
+              onChange={(v) => updateNodeElement(nodeId, element.id, { callerName: v })}
+              className="text-white text-sm font-semibold text-center"
+              placeholder="Nome do chamador"
+            />
+            
+            {/* Call type indicator */}
+            <span className="text-[10px] text-gray-400 mt-0.5">
+              Chamada de áudio...
+            </span>
           </div>
-
-          {/* Caller name */}
-          <span className="text-white text-xs font-medium">
-            {element.callerName || 'Consultor'}
-          </span>
-
-          {/* Status */}
-          <span className="text-[10px] text-gray-400">
-            {phase === 'ringing' && '📞 Chamada recebida...'}
-            {phase === 'answered' && '🔊 Em chamada 0:05'}
-            {phase === 'ended' && '📵 Chamada encerrada'}
-          </span>
-
-          {/* Action button */}
-          <div className="flex gap-2 mt-1">
-            {phase === 'ringing' && (
-              <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                <Phone size={10} className="text-white" />
+          
+          {/* Bottom section - Action buttons (iOS style) */}
+          <div className="flex items-center justify-center gap-8">
+            {/* Decline button */}
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center shadow-lg">
+                <Phone size={16} className="text-white rotate-[135deg]" />
               </div>
-            )}
-            {phase === 'answered' && (
-              <div className="flex gap-1.5">
-                {/* Waveform bars */}
-                {[1,2,3,4,5].map((i) => (
-                  <div
-                    key={i}
-                    className="w-0.5 bg-green-400 rounded-full"
-                    style={{
-                      height: `${8 + Math.random() * 10}px`,
-                      animation: `pulse 0.${3 + i}s ease-in-out infinite alternate`,
-                    }}
-                  />
-                ))}
+              <span className="text-[8px] text-gray-400">Recusar</span>
+            </div>
+            
+            {/* Accept button */}
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center shadow-lg animate-pulse">
+                <Phone size={16} className="text-white" />
               </div>
-            )}
+              <span className="text-[8px] text-gray-400">Aceitar</span>
+            </div>
           </div>
         </div>
+        
+        {/* iOS notch simulation */}
+        <div className="absolute top-1 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-black rounded-full" />
       </div>
 
       {/* Audio URL indicator */}
@@ -3054,7 +3141,13 @@ export default function CompositeNode({ id, data, selected }) {
         </div>
       )}
 
-      <Handle type="source" position={Position.Bottom} className="!bg-accent !w-3 !h-3" />
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        id="all-answers"
+        className="!bg-accent !w-3 !h-3"
+        style={{ bottom: -6 }}
+      />
     </div>
   );
 }
