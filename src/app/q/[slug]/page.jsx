@@ -1156,10 +1156,15 @@ function QuizPlayer() {
   const pageBgStyle = useMemo(() => {
     const pb = theme.pageBackground || {};
     
-    // Se não houver configuração de page background, usar bgStyle antigo como fallback
+    // Se não houver configuração de page background, usar gradiente vibrante como padrão
     if (!pb.type) {
+      // Prioriza gradiente se disponível
       if (theme.backgroundType === 'gradient' && GRADIENT_CSS[theme.backgroundGradient]) {
         return { background: GRADIENT_CSS[theme.backgroundGradient] };
+      }
+      // Fallback: gradiente padrão (pastel rainbow do Stich)
+      if (!theme.backgroundColor || theme.backgroundColor === '#EEF2FF') {
+        return { background: GRADIENT_CSS['from-violet-600 via-purple-600 to-indigo-700'] };
       }
       return { backgroundColor: theme.backgroundColor };
     }
@@ -1311,7 +1316,16 @@ function QuizPlayer() {
             ? JSON.parse(data.settings)
             : data.settings;
           if (settings && typeof settings === 'object') {
-            if (settings.theme) setTheme((prev) => ({ ...prev, ...settings.theme }));
+            if (settings.theme) {
+              // Garante gradiente vibrante como padrão se não houver configuração específica
+              const mergedTheme = { ...prev, ...settings.theme };
+              // Se não tiver backgroundType ou pageBackground definido, usar gradiente padrão
+              if (!settings.theme.backgroundType && !settings.theme.pageBackground) {
+                mergedTheme.backgroundType = 'gradient';
+                mergedTheme.backgroundGradient = 'from-violet-600 via-purple-600 to-indigo-700';
+              }
+              setTheme(mergedTheme);
+            }
             if (settings.branding) setBranding((prev) => ({ ...prev, ...settings.branding }));
             if (settings.aiResultConfig) setAiConfig(settings.aiResultConfig);
             if (settings.tracking) setTrackingConfig(settings.tracking);
