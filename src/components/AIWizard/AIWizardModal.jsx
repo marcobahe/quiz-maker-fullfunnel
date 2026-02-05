@@ -20,6 +20,8 @@ import {
   ToggleRight,
   Pencil,
   AlertCircle,
+  Link2,
+  Globe,
 } from 'lucide-react';
 
 // ── Step Indicator ─────────────────────────────────────────────
@@ -66,13 +68,18 @@ function StepIndicator({ currentStep }) {
 }
 
 // ── Loading Animation ──────────────────────────────────────────
-function LoadingAnimation({ progress }) {
-  const steps = [
+function LoadingAnimation({ progress, hasUrl }) {
+  const baseSteps = [
     { text: 'Analisando seu briefing...', icon: Brain },
     { text: 'Criando perguntas...', icon: MessageSquare },
     { text: 'Definindo pontuação...', icon: Target },
     { text: 'Montando resultados...', icon: Sparkles },
   ];
+
+  // Insert URL analysis step if URL was provided
+  const steps = hasUrl
+    ? [{ text: 'Analisando sua página de vendas...', icon: Globe }, ...baseSteps]
+    : baseSteps;
 
   return (
     <div className="flex flex-col items-center justify-center py-12">
@@ -246,6 +253,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
   const [tema, setTema] = useState('');
   const [objetivo, setObjetivo] = useState('');
   const [publicoAlvo, setPublicoAlvo] = useState('');
+  const [siteUrl, setSiteUrl] = useState('');
   const [numPerguntas, setNumPerguntas] = useState(5);
   const [tiposPerguntas, setTiposPerguntas] = useState(['Escolha única']);
 
@@ -271,6 +279,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
         setTema('');
         setObjetivo('');
         setPublicoAlvo('');
+        setSiteUrl('');
         setNumPerguntas(5);
         setTiposPerguntas(['Escolha única']);
         setTemMetodologia(false);
@@ -295,16 +304,17 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
     setStep(3);
     setLoadingProgress(0);
 
-    // Animate progress steps
+    // Animate progress steps (extra step if URL provided)
+    const totalSteps = siteUrl ? 4 : 3;
     const progressInterval = setInterval(() => {
       setLoadingProgress((prev) => {
-        if (prev >= 3) {
+        if (prev >= totalSteps) {
           clearInterval(progressInterval);
-          return 3;
+          return totalSteps;
         }
         return prev + 1;
       });
-    }, 2000);
+    }, siteUrl ? 2500 : 2000);
 
     try {
       const res = await fetch('/api/quizzes/ai-generate', {
@@ -314,6 +324,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
           tema,
           objetivo,
           publicoAlvo,
+          siteUrl,
           numPerguntas,
           tiposPerguntas,
           temMetodologia,
@@ -333,7 +344,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
 
       const data = await res.json();
       setQuizData(data);
-      setLoadingProgress(4);
+      setLoadingProgress(siteUrl ? 5 : 4);
     } catch (err) {
       clearInterval(progressInterval);
       setError(err.message || 'Erro ao gerar quiz. Tente novamente.');
@@ -341,7 +352,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
     } finally {
       setIsGenerating(false);
     }
-  }, [tema, objetivo, publicoAlvo, numPerguntas, tiposPerguntas, temMetodologia, metodologia, categorias, tom, informacoesAdicionais]);
+  }, [tema, objetivo, publicoAlvo, siteUrl, numPerguntas, tiposPerguntas, temMetodologia, metodologia, categorias, tom, informacoesAdicionais]);
 
   const handleCreateQuiz = async () => {
     if (!quizData) return;
@@ -496,6 +507,29 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
                 />
               </div>
 
+              {/* Optional site URL for AI context */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                  <Globe size={14} className="text-purple-500" />
+                  Link do seu site ou página de vendas
+                  <span className="text-xs font-normal text-gray-400">(opcional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="url"
+                    value={siteUrl}
+                    onChange={(e) => setSiteUrl(e.target.value)}
+                    placeholder="https://seusite.com.br/pagina-de-vendas"
+                    className="w-full px-4 py-2.5 pl-10 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  />
+                  <Link2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                </div>
+                <p className="text-xs text-gray-400 mt-1.5 flex items-start gap-1">
+                  <Sparkles size={12} className="text-purple-400 mt-0.5 shrink-0" />
+                  Cole um link e nossa IA vai analisar seu negócio automaticamente
+                </p>
+              </div>
+
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
                   <Hash size={14} className="text-purple-500" />
@@ -640,7 +674,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
           {step === 3 && (
             <div className="animate-in fade-in duration-300">
               {isGenerating ? (
-                <LoadingAnimation progress={loadingProgress} />
+                <LoadingAnimation progress={loadingProgress} hasUrl={!!siteUrl} />
               ) : quizData ? (
                 <div className="space-y-6">
                   {/* Title & Description */}
@@ -721,6 +755,19 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
                   if (tiposPerguntas.length === 0) {
                     setError('Selecione ao menos um tipo de pergunta.');
                     return;
+                  }
+                  // Validate URL if provided
+                  if (siteUrl.trim()) {
+                    try {
+                      const url = new URL(siteUrl);
+                      if (!['http:', 'https:'].includes(url.protocol)) {
+                        setError('A URL deve começar com http:// ou https://');
+                        return;
+                      }
+                    } catch {
+                      setError('URL inválida. Verifique o formato (ex: https://seusite.com)');
+                      return;
+                    }
                   }
                   setError('');
                   setStep(2);

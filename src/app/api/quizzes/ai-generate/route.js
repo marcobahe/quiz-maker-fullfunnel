@@ -1,6 +1,91 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import * as cheerio from 'cheerio';
+
+// ── URL Scraping ────────────────────────────────────────────────
+async function scrapeUrl(url, maxChars = 5000) {
+  try {
+    // Validate URL
+    const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return null;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; QuizMeBaby/1.0; +https://quizmebaby.app)',
+        'Accept': 'text/html,application/xhtml+xml',
+      },
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      console.warn(`[scrapeUrl] Failed to fetch ${url}: ${res.status}`);
+      return null;
+    }
+
+    const html = await res.text();
+    const $ = cheerio.load(html);
+
+    // Remove non-content elements
+    $('script, style, nav, footer, header, aside, form, iframe, noscript, svg, [hidden]').remove();
+    $('[role="navigation"], [role="banner"], [role="contentinfo"], [role="complementary"]').remove();
+    $('.nav, .navbar, .footer, .sidebar, .menu, .header, .cookie, .popup, .modal').remove();
+
+    // Extract text from main content areas
+    let textContent = '';
+
+    // Try to find main content containers
+    const mainSelectors = ['main', 'article', '[role="main"]', '.content', '.main-content', '#content', '#main'];
+    for (const selector of mainSelectors) {
+      const el = $(selector);
+      if (el.length > 0) {
+        textContent = el.text();
+        break;
+      }
+    }
+
+    // Fallback to body if no main content found
+    if (!textContent) {
+      textContent = $('body').text();
+    }
+
+    // Clean up whitespace
+    textContent = textContent
+      .replace(/\s+/g, ' ')
+      .replace(/\n\s*\n/g, '\n')
+      .trim();
+
+    // Get meta info
+    const title = $('title').text().trim() || $('h1').first().text().trim() || '';
+    const metaDescription = $('meta[name="description"]').attr('content') || '';
+    const ogTitle = $('meta[property="og:title"]').attr('content') || '';
+    const ogDescription = $('meta[property="og:description"]').attr('content') || '';
+
+    // Build scraped content
+    let result = '';
+    if (title) result += `Título: ${title}\n`;
+    if (ogTitle && ogTitle !== title) result += `Título OG: ${ogTitle}\n`;
+    if (metaDescription) result += `Meta descrição: ${metaDescription}\n`;
+    if (ogDescription && ogDescription !== metaDescription) result += `OG descrição: ${ogDescription}\n`;
+    result += `\nConteúdo da página:\n${textContent}`;
+
+    // Limit to maxChars
+    if (result.length > maxChars) {
+      result = result.slice(0, maxChars) + '...';
+    }
+
+    return result;
+  } catch (err) {
+    console.warn('[scrapeUrl] Error scraping URL:', err.message);
+    return null;
+  }
+}
 
 function extractJSON(text) {
   // Try direct parse first
@@ -76,6 +161,7 @@ export async function POST(request) {
       tema,
       objetivo,
       publicoAlvo,
+      siteUrl = '',
       numPerguntas = 5,
       tiposPerguntas = ['Escolha única'],
       temMetodologia = false,
@@ -92,6 +178,12 @@ export async function POST(request) {
     // Map question types to internal types
     const tiposInternos = tiposPerguntas.map(t => TYPE_MAP[t] || 'question-single');
     const tiposStr = tiposPerguntas.join(', ');
+
+    // Scrape URL if provided
+    let scrapedContent = null;
+    if (siteUrl && siteUrl.trim()) {
+      scrapedContent = await scrapeUrl(siteUrl.trim(), 5000);
+    }
 
     // Build user prompt
     let userPrompt = `Crie um quiz com as seguintes especificações:
@@ -113,6 +205,25 @@ ${publicoAlvo ? `**Público-alvo:** ${publicoAlvo}` : ''}
 
     if (informacoesAdicionais) {
       userPrompt += `\n\n**Informações adicionais:** ${informacoesAdicionais}`;
+    }
+
+    // Add scraped content context if available
+    if (scrapedContent) {
+      userPrompt += `\n\n---
+CONTEXTO ADICIONAL (extraído automaticamente da página do usuário):
+---
+${scrapedContent}
+---
+
+Use essas informações para entender melhor o negócio, tom de voz, produto/serviço, benefícios e público-alvo. Extraia:
+- Nome do produto/serviço
+- Principais benefícios mencionados
+- Público-alvo implícito
+- Tom de voz (formal, casual, técnico, etc.)
+- Objeções comuns que a página tenta resolver
+- CTA principal
+
+Adapte as perguntas e opções do quiz para refletir a linguagem e proposta de valor da página.`;
     }
 
     userPrompt += `\n\nGere exatamente ${numPerguntas} perguntas.
