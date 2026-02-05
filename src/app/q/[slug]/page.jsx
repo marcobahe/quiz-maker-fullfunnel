@@ -1424,6 +1424,39 @@ function QuizPlayer() {
 
   const currentNode = nodes.find((n) => n.id === currentNodeId);
 
+  // ── Auto-forward: advance after delay if enabled ────────────
+  useEffect(() => {
+    if (!currentNode?.data?.autoForward) return;
+    if (showResult || showLeadForm) return; // Don't auto-forward on result/lead
+    
+    const delay = (currentNode.data.autoForwardDelay || 5) * 1000;
+    
+    const timer = setTimeout(() => {
+      // Find the next node and advance
+      const outEdges = edges.filter((e) => e.source === currentNodeId);
+      if (outEdges.length > 0) {
+        const nextId = outEdges[0].target;
+        const nextNode = nodes.find((n) => n.id === nextId);
+        
+        if (nextNode) {
+          setHistory((prev) => [...prev, currentNodeId]);
+          setCurrentNodeId(nextId);
+          
+          if (nextNode.type === 'lead-form' || 
+              (nextNode.type === 'composite' && 
+               (nextNode.data.elements || []).some((el) => el.type === 'lead-form'))) {
+            setShowLeadForm(true);
+          }
+          if (nextNode.type === 'result') {
+            setShowResult(true);
+          }
+        }
+      }
+    }, delay);
+    
+    return () => clearTimeout(timer);
+  }, [currentNodeId, currentNode, edges, nodes, showResult, showLeadForm]);
+
   const answeredCount = Object.keys(answers).length;
   const progress =
     totalQuestions > 0
@@ -2475,6 +2508,9 @@ function QuizPlayer() {
                           <video
                             src={el.url}
                             controls
+                            autoPlay={el.autoplay || false}
+                            muted={el.autoplay || false}
+                            playsInline
                             preload="metadata"
                             className="w-full rounded-lg"
                             style={isVertical
@@ -2493,6 +2529,7 @@ function QuizPlayer() {
                           <audio
                             src={el.url}
                             controls
+                            autoPlay={el.autoplay || false}
                             className="w-full"
                             preload="metadata"
                           />

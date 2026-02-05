@@ -13,6 +13,7 @@ import { extractYouTubeId, youtubeThumbnail } from '@/lib/youtube';
 import { createDefaultElement } from '@/components/Canvas/CompositeNode';
 import StyleEditor from './StyleEditor';
 import EmojiPicker from '@/components/EmojiPicker';
+import UploadButton from '@/components/Upload/UploadButton';
 
 // ── Element type metadata ────────────────────────────────────────
 
@@ -107,9 +108,11 @@ function GhlMediaTip() {
 // ── Reusable Media URL Field ─────────────────────────────────────
 
 function MediaUrlField({ label, value, onChange, accept, mediaType = 'audio', placeholder }) {
-  const [mode, setMode] = useState(value ? 'url' : 'url'); // default to URL mode
-  const [urlStatus, setUrlStatus] = useState(null); // null | 'checking' | 'ok' | 'error'
-  const fileInputRef = useRef(null);
+  const [mode, setMode] = useState('url');
+  const [urlStatus, setUrlStatus] = useState(null);
+
+  // Video only supports URL (no upload) - better to use YouTube/Vimeo
+  const allowUpload = mediaType !== 'video';
 
   // Validate URL accessibility when changed
   useEffect(() => {
@@ -117,7 +120,6 @@ function MediaUrlField({ label, value, onChange, accept, mediaType = 'audio', pl
       setUrlStatus(null);
       return;
     }
-    // Only validate URLs (not data URIs or blobs)
     if (!value.startsWith('http://') && !value.startsWith('https://')) {
       setUrlStatus(null);
       return;
@@ -128,24 +130,11 @@ function MediaUrlField({ label, value, onChange, accept, mediaType = 'audio', pl
       .then(() => setUrlStatus('ok'))
       .catch((err) => {
         if (err.name !== 'AbortError') {
-          // no-cors always succeeds for opaque responses, so HEAD may fail on CORS
-          // but the media will still work in <audio>/<video> tags
           setUrlStatus('ok');
         }
       });
     return () => controller.abort();
   }, [value, mode]);
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    // Convert to data URI for local storage (in production, this would upload to a CDN)
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      onChange(ev.target.result);
-    };
-    reader.readAsDataURL(file);
-  };
 
   const acceptMap = {
     audio: 'audio/*,.mp3,.wav,.ogg,.mpeg,.m4a,.webm',
@@ -155,9 +144,11 @@ function MediaUrlField({ label, value, onChange, accept, mediaType = 'audio', pl
 
   const placeholderMap = {
     audio: 'Cole a URL do áudio (ex: URL do Full Funnel)',
-    video: 'Cole a URL do vídeo (ex: URL do Full Funnel)',
+    video: 'Cole a URL do vídeo (YouTube, Vimeo ou Full Funnel)',
     image: 'Cole a URL da imagem',
   };
+
+  const uploadEndpoint = mediaType === 'image' ? 'imageUploader' : 'audioUploader';
 
   return (
     <div>
@@ -168,31 +159,35 @@ function MediaUrlField({ label, value, onChange, accept, mediaType = 'audio', pl
         </div>
       </div>
 
-      {/* Mode tabs */}
-      <div className="flex rounded-lg border border-gray-200 mb-2 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setMode('url')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-colors ${
-            mode === 'url'
-              ? 'bg-accent text-white'
-              : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-          }`}
-        >
-          <Link2 size={12} /> URL
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('upload')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-colors ${
-            mode === 'upload'
-              ? 'bg-accent text-white'
-              : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-          }`}
-        >
-          <Upload size={12} /> Upload
-        </button>
-      </div>
+      {/* Mode tabs - only show if upload is allowed */}
+      {allowUpload ? (
+        <div className="flex rounded-lg border border-gray-200 mb-2 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setMode('url')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-colors ${
+              mode === 'url'
+                ? 'bg-accent text-white'
+                : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+            }`}
+          >
+            <Link2 size={12} /> URL
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('upload')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-colors ${
+              mode === 'upload'
+                ? 'bg-accent text-white'
+                : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+            }`}
+          >
+            <Upload size={12} /> Upload
+          </button>
+        </div>
+      ) : (
+        <p className="text-xs text-gray-400 mb-2">💡 Use YouTube, Vimeo ou outra plataforma de vídeo</p>
+      )}
 
       {/* URL mode */}
       {mode === 'url' && (
@@ -217,40 +212,24 @@ function MediaUrlField({ label, value, onChange, accept, mediaType = 'audio', pl
                 </svg>
               </div>
             )}
-            {urlStatus === 'error' && (
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-red-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            )}
           </div>
         </div>
       )}
 
-      {/* Upload mode */}
-      {mode === 'upload' && (
+      {/* Upload mode - uses Uploadthing */}
+      {mode === 'upload' && allowUpload && (
         <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept || acceptMap[mediaType] || '*/*'}
-            onChange={handleFileUpload}
-            className="hidden"
+          <UploadButton
+            endpoint={uploadEndpoint}
+            accept={accept || acceptMap[mediaType]}
+            onUploadComplete={(url) => onChange(url)}
+            onUploadError={(err) => console.error('Upload failed:', err)}
           />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-accent hover:text-accent transition-colors text-sm font-medium flex items-center justify-center gap-2"
-          >
-            <Upload size={16} />
-            {value && !value.startsWith('http') ? 'Arquivo selecionado ✓' : 'Clique para enviar arquivo'}
-          </button>
-          {value && !value.startsWith('http') && (
+          {value && value.startsWith('http') && (
             <button
               type="button"
               onClick={() => onChange('')}
-              className="mt-1 text-xs text-red-400 hover:text-red-600 transition-colors"
+              className="mt-2 text-xs text-red-400 hover:text-red-600 transition-colors"
             >
               Remover arquivo
             </button>
@@ -370,6 +349,29 @@ function MediaElementEditor({ element, nodeId }) {
           </div>
         </div>
       )}
+      {/* Autoplay toggle for video and audio */}
+      {(mt === 'video' || mt === 'audio') && (
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Autoplay</label>
+            <p className="text-xs text-gray-400">Iniciar automaticamente</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => updateNodeElement(nodeId, element.id, { autoplay: !element.autoplay })}
+            className={`relative w-11 h-6 rounded-full transition-colors ${
+              element.autoplay ? 'bg-accent' : 'bg-gray-300'
+            }`}
+          >
+            <div
+              className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                element.autoplay ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+      )}
+
       {/* Video orientation selector */}
       {mt === 'video' && (
         <div>
@@ -2055,6 +2057,46 @@ export default function PropertiesPanel({ onClose }) {
                 className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                 placeholder="Nome do bloco..."
               />
+            </div>
+
+            {/* Auto-forward toggle */}
+            <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">⏱️ Auto-avançar</label>
+                  <p className="text-xs text-gray-400">Avança automaticamente após um tempo</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => updateNode(nodeId, { autoForward: !data.autoForward })}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${
+                    data.autoForward ? 'bg-accent' : 'bg-gray-300'
+                  }`}
+                >
+                  <div
+                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      data.autoForward ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+              
+              {data.autoForward && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Tempo de espera (segundos)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="300"
+                    value={data.autoForwardDelay || 5}
+                    onChange={(e) => updateNode(nodeId, { autoForwardDelay: parseInt(e.target.value) || 5 })}
+                    className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    O quiz avançará após {data.autoForwardDelay || 5} segundos
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Elements list */}
