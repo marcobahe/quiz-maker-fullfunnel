@@ -214,19 +214,51 @@ function StarsRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
 
 function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
   const [selected, setSelected] = useState(null);
+  const [hovered, setHovered] = useState(null);
   const minVal = element.minValue ?? 0;
   const maxVal = element.maxValue ?? 10;
   const isRequired = element.required !== false;
   const canSubmit = !isRequired || selected !== null;
   const isNps = minVal === 0 && maxVal === 10;
+  const totalNumbers = maxVal - minVal + 1;
+
+  // Professional NPS colors with subtle gradients
+  const getNpsColor = (val) => {
+    if (val <= 6) {
+      // Detractors - subtle warm red
+      return {
+        bg: '#fef2f2',
+        border: '#fecaca',
+        selectedBg: '#dc2626',
+        hoverBg: '#fee2e2',
+      };
+    } else if (val <= 8) {
+      // Passives - subtle warm amber
+      return {
+        bg: '#fffbeb',
+        border: '#fde68a',
+        selectedBg: '#d97706',
+        hoverBg: '#fef3c7',
+      };
+    } else {
+      // Promoters - subtle green
+      return {
+        bg: '#f0fdf4',
+        border: '#bbf7d0',
+        selectedBg: '#16a34a',
+        hoverBg: '#dcfce7',
+      };
+    }
+  };
 
   const getColor = (val) => {
-    if (isNps) {
-      if (val <= 6) return { bg: '#fecaca', border: '#f87171', text: '#dc2626', selectedBg: '#ef4444' };
-      if (val <= 8) return { bg: '#fef3c7', border: '#fbbf24', text: '#d97706', selectedBg: '#f59e0b' };
-      return { bg: '#d1fae5', border: '#34d399', text: '#059669', selectedBg: '#10b981' };
-    }
-    return { bg: `${theme.primaryColor}15`, border: `${theme.primaryColor}40`, text: theme.primaryColor, selectedBg: theme.primaryColor };
+    if (isNps) return getNpsColor(val);
+    return {
+      bg: '#f9fafb',
+      border: '#e5e7eb',
+      selectedBg: theme.primaryColor,
+      hoverBg: '#f3f4f6',
+    };
   };
 
   const handleSubmit = () => {
@@ -240,66 +272,117 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
 
   return (
     <div className="mb-4">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">
         {rv(element.question || 'Dê sua nota')}
         {isRequired && <span className="text-red-500 ml-1">*</span>}
       </h2>
-      {(element.labelMin || element.labelMax) && (
-        <div className="flex justify-between w-full text-xs text-gray-400 mb-2 px-1">
-          <span>{element.labelMin}</span>
-          <span>{element.labelMax}</span>
+      
+      {/* Scale Container */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        {/* Min/Max Labels */}
+        <div className="flex justify-between text-xs text-gray-400 mb-3 px-1">
+          <span>{element.labelMin || (isNps ? 'Nada provável' : '')}</span>
+          <span>{element.labelMax || (isNps ? 'Muito provável' : '')}</span>
         </div>
-      )}
-      <div className="flex flex-wrap gap-2 justify-center">
-        {numbers.map((num) => {
-          const colors = getColor(num);
-          const isSel = selected === num;
-          return (
-            <button
-              key={num}
-              onClick={() => setSelected(num)}
-              className="w-11 h-11 rounded-lg flex items-center justify-center text-sm font-semibold transition-all duration-150 border-2"
-              style={{
-                backgroundColor: isSel ? colors.selectedBg : colors.bg,
-                borderColor: isSel ? colors.selectedBg : colors.border,
-                color: isSel ? '#ffffff' : colors.text,
-                transform: isSel ? 'scale(1.1)' : 'scale(1)',
-                boxShadow: isSel ? `0 4px 12px ${colors.selectedBg}40` : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSel) {
-                  e.currentTarget.style.transform = 'scale(1.08)';
-                  e.currentTarget.style.boxShadow = `0 2px 8px ${colors.selectedBg}20`;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSel) {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-            >
-              {num}
-            </button>
-          );
-        })}
+
+        {/* Numbers Grid - Single row on desktop, wraps gracefully on mobile */}
+        <div 
+          className="grid gap-1.5 sm:gap-2"
+          style={{ 
+            gridTemplateColumns: `repeat(${Math.min(totalNumbers, 11)}, minmax(0, 1fr))`,
+          }}
+        >
+          {numbers.map((num) => {
+            const colors = getColor(num);
+            const isSel = selected === num;
+            const isHov = hovered === num && !isSel;
+            
+            return (
+              <button
+                key={num}
+                onClick={() => setSelected(num)}
+                onMouseEnter={() => setHovered(num)}
+                onMouseLeave={() => setHovered(null)}
+                className="aspect-square rounded-lg sm:rounded-xl flex items-center justify-center font-semibold transition-all duration-150"
+                style={{
+                  backgroundColor: isSel ? colors.selectedBg : isHov ? colors.hoverBg : colors.bg,
+                  border: `2px solid ${isSel ? colors.selectedBg : colors.border}`,
+                  color: isSel ? '#ffffff' : '#1f2937',
+                  fontSize: totalNumbers > 10 ? '0.8rem' : '0.9rem',
+                  transform: isSel ? 'scale(1.08)' : isHov ? 'scale(1.03)' : 'scale(1)',
+                  boxShadow: isSel ? `0 4px 12px ${colors.selectedBg}40` : 'none',
+                }}
+              >
+                {num}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* NPS Category Labels */}
+        {isNps && (
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="flex justify-between items-center">
+              {/* Detractors */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-red-400 to-red-500"></div>
+                <span className="text-xs font-medium text-gray-600">0-6 Detratores</span>
+              </div>
+              {/* Passives */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 to-amber-500"></div>
+                <span className="text-xs font-medium text-gray-600">7-8 Neutros</span>
+              </div>
+              {/* Promoters */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-green-400 to-green-500"></div>
+                <span className="text-xs font-medium text-gray-600">9-10 Promotores</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      {isNps && (
-        <div className="flex justify-between text-[10px] text-gray-300 mt-2 px-1">
-          <span>Detratores</span>
-          <span>Neutros</span>
-          <span>Promotores</span>
+
+      {/* Selected Value Badge */}
+      {selected !== null && (
+        <div className="flex justify-center mt-4">
+          <div 
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white shadow-md"
+            style={{ backgroundColor: getColor(selected).selectedBg }}
+          >
+            <span>Selecionado: {selected}</span>
+            {isNps && (
+              <span className="opacity-80 text-xs">
+                • {selected <= 6 ? 'Detrator' : selected <= 8 ? 'Neutro' : 'Promotor'}
+              </span>
+            )}
+          </div>
         </div>
       )}
+
+      {/* Submit Button */}
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-all mt-4"
+        className="w-full text-white py-4 font-semibold flex items-center justify-center gap-2 transition-all duration-200 mt-6"
         style={{
-          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
+          backgroundColor: canSubmit ? theme.primaryColor : '#9ca3af',
           borderRadius: btnRadius,
           cursor: canSubmit ? 'pointer' : 'not-allowed',
-          opacity: canSubmit ? 1 : 0.7,
+          boxShadow: canSubmit ? `0 4px 14px ${theme.primaryColor}35` : 'none',
+          transform: 'translateY(0)',
+        }}
+        onMouseEnter={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = `0 6px 20px ${theme.primaryColor}45`;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 4px 14px ${theme.primaryColor}35`;
+          }
         }}
       >
         Continuar <ChevronRight size={20} />
@@ -2291,47 +2374,59 @@ function QuizPlayer() {
                 {rv(currentNode.data.question || 'Pergunta')}
               </h2>
               <div className="space-y-3">
-                {(currentNode.data.options || []).map((option, index) => (
-                  <button
-                    key={index}
-                    onClick={(e) => handleOptionSelect(index, e)}
-                    disabled={selectedOption !== null}
-                    className="w-full text-left p-4 border-2 transition-all flex items-center gap-3"
-                    style={{
-                      borderRadius: btnRadius,
-                      borderColor:
-                        selectedOption === index
-                          ? theme.primaryColor
-                          : selectedOption !== null
-                            ? '#e5e7eb'
-                            : '#e5e7eb',
-                      backgroundColor:
-                        selectedOption === index ? `${theme.primaryColor}10` : 'transparent',
-                      opacity: selectedOption !== null && selectedOption !== index ? 0.5 : 1,
-                      boxShadow:
-                        selectedOption === index
-                          ? `0 0 0 3px ${theme.primaryColor}20`
-                          : 'none',
-                    }}
-                  >
-                    <span
-                      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                {(currentNode.data.options || []).map((option, index) => {
+                  // Check if option text starts with emoji (first char is emoji)
+                  const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u;
+                  const textMatch = (option.text || '').match(emojiRegex);
+                  const leadingEmoji = textMatch ? textMatch[0] : null;
+                  // If there's a leading emoji in text, use it and strip from text
+                  const displayEmoji = option.emoji || leadingEmoji;
+                  const displayText = leadingEmoji 
+                    ? option.text.slice(leadingEmoji.length).trim() 
+                    : option.text;
+                  
+                  return (
+                    <button
+                      key={index}
+                      onClick={(e) => handleOptionSelect(index, e)}
+                      disabled={selectedOption !== null}
+                      className="w-full text-left p-4 border-2 transition-all flex items-center gap-3"
                       style={{
+                        borderRadius: btnRadius,
+                        borderColor:
+                          selectedOption === index
+                            ? theme.primaryColor
+                            : selectedOption !== null
+                              ? '#e5e7eb'
+                              : '#e5e7eb',
                         backgroundColor:
-                          selectedOption === index ? theme.primaryColor : '#f3f4f6',
-                        color:
-                          selectedOption === index ? '#ffffff' : '#6b7280',
-                        fontSize: option.emoji ? '1.25rem' : '0.875rem',
-                        fontWeight: option.emoji ? 'normal' : '500',
+                          selectedOption === index ? `${theme.primaryColor}10` : 'transparent',
+                        opacity: selectedOption !== null && selectedOption !== index ? 0.5 : 1,
+                        boxShadow:
+                          selectedOption === index
+                            ? `0 0 0 3px ${theme.primaryColor}20`
+                            : 'none',
                       }}
                     >
-                      {option.emoji || String.fromCharCode(65 + index)}
-                    </span>
-                    <span className="font-medium text-gray-800 flex-1">
-                      {option.text}
-                    </span>
-                  </button>
-                ))}
+                      <span
+                        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                        style={{
+                          backgroundColor:
+                            selectedOption === index ? theme.primaryColor : '#f3f4f6',
+                          color:
+                            selectedOption === index ? '#ffffff' : '#6b7280',
+                          fontSize: displayEmoji ? '1.25rem' : '0.875rem',
+                          fontWeight: displayEmoji ? 'normal' : '500',
+                        }}
+                      >
+                        {displayEmoji || String.fromCharCode(65 + index)}
+                      </span>
+                      <span className="font-medium text-gray-800 flex-1">
+                        {displayText}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -2577,11 +2672,11 @@ function QuizPlayer() {
                   const iconCols = el.columns || 2;
                   return (
                     <div key={el.id} className="mb-4">
-                      <h2 className="text-xl font-bold text-gray-800 mb-4">
+                      <h2 className="text-xl font-bold text-gray-800 mb-6">
                         {rv(el.question || 'Pergunta')}
                       </h2>
                       <div
-                        className="grid gap-3"
+                        className="grid gap-4"
                         style={{ gridTemplateColumns: `repeat(${iconCols}, 1fr)` }}
                       >
                         {(el.options || []).map((opt, idx) => {
@@ -2594,26 +2689,36 @@ function QuizPlayer() {
                                 handleCompositeOptionSelect(el, idx, e)
                               }
                               disabled={selectedOption !== null}
-                              className="flex flex-col items-center justify-center p-4 border-2 transition-all"
+                              className="flex flex-col items-center justify-center p-5 transition-all duration-200"
                               style={{
                                 borderRadius: btnRadius,
-                                borderColor: isSelected ? theme.primaryColor : '#e5e7eb',
-                                backgroundColor: isSelected ? `${theme.primaryColor}10` : 'transparent',
+                                border: isSelected 
+                                  ? `2px solid ${theme.primaryColor}` 
+                                  : '2px solid rgba(255,255,255,0.3)',
+                                backgroundColor: isSelected 
+                                  ? `${theme.primaryColor}15` 
+                                  : 'rgba(255,255,255,0.08)',
+                                backdropFilter: 'blur(10px)',
+                                WebkitBackdropFilter: 'blur(10px)',
                                 opacity: selectedOption !== null && !isSelected ? 0.5 : 1,
-                                boxShadow: isSelected ? `0 0 0 3px ${theme.primaryColor}20` : 'none',
-                                transform: isSelected ? 'scale(1.03)' : 'scale(1)',
+                                boxShadow: isSelected 
+                                  ? `0 8px 32px ${theme.primaryColor}30, inset 0 0 0 1px rgba(255,255,255,0.1)` 
+                                  : '0 4px 16px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.1)',
+                                transform: isSelected ? 'scale(1.05)' : 'scale(1)',
                                 aspectRatio: '1 / 1',
                               }}
                               onMouseEnter={(e) => {
                                 if (selectedOption === null) {
-                                  e.currentTarget.style.borderColor = theme.primaryColor;
-                                  e.currentTarget.style.transform = 'scale(1.05)';
+                                  e.currentTarget.style.border = `2px solid ${theme.primaryColor}`;
+                                  e.currentTarget.style.transform = 'scale(1.05) translateY(-2px)';
+                                  e.currentTarget.style.boxShadow = `0 8px 24px ${theme.primaryColor}20, inset 0 0 0 1px rgba(255,255,255,0.15)`;
                                 }
                               }}
                               onMouseLeave={(e) => {
                                 if (!isSelected && selectedOption === null) {
-                                  e.currentTarget.style.borderColor = '#e5e7eb';
+                                  e.currentTarget.style.border = '2px solid rgba(255,255,255,0.3)';
                                   e.currentTarget.style.transform = 'scale(1)';
+                                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.1)';
                                 }
                               }}
                             >
@@ -2621,12 +2726,17 @@ function QuizPlayer() {
                                 <img
                                   src={opt.image}
                                   alt={opt.text}
-                                  className="w-16 h-16 object-cover rounded-lg mb-2"
+                                  className="w-20 h-20 object-cover rounded-xl mb-3 shadow-sm"
                                 />
                               ) : (
-                                <span className="text-5xl mb-2 leading-none">{opt.icon || '⭐'}</span>
+                                <span 
+                                  className="mb-3 leading-none drop-shadow-sm"
+                                  style={{ fontSize: '3.5rem' }}
+                                >
+                                  {opt.icon || '⭐'}
+                                </span>
                               )}
-                              <span className="text-sm font-medium text-gray-700 text-center">
+                              <span className="text-sm font-semibold text-gray-800 text-center leading-tight">
                                 {opt.text}
                               </span>
                             </button>
