@@ -17,6 +17,7 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
   const scratchedRef = useRef(0);
   const totalPixelsRef = useRef(0);
   const revealTriggeredRef = useRef(false);
+  const dprRef = useRef(1);
 
   const coverColor = element.coverColor || '#7c3aed';
   const coverPattern = element.coverPattern || 'dots';
@@ -41,15 +42,20 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
+    dprRef.current = dpr;
+    
+    // Set canvas size accounting for DPR
     canvas.width = cardSize.w * dpr;
     canvas.height = cardSize.h * dpr;
     canvas.style.width = cardSize.w + 'px';
     canvas.style.height = cardSize.h + 'px';
-    ctx.scale(dpr, dpr);
 
     totalPixelsRef.current = cardSize.w * cardSize.h;
     scratchedRef.current = 0;
     revealTriggeredRef.current = false;
+
+    // Scale context ONCE for high DPI displays
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Base cover color
     ctx.fillStyle = coverColor;
@@ -90,36 +96,61 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     if (!revealed) drawCover();
   }, [drawCover, revealed]);
 
-  // Get position from mouse or touch event
-  const getPos = (e) => {
+  // Get position from mouse or touch event - FIXED coordinate calculation
+  const getPos = useCallback((e) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
+    
     const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    // Get client coordinates
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+      clientX = e.changedTouches[0].clientX;
+      clientY = e.changedTouches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    // Calculate position relative to canvas (in CSS pixels)
+    // Account for any scaling of the canvas element
+    const scaleX = cardSize.w / rect.width;
+    const scaleY = cardSize.h / rect.height;
+    
     return {
-      x: clientX - rect.left,
-      y: clientY - rect.top,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
-  };
+  }, [cardSize]);
 
-  // Scratch at position
-  const scratch = (pos) => {
+  // Scratch at position - FIXED to not double-scale
+  const scratch = useCallback((pos) => {
+    if (!pos) return;
     const canvas = canvasRef.current;
     if (!canvas || revealed) return;
     const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = dprRef.current;
 
-    ctx.save();
-    ctx.scale(dpr, dpr);
+    // Set the transform to account for DPR (same as drawCover)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    
+    // Use destination-out to "erase" the cover
     ctx.globalCompositeOperation = 'destination-out';
+    
+    const brushSize = 24;
+    
+    // Draw circle at current position
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, 22, 0, Math.PI * 2);
+    ctx.arc(pos.x, pos.y, brushSize, 0, Math.PI * 2);
     ctx.fill();
 
     // Draw stroke from last position for smooth lines
     if (lastPosRef.current) {
-      ctx.lineWidth = 44;
+      ctx.lineWidth = brushSize * 2;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.beginPath();
@@ -127,15 +158,17 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
     }
-    ctx.restore();
+    
+    // Reset composite operation
+    ctx.globalCompositeOperation = 'source-over';
 
     lastPosRef.current = pos;
 
     // Track scratched area (approximate)
-    scratchedRef.current += 44 * 44;
+    scratchedRef.current += brushSize * brushSize * 4;
     const scratchPercent = scratchedRef.current / totalPixelsRef.current;
     
-    if (scratchPercent > 0.6 && !revealTriggeredRef.current) {
+    if (scratchPercent > 0.5 && !revealTriggeredRef.current) {
       revealTriggeredRef.current = true;
       // Auto-reveal with fade
       setTimeout(() => {
@@ -143,19 +176,23 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
         setTimeout(() => setShowCelebration(true), 200);
       }, 300);
     }
-  };
+  }, [revealed]);
 
   // Mouse events
   const onMouseDown = (e) => {
     e.preventDefault();
     isDrawingRef.current = true;
     lastPosRef.current = null;
-    scratch(getPos(e));
+    const pos = getPos(e);
+    scratch(pos);
   };
+  
   const onMouseMove = (e) => {
     if (!isDrawingRef.current) return;
-    scratch(getPos(e));
+    const pos = getPos(e);
+    scratch(pos);
   };
+  
   const onMouseUp = () => {
     isDrawingRef.current = false;
     lastPosRef.current = null;
@@ -166,14 +203,19 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     e.preventDefault();
     isDrawingRef.current = true;
     lastPosRef.current = null;
-    scratch(getPos(e));
+    const pos = getPos(e);
+    scratch(pos);
   };
+  
   const onTouchMove = (e) => {
     e.preventDefault();
     if (!isDrawingRef.current) return;
-    scratch(getPos(e));
+    const pos = getPos(e);
+    scratch(pos);
   };
-  const onTouchEnd = () => {
+  
+  const onTouchEnd = (e) => {
+    e.preventDefault();
     isDrawingRef.current = false;
     lastPosRef.current = null;
   };
@@ -216,7 +258,8 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
         {!revealed && (
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 cursor-crosshair touch-none"
+            className="absolute inset-0 cursor-crosshair"
+            style={{ touchAction: 'none' }}
             onMouseDown={onMouseDown}
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
