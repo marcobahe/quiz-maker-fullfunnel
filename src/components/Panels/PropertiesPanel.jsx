@@ -6,8 +6,10 @@ import {
   CircleDot, CheckSquare, Video, Music, Image, LayoutGrid,
   Type, FileText, UserPlus, PanelRightClose, Disc, Gift, MessageSquare,
   Star, Info, MousePointerClick, Package, FlipVertical, Dices, Phone,
+  Link2, Upload, ExternalLink,
 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
+import { extractYouTubeId, youtubeThumbnail } from '@/lib/youtube';
 import { createDefaultElement } from '@/components/Canvas/CompositeNode';
 import StyleEditor from './StyleEditor';
 import EmojiPicker from '@/components/EmojiPicker';
@@ -69,6 +71,215 @@ const COLOR_CLASSES = {
   gray:   'bg-gray-100 text-gray-600',
 };
 
+// ── GHL Media Tip ────────────────────────────────────────────────
+
+function GhlMediaTip() {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative inline-block ml-1">
+      <button
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onClick={(e) => { e.preventDefault(); setShow(!show); }}
+        className="text-gray-400 hover:text-accent transition-colors"
+        type="button"
+      >
+        <Info size={14} />
+      </button>
+      {show && (
+        <div className="absolute left-0 bottom-full mb-2 bg-gray-800 text-white text-xs rounded-lg px-3 py-2 z-50 shadow-lg whitespace-normal" style={{ width: 260 }}>
+          <p className="font-medium mb-1">💡 Dica: Mídia do Full Funnel</p>
+          <p className="text-gray-300 leading-relaxed">
+            Você pode usar URLs de mídia do Full Funnel. Vá em <strong>Media</strong> {'>'} clique no arquivo {'>'} copie o link.
+          </p>
+          <p className="text-gray-400 mt-1.5 text-[10px]">
+            Formatos: .mp3, .mp4, .mpeg, .wav, .ogg, .webm
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Reusable Media URL Field ─────────────────────────────────────
+
+function MediaUrlField({ label, value, onChange, accept, mediaType = 'audio', placeholder }) {
+  const [mode, setMode] = useState(value ? 'url' : 'url'); // default to URL mode
+  const [urlStatus, setUrlStatus] = useState(null); // null | 'checking' | 'ok' | 'error'
+  const fileInputRef = useRef(null);
+
+  // Validate URL accessibility when changed
+  useEffect(() => {
+    if (!value || mode !== 'url') {
+      setUrlStatus(null);
+      return;
+    }
+    // Only validate URLs (not data URIs or blobs)
+    if (!value.startsWith('http://') && !value.startsWith('https://')) {
+      setUrlStatus(null);
+      return;
+    }
+    setUrlStatus('checking');
+    const controller = new AbortController();
+    fetch(value, { method: 'HEAD', signal: controller.signal, mode: 'no-cors' })
+      .then(() => setUrlStatus('ok'))
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          // no-cors always succeeds for opaque responses, so HEAD may fail on CORS
+          // but the media will still work in <audio>/<video> tags
+          setUrlStatus('ok');
+        }
+      });
+    return () => controller.abort();
+  }, [value, mode]);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Convert to data URI for local storage (in production, this would upload to a CDN)
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      onChange(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const acceptMap = {
+    audio: 'audio/*,.mp3,.wav,.ogg,.mpeg,.m4a,.webm',
+    video: 'video/*,.mp4,.webm,.mov,.mpeg',
+    image: 'image/*,.jpg,.jpeg,.png,.gif,.webp,.svg',
+  };
+
+  const placeholderMap = {
+    audio: 'Cole a URL do áudio (ex: URL do Full Funnel)',
+    video: 'Cole a URL do vídeo (ex: URL do Full Funnel)',
+    image: 'Cole a URL da imagem',
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center">
+          <label className="text-sm font-medium text-gray-700">{label}</label>
+          {(mediaType === 'audio' || mediaType === 'video') && <GhlMediaTip />}
+        </div>
+      </div>
+
+      {/* Mode tabs */}
+      <div className="flex rounded-lg border border-gray-200 mb-2 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setMode('url')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'url'
+              ? 'bg-accent text-white'
+              : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+          }`}
+        >
+          <Link2 size={12} /> URL
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('upload')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'upload'
+              ? 'bg-accent text-white'
+              : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+          }`}
+        >
+          <Upload size={12} /> Upload
+        </button>
+      </div>
+
+      {/* URL mode */}
+      {mode === 'url' && (
+        <div>
+          <div className="relative">
+            <input
+              type="text"
+              value={value || ''}
+              onChange={(e) => onChange(e.target.value)}
+              className="w-full p-2.5 pr-8 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+              placeholder={placeholder || placeholderMap[mediaType] || 'https://...'}
+            />
+            {urlStatus === 'checking' && (
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-accent rounded-full animate-spin" />
+              </div>
+            )}
+            {urlStatus === 'ok' && (
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-green-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+            {urlStatus === 'error' && (
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-red-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Upload mode */}
+      {mode === 'upload' && (
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept || acceptMap[mediaType] || '*/*'}
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-accent hover:text-accent transition-colors text-sm font-medium flex items-center justify-center gap-2"
+          >
+            <Upload size={16} />
+            {value && !value.startsWith('http') ? 'Arquivo selecionado ✓' : 'Clique para enviar arquivo'}
+          </button>
+          {value && !value.startsWith('http') && (
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="mt-1 text-xs text-red-400 hover:text-red-600 transition-colors"
+            >
+              Remover arquivo
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Preview */}
+      {value && (
+        <div className="mt-2">
+          {mediaType === 'audio' && (
+            <audio controls className="w-full" src={value} preload="none">
+              Seu navegador não suporta áudio.
+            </audio>
+          )}
+          {mediaType === 'video' && (
+            <video controls className="w-full rounded-lg max-h-40" src={value} preload="none" />
+          )}
+          {mediaType === 'image' && (
+            <img
+              src={value}
+              alt="Preview"
+              className="w-full max-h-32 object-cover rounded-lg border border-gray-200"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Composite Element Editors ────────────────────────────────────
 
 function TextElementEditor({ element, nodeId }) {
@@ -107,6 +318,16 @@ function TextElementEditor({ element, nodeId }) {
 
 function MediaElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+
+  const mediaTypeMap = {
+    video: 'video',
+    audio: 'audio',
+    image: 'image',
+  };
+  const mt = mediaTypeMap[element.type] || 'audio';
+  const ytId = mt === 'video' ? extractYouTubeId(element.url) : null;
+  const orientation = element.videoOrientation || 'auto';
+
   return (
     <div className="space-y-3">
       <div>
@@ -119,16 +340,76 @@ function MediaElementEditor({ element, nodeId }) {
           placeholder="Título..."
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">URL</label>
-        <input
-          type="text"
-          value={element.url || ''}
-          onChange={(e) => updateNodeElement(nodeId, element.id, { url: e.target.value })}
-          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
-          placeholder="https://..."
-        />
-      </div>
+      <MediaUrlField
+        label={mt === 'video' ? 'Vídeo' : mt === 'audio' ? 'Áudio' : 'Imagem'}
+        value={element.url || ''}
+        onChange={(val) => updateNodeElement(nodeId, element.id, { url: val })}
+        mediaType={mt}
+        placeholder={mt === 'video' ? 'URL do vídeo ou link do YouTube' : undefined}
+      />
+      {/* YouTube detection badge */}
+      {ytId && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-2.5">
+          <img
+            src={youtubeThumbnail(ytId)}
+            alt="YT"
+            className="w-16 h-10 object-cover rounded"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <svg viewBox="0 0 28 20" className="w-5 h-3.5 shrink-0">
+                <rect width="28" height="20" rx="4" fill="#FF0000"/>
+                <polygon points="11,5 11,15 20,10" fill="white"/>
+              </svg>
+              <span className="text-xs font-medium text-red-700">YouTube detectado</span>
+            </div>
+            <p className="text-[10px] text-red-500 mt-0.5 truncate">Será renderizado como iframe embed</p>
+          </div>
+        </div>
+      )}
+      {/* Video orientation selector */}
+      {mt === 'video' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Orientação do Vídeo</label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              { value: 'auto', label: 'Auto', icon: '⚡', desc: 'Detecta' },
+              { value: 'horizontal', label: '16:9', icon: '🖥️', desc: 'Horizontal' },
+              { value: 'vertical', label: '9:16', icon: '📱', desc: 'Vertical' },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => updateNodeElement(nodeId, element.id, { videoOrientation: opt.value })}
+                className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-lg border-2 transition-all text-center ${
+                  orientation === opt.value
+                    ? 'border-accent bg-accent/5 text-accent'
+                    : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                }`}
+              >
+                {/* Aspect ratio icon */}
+                <div className="flex items-center justify-center" style={{ height: 28 }}>
+                  {opt.value === 'auto' ? (
+                    <div className="w-7 h-5 rounded border-2 border-current flex items-center justify-center">
+                      <span className="text-[8px] font-bold">A</span>
+                    </div>
+                  ) : opt.value === 'horizontal' ? (
+                    <div className="w-9 h-5 rounded border-2 border-current" />
+                  ) : (
+                    <div className="w-4 h-7 rounded border-2 border-current" />
+                  )}
+                </div>
+                <span className="text-[10px] font-semibold leading-tight">{opt.desc}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-1.5">
+            {orientation === 'auto' && 'Detecta o formato automaticamente. Usa 16:9 como fallback.'}
+            {orientation === 'horizontal' && 'Formato paisagem — ideal para YouTube, desktop e apresentações.'}
+            {orientation === 'vertical' && 'Formato retrato — ideal para Reels, TikTok e Stories.'}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -1275,39 +1556,23 @@ function PhoneCallElementEditor({ element, nodeId }) {
           placeholder="Consultor, Dr. Silva..."
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Foto do Ligante (URL)</label>
-        <input
-          type="text"
-          value={element.callerPhoto || ''}
-          onChange={(e) => updateNodeElement(nodeId, element.id, { callerPhoto: e.target.value })}
-          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
-          placeholder="https://..."
-        />
-        {element.callerPhoto && (
-          <img
-            src={element.callerPhoto}
-            alt="Preview"
-            className="w-12 h-12 rounded-full object-cover mt-2 border-2 border-gray-200"
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
-        )}
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Áudio da Chamada (URL)</label>
-        <input
-          type="text"
-          value={element.audioUrl || ''}
-          onChange={(e) => updateNodeElement(nodeId, element.id, { audioUrl: e.target.value })}
-          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
-          placeholder="https://... (.mp3, .wav, .ogg)"
-        />
-        {element.audioUrl && (
-          <audio controls className="w-full mt-2" src={element.audioUrl}>
-            Seu navegador não suporta áudio.
-          </audio>
-        )}
-      </div>
+
+      <MediaUrlField
+        label="Foto do Ligante"
+        value={element.callerPhoto || ''}
+        onChange={(val) => updateNodeElement(nodeId, element.id, { callerPhoto: val })}
+        mediaType="image"
+        placeholder="URL da foto do ligante..."
+      />
+
+      <MediaUrlField
+        label="Áudio da Chamada"
+        value={element.audioUrl || ''}
+        onChange={(val) => updateNodeElement(nodeId, element.id, { audioUrl: val })}
+        mediaType="audio"
+        placeholder="Cole a URL do áudio (ex: URL do Full Funnel)"
+      />
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Duração do Toque (segundos)</label>
         <input

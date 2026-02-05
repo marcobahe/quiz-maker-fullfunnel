@@ -30,6 +30,7 @@ import {
 import useQuizStore from '@/store/quizStore';
 import InlineEdit from './InlineEdit';
 import { AVAILABLE_VARIABLES, parseVariableSegments, getAvailableVariables } from '@/lib/dynamicVariables';
+import { extractYouTubeId, youtubeThumbnail } from '@/lib/youtube';
 import EmojiPicker from '@/components/EmojiPicker';
 import { useClickOutside } from '@/hooks/useClickOutside';
 
@@ -145,7 +146,7 @@ export function createDefaultElement(type) {
         }
       };
     case 'video':
-      return { id, type: 'video', url: '', title: 'Vídeo' };
+      return { id, type: 'video', url: '', title: 'Vídeo', videoOrientation: 'auto' };
     case 'audio':
       return { id, type: 'audio', url: '', title: 'Áudio' };
     case 'image':
@@ -1274,25 +1275,66 @@ function MediaElement({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
   const Icon = ICONS[element.type] || Image;
   const c = COLORS[element.type] || COLORS.image;
+  const ytId = element.type === 'video' ? extractYouTubeId(element.url) : null;
+  const orientation = element.videoOrientation || 'auto';
+  const isVertical = element.type === 'video' && orientation === 'vertical';
+
   return (
-    <div className="p-2 flex items-center gap-2">
-      <div className={`w-7 h-7 ${c.bg} rounded-lg flex items-center justify-center shrink-0`}>
-        <Icon size={14} className={c.text} />
+    <div className="p-2">
+      <div className="flex items-center gap-2">
+        <div className={`w-7 h-7 ${c.bg} rounded-lg flex items-center justify-center shrink-0`}>
+          <Icon size={14} className={c.text} />
+        </div>
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <InlineEdit
+            value={element.title || element.type}
+            onSave={(val) => updateNodeElement(nodeId, element.id, { title: val })}
+            className="text-gray-700 text-sm font-medium block"
+            placeholder="Título…"
+          />
+          <InlineEdit
+            value={element.url || ''}
+            onSave={(val) => updateNodeElement(nodeId, element.id, { url: val })}
+            className="text-gray-400 text-xs truncate block"
+            placeholder="URL…"
+          />
+        </div>
       </div>
-      <div className="flex-1 min-w-0 space-y-0.5">
-        <InlineEdit
-          value={element.title || element.type}
-          onSave={(val) => updateNodeElement(nodeId, element.id, { title: val })}
-          className="text-gray-700 text-sm font-medium block"
-          placeholder="Título…"
-        />
-        <InlineEdit
-          value={element.url || ''}
-          onSave={(val) => updateNodeElement(nodeId, element.id, { url: val })}
-          className="text-gray-400 text-xs truncate block"
-          placeholder="URL…"
-        />
-      </div>
+      {/* Video preview mockup (YouTube or orientation indicator) */}
+      {element.type === 'video' && element.url && (
+        <div className={`mt-1.5 flex ${isVertical ? 'justify-center' : ''}`}>
+          <div
+            className="relative rounded-md overflow-hidden bg-gray-900"
+            style={isVertical
+              ? { width: 72, height: 128 }
+              : { width: '100%', height: 80 }
+            }
+          >
+            {ytId ? (
+              <img
+                src={youtubeThumbnail(ytId)}
+                alt="YouTube"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Video size={20} className="text-gray-500" />
+              </div>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <div className={`rounded-full flex items-center justify-center ${ytId ? 'bg-red-600 w-7 h-7' : 'bg-white/20 w-6 h-6'}`}>
+                <svg viewBox="0 0 24 24" fill="white" className="w-3 h-3 ml-0.5">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+            {/* Orientation badge */}
+            <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] font-medium px-1 rounded">
+              {isVertical ? '9:16' : '16:9'}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

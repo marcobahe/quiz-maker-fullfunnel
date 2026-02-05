@@ -6,6 +6,7 @@ import { Trophy, ChevronRight, ArrowLeft, User, Mail, Phone, Loader2, CheckCircl
 import { replaceVariables, buildAnswersMap } from '@/lib/dynamicVariables';
 import { initTracking, trackEvent } from '@/lib/tracking';
 import { getPatternStyle } from '@/lib/patterns';
+import { extractYouTubeId, youtubeEmbedUrl } from '@/lib/youtube';
 import SpinWheel from '@/components/Player/SpinWheel';
 import ScratchCard from '@/components/Player/ScratchCard';
 import PhoneCallScreen from '@/components/Player/PhoneCallScreen';
@@ -2428,6 +2429,11 @@ function QuizPlayer() {
                       : el.type === 'audio'
                         ? Music
                         : ImageIcon;
+                  const ytId = el.type === 'video' ? extractYouTubeId(el.url) : null;
+                  const vOri = el.videoOrientation || 'auto';
+                  // For 'auto', default to horizontal (16:9); native <video> will
+                  // auto-detect via its intrinsic aspect ratio thanks to object-fit.
+                  const isVertical = vOri === 'vertical';
                   return (
                     <div
                       key={el.id}
@@ -2439,12 +2445,57 @@ function QuizPlayer() {
                           alt={el.title || ''}
                           className="rounded-lg max-h-64 object-cover"
                         />
+                      ) : el.url && el.type === 'video' && ytId ? (
+                        /* YouTube embed — orientation-aware */
+                        <div
+                          className="rounded-lg overflow-hidden"
+                          style={isVertical
+                            ? { width: '100%', maxWidth: 360, aspectRatio: '9/16', margin: '0 auto', position: 'relative' }
+                            : { width: '100%', aspectRatio: '16/9', position: 'relative' }
+                          }
+                        >
+                          <iframe
+                            src={youtubeEmbedUrl(ytId)}
+                            title={el.title || 'YouTube video'}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                          />
+                        </div>
                       ) : el.url && el.type === 'video' ? (
-                        <video
-                          src={el.url}
-                          controls
-                          className="rounded-lg max-h-64 w-full"
-                        />
+                        /* Native <video> — orientation-aware */
+                        <div
+                          className="rounded-lg overflow-hidden"
+                          style={isVertical
+                            ? { width: '100%', maxWidth: 360, margin: '0 auto' }
+                            : { width: '100%' }
+                          }
+                        >
+                          <video
+                            src={el.url}
+                            controls
+                            preload="metadata"
+                            className="w-full rounded-lg"
+                            style={isVertical
+                              ? { aspectRatio: '9/16', objectFit: 'cover' }
+                              : vOri === 'horizontal'
+                                ? { aspectRatio: '16/9', objectFit: 'contain', backgroundColor: '#000' }
+                                : { maxHeight: 480 }
+                            }
+                          />
+                        </div>
+                      ) : el.url && el.type === 'audio' ? (
+                        <div className="w-full">
+                          {el.title && (
+                            <p className="text-sm font-medium text-gray-700 mb-2 text-center">{el.title}</p>
+                          )}
+                          <audio
+                            src={el.url}
+                            controls
+                            className="w-full"
+                            preload="metadata"
+                          />
+                        </div>
                       ) : (
                         <>
                           <MediaIcon
