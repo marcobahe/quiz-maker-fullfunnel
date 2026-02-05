@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Check, Eye, Send, ChevronLeft, Save } from 'lucide-react';
+import { Check, Eye, Send, ChevronLeft, Save, Copy, ExternalLink, X, CheckCircle } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { useState, useCallback } from 'react';
 
@@ -11,6 +11,9 @@ export default function TopBar({ quizId }) {
   const { quizName, setQuizName, isSaved, nodes, edges, quizStatus, scoreRanges, quizSettings } = useQuizStore();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishedSlug, setPublishedSlug] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const tabs = [
     { label: 'Canvas', path: `/builder/${quizId || 'new'}` },
@@ -68,12 +71,22 @@ export default function TopBar({ quizId }) {
       if (res.ok) {
         const quiz = await res.json();
         useQuizStore.getState().publishQuiz();
-        alert(`Quiz publicado! Link: ${window.location.origin}/q/${quiz.slug}`);
+        setPublishedSlug(quiz.slug);
+        setShowPublishModal(true);
+        setCopied(false);
       }
     } catch (err) {
       console.error('Failed to publish:', err);
     }
   }, [quizId, quizName, nodes, edges, handleSave]);
+
+  const quizUrl = publishedSlug ? `${typeof window !== 'undefined' ? window.location.origin : ''}/q/${publishedSlug}` : '';
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(quizUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handlePreview = () => {
     if (quizId) {
@@ -166,6 +179,64 @@ export default function TopBar({ quizId }) {
           </button>
         </div>
       </div>
+
+      {/* Publish Success Modal */}
+      {showPublishModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-6 text-white text-center">
+              <CheckCircle size={48} className="mx-auto mb-3" />
+              <h2 className="text-2xl font-bold">Quiz Publicado! 🎉</h2>
+              <p className="text-green-100 mt-1">Seu quiz está no ar e pronto para receber respostas</p>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Link do Quiz</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={quizUrl}
+                    readOnly
+                    className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 font-mono"
+                  />
+                  <button
+                    onClick={copyLink}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                      copied 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-accent text-white hover:bg-accent-hover'
+                    }`}
+                  >
+                    {copied ? <Check size={18} /> : <Copy size={18} />}
+                    {copied ? 'Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <a
+                  href={quizUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                >
+                  <ExternalLink size={18} />
+                  Abrir Quiz
+                </a>
+                <button
+                  onClick={() => setShowPublishModal(false)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
