@@ -148,10 +148,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Support OpenRouter (preferred) or OpenAI directly
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const apiKey = openRouterKey || openaiKey;
+    const useOpenRouter = !!openRouterKey;
+    
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Chave da API OpenAI não configurada. Adicione OPENAI_API_KEY nas variáveis de ambiente.' },
+        { error: 'Chave da API não configurada. Adicione OPENROUTER_API_KEY ou OPENAI_API_KEY nas variáveis de ambiente.' },
         { status: 500 }
       );
     }
@@ -296,20 +301,35 @@ Responda APENAS com JSON válido no seguinte formato exato:
 
     const systemPrompt = `Você é um especialista em criação de quizzes de marketing e engajamento. Gere quizzes envolventes, com perguntas cativantes e opções inteligentes que mantenham o usuário engajado. Use linguagem ${tom.toLowerCase()} em português brasileiro. Responda APENAS com JSON válido no formato especificado, sem texto adicional, sem markdown, sem explicações.`;
 
-    // Call OpenAI API
+    // Call AI API (OpenRouter or OpenAI)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s for OpenRouter
 
-    let openaiResponse;
+    const apiUrl = useOpenRouter 
+      ? 'https://openrouter.ai/api/v1/chat/completions'
+      : 'https://api.openai.com/v1/chat/completions';
+    
+    // Model selection: use OpenAI GPT-4o-mini via OpenRouter or direct
+    const model = useOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini';
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    };
+
+    // OpenRouter specific headers
+    if (useOpenRouter) {
+      headers['HTTP-Referer'] = 'https://go.quizmebaby.app';
+      headers['X-Title'] = 'QuizMeBaby';
+    }
+
+    let aiResponse;
     try {
-      openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      aiResponse = await fetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers,
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
@@ -323,7 +343,7 @@ Responda APENAS com JSON válido no seguinte formato exato:
       clearTimeout(timeoutId);
       if (err.name === 'AbortError') {
         return NextResponse.json(
-          { error: 'A geração demorou mais que 30 segundos. Tente novamente.' },
+          { error: 'A geração demorou mais que 60 segundos. Tente novamente.' },
           { status: 504 }
         );
       }
@@ -331,17 +351,17 @@ Responda APENAS com JSON válido no seguinte formato exato:
     }
     clearTimeout(timeoutId);
 
-    if (!openaiResponse.ok) {
-      const errData = await openaiResponse.json().catch(() => ({}));
-      console.error('OpenAI API error:', errData);
+    if (!aiResponse.ok) {
+      const errData = await aiResponse.json().catch(() => ({}));
+      console.error('AI API error:', errData);
       return NextResponse.json(
-        { error: `Erro na API da OpenAI: ${errData.error?.message || 'Erro desconhecido'}` },
+        { error: `Erro na API de IA: ${errData.error?.message || 'Erro desconhecido'}` },
         { status: 502 }
       );
     }
 
-    const openaiData = await openaiResponse.json();
-    const content = openaiData.choices?.[0]?.message?.content;
+    const aiData = await aiResponse.json();
+    const content = aiData.choices?.[0]?.message?.content;
 
     if (!content) {
       return NextResponse.json({ error: 'Resposta vazia da IA.' }, { status: 502 });
