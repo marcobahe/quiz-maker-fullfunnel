@@ -2315,26 +2315,21 @@ function QuizPlayer() {
                     }}
                   >
                     <span
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0"
+                      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                       style={{
                         backgroundColor:
                           selectedOption === index ? theme.primaryColor : '#f3f4f6',
                         color:
                           selectedOption === index ? '#ffffff' : '#6b7280',
+                        fontSize: option.emoji ? '1.25rem' : '0.875rem',
+                        fontWeight: option.emoji ? 'normal' : '500',
                       }}
                     >
-                      {String.fromCharCode(65 + index)}
+                      {option.emoji || String.fromCharCode(65 + index)}
                     </span>
-                    <div className="flex items-center gap-2 flex-1">
-                      {option.emoji && (
-                        <span style={{ fontSize: '1.4em', lineHeight: 1 }}>
-                          {option.emoji}
-                        </span>
-                      )}
-                      <span className="font-medium text-gray-800">
-                        {option.text}
-                      </span>
-                    </div>
+                    <span className="font-medium text-gray-800 flex-1">
+                      {option.text}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -2729,7 +2724,7 @@ function QuizPlayer() {
                               }}
                             >
                               <span
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0"
+                                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                                 style={{
                                   backgroundColor:
                                     selectedOption === selKey
@@ -2739,20 +2734,15 @@ function QuizPlayer() {
                                     selectedOption === selKey
                                       ? '#ffffff'
                                       : '#6b7280',
+                                  fontSize: opt.emoji ? '1.25rem' : '0.875rem',
+                                  fontWeight: opt.emoji ? 'normal' : '500',
                                 }}
                               >
-                                {String.fromCharCode(65 + idx)}
+                                {opt.emoji || String.fromCharCode(65 + idx)}
                               </span>
-                              <div className="flex items-center gap-2 flex-1">
-                                {opt.emoji && (
-                                  <span style={{ fontSize: '1.4em', lineHeight: 1 }}>
-                                    {opt.emoji}
-                                  </span>
-                                )}
-                                <span className="font-medium text-gray-800">
-                                  {opt.text}
-                                </span>
-                              </div>
+                              <span className="font-medium text-gray-800 flex-1">
+                                {opt.text}
+                              </span>
                             </button>
                           );
                         })}
