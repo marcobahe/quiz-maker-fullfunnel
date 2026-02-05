@@ -323,7 +323,7 @@ export default function IntegrationsPage() {
           <p className="text-gray-500">Conecte seus quizzes com suas ferramentas favoritas</p>
           {quizzes.length > 0 && (
             <div className="mt-2 text-sm text-gray-600">
-              Você tem <strong>{quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''}</strong> disponível{quizzes.length !== 1 ? 'eis' : ''} para integração
+              Você tem <strong>{quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''}</strong> disponíve{quizzes.length !== 1 ? 'is' : 'l'} para integração
             </div>
           )}
         </div>
