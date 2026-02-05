@@ -891,11 +891,13 @@ function QuizPlayer() {
 
   // ── Gamification: Timer activation ───────────────────────────
   useEffect(() => {
-    if (currentNode && gamificationConfig?.timer) {
-      const isQuestion = currentNode.type === 'single-choice' || 
-                        currentNode.type === 'multiple-choice' ||
-                        (currentNode.type === 'composite' && 
-                         (currentNode.data.elements || []).some(el => el.type.startsWith('question-')));
+    // Compute currentNode locally to avoid hoisting issues
+    const node = nodes.find((n) => n.id === currentNodeId);
+    if (node && gamificationConfig?.timer) {
+      const isQuestion = node.type === 'single-choice' || 
+                        node.type === 'multiple-choice' ||
+                        (node.type === 'composite' && 
+                         (node.data.elements || []).some(el => el.type.startsWith('question-')));
                          
       if (isQuestion && !selectedOption) {
         setTimerActive(true);
@@ -904,7 +906,7 @@ function QuizPlayer() {
         setTimerActive(false);
       }
     }
-  }, [currentNode, gamificationConfig, selectedOption]);
+  }, [nodes, currentNodeId, gamificationConfig, selectedOption]);
 
   // ── Embed: auto-resize via postMessage ───────────────────────
   useEffect(() => {
