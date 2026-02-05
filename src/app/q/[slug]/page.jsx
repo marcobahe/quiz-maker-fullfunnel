@@ -987,6 +987,9 @@ function QuizPlayer() {
     return finalScore;
   }, [gamificationConfig, lives, playSound]);
   
+  // Timer timeout state - navigation handled in separate effect
+  const [timerExpired, setTimerExpired] = useState(false);
+  
   const handleTimerTimeout = useCallback(() => {
     if (!gamificationConfig?.timer) return;
     
@@ -997,12 +1000,12 @@ function QuizPlayer() {
       playSound('timer');
     }
     
-    // Continue to next question
+    // Set timer expired flag - actual navigation handled in effect below
     setTimeout(() => {
       setTimerActive(false);
-      advanceToNode(getNextNode(currentNodeId));
+      setTimerExpired(true);
     }, 500);
-  }, [gamificationConfig, processGamificationAnswer, playSound, currentNodeId]);
+  }, [gamificationConfig, processGamificationAnswer, playSound]);
   
   const handleSpeedBonus = useCallback((bonusLevel) => {
     if (!gamificationConfig?.timer || speedBonusAwarded) return;
@@ -1023,9 +1026,17 @@ function QuizPlayer() {
       playSound('streak');
     }
     
-    // Show visual feedback
-    showPointsBalloon(bonus, null, 'Bônus de Velocidade!');
-  }, [gamificationConfig, speedBonusAwarded, playSound, showPointsBalloon]);
+    // Show visual feedback - inline balloon logic to avoid hoisting issues
+    if (bonus > 0) {
+      const id = Date.now();
+      const x = window.innerWidth / 2;
+      const y = window.innerHeight / 2;
+      setPointsBalloons((prev) => [...prev, { id, points: bonus, x, y, text: 'Bônus de Velocidade!' }]);
+      setTimeout(() => {
+        setPointsBalloons((prev) => prev.filter((b) => b.id !== id));
+      }, 1500);
+    }
+  }, [gamificationConfig, speedBonusAwarded, playSound]);
 
   // ── Derived styles ──────────────────────────────────────────
 
@@ -1457,6 +1468,22 @@ function QuizPlayer() {
     
     return () => clearTimeout(timer);
   }, [currentNodeId, currentNode, edges, nodes, showResult, showLeadForm]);
+
+  // ── Timer expired: navigate to next question ────────────────
+  useEffect(() => {
+    if (!timerExpired) return;
+    
+    // Reset the flag
+    setTimerExpired(false);
+    
+    // Navigate to next node
+    const nextId = getNextNode(currentNodeId);
+    if (nextId) {
+      advanceToNode(nextId);
+    } else {
+      setShowResult(true);
+    }
+  }, [timerExpired, currentNodeId, getNextNode, advanceToNode]);
 
   const answeredCount = Object.keys(answers).length;
   const progress =
