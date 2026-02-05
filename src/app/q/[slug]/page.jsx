@@ -1243,8 +1243,8 @@ function QuizPlayer() {
         setNodes(allNodes);
         setEdges(allEdges);
 
-        // Apply shuffling if enabled
-        if ((data.shuffleQuestions || settings?.behavior?.shuffleQuestions) && !isPreview) {
+        // Apply shuffling if enabled (shuffleQuestions state was already set above)
+        if (data.shuffleQuestions && !isPreview) {
           const shuffled = applyQuestionShuffle(allNodes, allEdges);
           setShuffledNodes(shuffled);
         } else {
