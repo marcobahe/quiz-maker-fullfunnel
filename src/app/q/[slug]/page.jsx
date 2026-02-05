@@ -79,7 +79,7 @@ function trackRedirectEvent(url, resultTitle) {
     if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
       window.gtag('event', 'quiz_redirect', { destination: url, result_title: resultTitle });
     }
-    // TODO: Use trackEvent from src/lib/tracking.js when available
+    // Note: This is standalone redirect tracking (not part of quiz event flow)
   } catch (_e) {
     // Silently ignore tracking errors
   }
