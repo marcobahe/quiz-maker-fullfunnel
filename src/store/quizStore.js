@@ -12,18 +12,18 @@ const initialNodes = [
 const defaultQuizSettings = {
   theme: {
     primaryColor: '#7c3aed',
-    secondaryColor: '#5b21b6',
-    backgroundColor: '#1e1b4b',
+    secondaryColor: '#6d28d9',
+    backgroundColor: '#0f0a1e',
     backgroundType: 'gradient',
-    backgroundGradient: 'from-purple-900 via-purple-800 to-indigo-900',
+    backgroundGradient: 'from-gray-900 via-slate-800 to-zinc-900',
     textColor: '#ffffff',
     buttonStyle: 'rounded',
     fontFamily: 'Inter',
     // Novo: configuração do fundo da página
     pageBackground: {
-      type: 'color', // 'color' | 'gradient' | 'image' | 'pattern'
-      color: '#1e1b4b',
-      gradient: 'from-purple-900 via-purple-800 to-indigo-900',
+      type: 'gradient', // 'color' | 'gradient' | 'image' | 'pattern'
+      color: '#0f0a1e',
+      gradient: 'from-gray-900 via-slate-800 to-zinc-900',
       imageUrl: '',
       imageOverlay: 0.5, // 0-1
       imageFit: 'cover', // 'cover' | 'contain' | 'repeat'

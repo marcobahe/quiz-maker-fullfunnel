@@ -10,6 +10,7 @@ import { extractYouTubeId, youtubeEmbedUrl } from '@/lib/youtube';
 import SpinWheel from '@/components/Player/SpinWheel';
 import ScratchCard from '@/components/Player/ScratchCard';
 import PhoneCallScreen from '@/components/Player/PhoneCallScreen';
+import MysteryBox from '@/components/Player/MysteryBox';
 import SwipeQuestion from '@/components/QuizPlayer/elements/SwipeQuestion';
 import QuestionTimer from '@/components/Quiz/QuestionTimer';
 import {
@@ -1768,7 +1769,7 @@ function QuizPlayer() {
   const compositeHasGamification = useMemo(() => {
     if (currentNode?.type !== 'composite') return false;
     return (currentNode.data.elements || []).some(
-      (el) => el.type === 'spin-wheel' || el.type === 'scratch-card' || el.type === 'phone-call',
+      (el) => el.type === 'spin-wheel' || el.type === 'scratch-card' || el.type === 'phone-call' || el.type === 'mystery-box' || el.type === 'card-flip' || el.type === 'slot-machine',
     );
   }, [currentNode]);
 
@@ -2804,6 +2805,24 @@ function QuizPlayer() {
                       <PhoneCallScreen
                         element={el}
                         theme={theme}
+                        onComplete={() => {
+                          if (el.score > 0) {
+                            setScore((prev) => prev + el.score);
+                          }
+                          advanceToNode(getNextNode(currentNodeId));
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                if (el.type === 'mystery-box') {
+                  return (
+                    <div key={el.id} className="mb-4">
+                      <MysteryBox
+                        element={el}
+                        theme={theme}
+                        btnRadius={btnRadius}
                         onComplete={() => {
                           if (el.score > 0) {
                             setScore((prev) => prev + el.score);

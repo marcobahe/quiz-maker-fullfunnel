@@ -3042,9 +3042,16 @@ export default function CompositeNode({ id, data, selected }) {
 
   return (
     <div
-      className={`group/node relative bg-white rounded-xl shadow-lg border-2 min-w-[300px] max-w-[400px] transition-all ${
-        selected ? 'border-accent ring-2 ring-accent/20' : 'border-gray-200'
+      className={`group/node relative bg-white rounded-2xl min-w-[300px] max-w-[400px] transition-all duration-200 ${
+        selected 
+          ? 'border-2 border-accent ring-4 ring-accent/10 shadow-xl shadow-accent/10' 
+          : 'border border-gray-100 shadow-lg shadow-gray-200/50 hover:shadow-xl hover:border-gray-200'
       }`}
+      style={{
+        boxShadow: selected 
+          ? '0 10px 40px -10px rgba(124, 58, 237, 0.25), 0 4px 6px -4px rgba(0, 0, 0, 0.1)'
+          : '0 4px 20px -5px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05)'
+      }}
     >
       {/* Delete node button — appears on hover */}
       <button
@@ -3052,16 +3059,16 @@ export default function CompositeNode({ id, data, selected }) {
           e.stopPropagation();
           removeNode(id);
         }}
-        className="nodrag absolute -top-3 -right-3 z-10 w-7 h-7 bg-red-50 hover:bg-red-500 text-red-400 hover:text-white rounded-full flex items-center justify-center opacity-0 group-hover/node:opacity-100 transition-all shadow-sm border border-red-200 hover:border-red-500"
+        className="nodrag absolute -top-2.5 -right-2.5 z-10 w-6 h-6 bg-white hover:bg-red-500 text-gray-400 hover:text-white rounded-full flex items-center justify-center opacity-0 group-hover/node:opacity-100 transition-all shadow-md border border-gray-200 hover:border-red-500"
         title="Excluir bloco"
       >
-        <Trash2 size={14} />
+        <Trash2 size={12} />
       </button>
 
-      <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3" />
+      <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3 !border-2 !border-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
 
       {/* Header — dragging the node starts here */}
-      <div className="p-3 border-b border-gray-100 bg-gradient-to-r from-accent/5 to-transparent rounded-t-xl">
+      <div className="px-4 py-3 border-b border-gray-50 bg-gradient-to-r from-gray-50/80 via-white to-accent/5 rounded-t-2xl">
         <InlineEdit
           value={data.label || 'Novo Bloco'}
           onSave={(val) => updateNode(id, { label: val })}
@@ -3071,11 +3078,11 @@ export default function CompositeNode({ id, data, selected }) {
       </div>
 
       {/* Elements list */}
-      <div className="divide-y divide-gray-50">
+      <div className="divide-y divide-gray-50/50">
         {elements.map((el, idx) => (
           <div
             key={el.id}
-            className={`relative group nodrag ${dragIdx === idx ? 'bg-accent/5 border-t-2 border-accent' : ''}`}
+            className={`relative group nodrag transition-colors ${dragIdx === idx ? 'bg-accent/5 border-l-2 border-accent' : 'hover:bg-gray-50/50'}`}
             draggable
             onDragStart={(e) => onDragStart(e, idx)}
             onDragOver={(e) => onDragOver(e, idx)}
@@ -3083,17 +3090,17 @@ export default function CompositeNode({ id, data, selected }) {
             onDrop={(e) => onDrop(e, idx)}
           >
             {/* Grip + remove (visible on hover) */}
-            <div className="absolute top-1.5 left-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripVertical size={12} className="text-gray-300" />
+            <div className="absolute top-2 left-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+              <GripVertical size={14} className="text-gray-300 hover:text-gray-500" />
             </div>
             <button
               onClick={() => removeNodeElement(id, el.id)}
-              className="nodrag absolute top-1.5 right-1.5 z-10 w-5 h-5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+              className="nodrag absolute top-2 right-2 z-10 w-5 h-5 bg-white hover:bg-red-50 text-gray-300 hover:text-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm border border-gray-100 hover:border-red-200"
             >
               <X size={10} />
             </button>
 
-            <div className="pl-5">
+            <div className="pl-6 pr-2">
               <ElementRenderer element={el} nodeId={id} />
             </div>
           </div>
@@ -3101,43 +3108,45 @@ export default function CompositeNode({ id, data, selected }) {
       </div>
 
       {/* Add element */}
-      <div className="p-2 border-t border-gray-100 relative">
+      <div className="px-3 py-2 border-t border-gray-50 bg-gray-50/30 rounded-b-2xl relative">
         <button
           onClick={(e) => {
             e.stopPropagation();
             setShowMenu(!showMenu);
           }}
-          className="nodrag w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-accent hover:bg-accent/5 rounded-lg py-2 transition-colors"
+          className="nodrag w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-accent hover:bg-white rounded-xl py-2.5 transition-all border border-dashed border-gray-200 hover:border-accent/40"
         >
           <Plus size={14} /> Adicionar elemento
         </button>
 
         {showMenu && (
-          <div className="nodrag absolute bottom-full left-2 right-2 mb-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-56 overflow-y-auto">
-            {ELEMENT_TYPES.map(({ type, label }) => {
-              const Icon = ICONS[type];
-              const c = COLORS[type];
-              return (
-                <button
-                  key={type}
-                  onClick={() => handleAdd(type)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-accent/5 transition-colors first:rounded-t-lg last:rounded-b-lg"
-                >
-                  <div className={`w-6 h-6 ${c.bg} rounded flex items-center justify-center`}>
-                    <Icon size={12} className={c.text} />
-                  </div>
-                  {label}
-                </button>
-              );
-            })}
+          <div className="nodrag absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto" style={{ boxShadow: '0 10px 40px -5px rgba(0,0,0,0.15)' }}>
+            <div className="p-1">
+              {ELEMENT_TYPES.map(({ type, label }) => {
+                const Icon = ICONS[type];
+                const c = COLORS[type];
+                return (
+                  <button
+                    key={type}
+                    onClick={() => handleAdd(type)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
+                  >
+                    <div className={`w-7 h-7 ${c.bg} rounded-lg flex items-center justify-center shadow-sm`}>
+                      <Icon size={14} className={c.text} />
+                    </div>
+                    <span className="font-medium">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
 
       {/* Label "Todas as respostas" above bottom handle when node has question elements */}
       {elements.some(el => ['question-single', 'question-multiple', 'question-icons', 'question-rating', 'question-open'].includes(el.type)) && (
-        <div className="text-center pb-1">
-          <span className="text-[10px] text-purple-400 select-none">Todas as respostas</span>
+        <div className="text-center pb-2">
+          <span className="text-[10px] text-accent/60 font-medium select-none bg-accent/5 px-2 py-0.5 rounded-full">Todas as respostas</span>
         </div>
       )}
 
@@ -3145,8 +3154,8 @@ export default function CompositeNode({ id, data, selected }) {
         type="source" 
         position={Position.Bottom} 
         id="all-answers"
-        className="!bg-accent !w-3 !h-3"
-        style={{ bottom: -6 }}
+        className="!bg-accent !w-3 !h-3 !border-2 !border-white"
+        style={{ bottom: -6, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
       />
     </div>
   );
