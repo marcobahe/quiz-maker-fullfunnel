@@ -164,11 +164,11 @@ function StarsRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
 
   return (
     <div className="mb-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 leading-tight">
+      <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-8 leading-tight tracking-tight">
         {rv(element.question || 'Dê sua nota')}
         {isRequired && <span className="text-rose-500 ml-1">*</span>}
       </h2>
-      <div className="flex flex-col items-center gap-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-sm border border-gray-100">
+      <div className="flex flex-col items-center gap-4 bg-white rounded-2xl p-6" style={{ boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.08)' }}>
         {(element.labelMin || element.labelMax) && (
           <div className="flex justify-between w-full text-sm text-gray-500 px-2 font-medium">
             <span>{element.labelMin}</span>
@@ -213,18 +213,39 @@ function StarsRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
           </span>
         )}
       </div>
+      {/* Botão 3D Táctil - Stich Style */}
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-4 font-semibold text-lg flex items-center justify-center gap-2 transition-all mt-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+        className="w-full text-white py-5 font-extrabold text-xl uppercase tracking-wider flex items-center justify-center gap-3 mt-6 transition-all active:translate-y-1"
         style={{
-          backgroundColor: canSubmit ? theme.primaryColor : '#d1d5db',
-          borderRadius: btnRadius,
+          background: canSubmit ? theme.primaryColor : '#d1d5db',
+          borderRadius: '9999px',
+          boxShadow: canSubmit 
+            ? `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`
+            : '0 4px 0 #9ca3af',
           cursor: canSubmit ? 'pointer' : 'not-allowed',
-          boxShadow: canSubmit ? `0 4px 14px ${theme.primaryColor}40` : 'none',
+        }}
+        onMouseDown={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(4px)';
+            e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+          }
+        }}
+        onMouseUp={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+          }
         }}
       >
-        Continuar <ChevronRight size={22} />
+        Continuar <ChevronRight size={24} />
       </button>
     </div>
   );
@@ -291,13 +312,13 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
 
   return (
     <div className="mb-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center leading-tight">
+      <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-8 text-center leading-tight tracking-tight">
         {rv(element.question || 'Dê sua nota')}
         {isRequired && <span className="text-rose-500 ml-1">*</span>}
       </h2>
       
-      {/* Scale Container - Glass effect */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
+      {/* Scale Container - Stich Style */}
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.08)' }}>
         {/* Min/Max Labels */}
         <div className="flex justify-between text-sm text-gray-600 mb-4 px-1 font-medium">
           <span>{element.labelMin || (isNps ? '😞 Nada provável' : '')}</span>
@@ -376,29 +397,39 @@ function NumberRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
         </div>
       )}
 
-      {/* Submit Button */}
+      {/* Submit Button - 3D Tactile Stich Style */}
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all duration-200 mt-6 shadow-lg hover:shadow-xl"
+        className="w-full text-white py-5 font-extrabold text-xl uppercase tracking-wider flex items-center justify-center gap-3 transition-all mt-6 active:translate-y-1"
         style={{
-          background: canSubmit ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` : '#9ca3af',
-          borderRadius: btnRadius,
+          background: canSubmit ? theme.primaryColor : '#9ca3af',
+          borderRadius: '9999px',
+          boxShadow: canSubmit 
+            ? `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`
+            : '0 4px 0 #6b7280',
           cursor: canSubmit ? 'pointer' : 'not-allowed',
-          transform: 'translateY(0)',
         }}
-        onMouseEnter={(e) => {
+        onMouseDown={(e) => {
           if (canSubmit) {
-            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.transform = 'translateY(4px)';
+            e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+          }
+        }}
+        onMouseUp={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
           }
         }}
         onMouseLeave={(e) => {
           if (canSubmit) {
             e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
           }
         }}
       >
-        Continuar <ChevronRight size={22} />
+        Continuar <ChevronRight size={24} />
       </button>
     </div>
   );
@@ -425,11 +456,11 @@ function SliderRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
 
   return (
     <div className="mb-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 leading-tight">
+      <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-8 leading-tight tracking-tight">
         {rv(element.question || 'Dê sua nota')}
         {isRequired && <span className="text-rose-500 ml-1">*</span>}
       </h2>
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.08)' }}>
         <div className="flex flex-col items-center gap-4">
           {/* Value badge - larger and more prominent */}
           <div
@@ -476,17 +507,39 @@ function SliderRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
           </div>
         </div>
       </div>
+      {/* Botão 3D Táctil - Stich Style */}
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all mt-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+        className="w-full text-white py-5 font-extrabold text-xl uppercase tracking-wider flex items-center justify-center gap-3 mt-6 transition-all active:translate-y-1"
         style={{
-          background: canSubmit ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` : '#d1d5db',
-          borderRadius: btnRadius,
+          background: canSubmit ? theme.primaryColor : '#d1d5db',
+          borderRadius: '9999px',
+          boxShadow: canSubmit 
+            ? `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`
+            : '0 4px 0 #9ca3af',
           cursor: canSubmit ? 'pointer' : 'not-allowed',
         }}
+        onMouseDown={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(4px)';
+            e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+          }
+        }}
+        onMouseUp={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+          }
+        }}
       >
-        Continuar <ChevronRight size={22} />
+        Continuar <ChevronRight size={24} />
       </button>
     </div>
   );
@@ -635,15 +688,18 @@ function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit })
 
   return (
     <div className="mb-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 leading-tight">
+      <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-8 leading-tight tracking-tight">
         {rv(element.question || 'Pergunta')}
         {isRequired && <span className="text-rose-500 ml-1">*</span>}
       </h2>
       <div 
-        className="bg-white/80 backdrop-blur-sm rounded-2xl border-2 transition-all duration-200 shadow-sm"
+        className="bg-white backdrop-blur-sm transition-all duration-200"
         style={{
-          borderColor: isFocused ? theme.primaryColor : '#e2e8f0',
-          boxShadow: isFocused ? `0 0 0 4px ${theme.primaryColor}15, 0 4px 12px rgba(0,0,0,0.08)` : '0 2px 8px rgba(0,0,0,0.05)',
+          borderRadius: '1.5rem',
+          border: isFocused ? `2px solid ${theme.primaryColor}` : '2px solid #e2e8f0',
+          boxShadow: isFocused 
+            ? `0 0 0 4px ${theme.primaryColor}15, 0 8px 24px rgba(0,0,0,0.08)` 
+            : '0 4px 15px -3px rgba(0, 0, 0, 0.08)',
         }}
       >
         {element.multiline ? (
@@ -652,8 +708,11 @@ function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit })
             onChange={(e) => setText(e.target.value.slice(0, maxLen))}
             placeholder={element.placeholder || 'Digite sua resposta...'}
             rows={5}
-            className="w-full px-5 py-4 bg-transparent outline-none resize-none text-gray-800 text-base leading-relaxed placeholder:text-gray-400"
-            style={{ borderRadius: btnRadius }}
+            className="w-full bg-transparent outline-none resize-none text-gray-800 text-lg leading-relaxed placeholder:text-gray-400"
+            style={{ 
+              borderRadius: '1.5rem',
+              padding: '1.25rem 1.5rem',
+            }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             maxLength={maxLen}
@@ -664,8 +723,11 @@ function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit })
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, maxLen))}
             placeholder={element.placeholder || 'Digite sua resposta...'}
-            className="w-full px-5 py-4 bg-transparent outline-none text-gray-800 text-lg placeholder:text-gray-400"
-            style={{ borderRadius: btnRadius }}
+            className="w-full bg-transparent outline-none text-gray-800 text-lg placeholder:text-gray-400"
+            style={{ 
+              borderRadius: '1.5rem',
+              padding: '1.25rem 1.5rem',
+            }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             maxLength={maxLen}
@@ -673,12 +735,12 @@ function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit })
           />
         )}
       </div>
-      <div className="flex items-center justify-between mt-3 px-1">
-        <span className={`text-sm font-medium transition-colors ${text.length > maxLen * 0.8 ? 'text-amber-500' : 'text-gray-400'}`}>
+      <div className="flex items-center justify-between mt-4 px-1">
+        <span className={`text-sm font-semibold transition-colors ${text.length > maxLen * 0.8 ? 'text-amber-500' : 'text-gray-400'}`}>
           {text.length}/{maxLen} caracteres
         </span>
         {isRequired && text.trim().length === 0 && (
-          <span className="text-sm text-rose-500 font-medium flex items-center gap-1">
+          <span className="text-sm text-rose-500 font-semibold flex items-center gap-1">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
@@ -686,17 +748,39 @@ function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit })
           </span>
         )}
       </div>
+      {/* Botão 3D Táctil - Stich Style */}
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full text-white py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all mt-5 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+        className="w-full text-white py-5 font-extrabold text-xl uppercase tracking-wider flex items-center justify-center gap-3 mt-6 transition-all active:translate-y-1"
         style={{
-          background: canSubmit ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` : '#d1d5db',
-          borderRadius: btnRadius,
+          background: canSubmit ? theme.primaryColor : '#d1d5db',
+          borderRadius: '9999px',
+          boxShadow: canSubmit 
+            ? `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`
+            : '0 4px 0 #9ca3af',
           cursor: canSubmit ? 'pointer' : 'not-allowed',
         }}
+        onMouseDown={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(4px)';
+            e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+          }
+        }}
+        onMouseUp={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (canSubmit) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+          }
+        }}
       >
-        Continuar <ChevronRight size={22} />
+        Continuar <ChevronRight size={24} />
       </button>
     </div>
   );
@@ -2930,7 +3014,7 @@ function QuizPlayer() {
                   const iconCols = el.columns || 2;
                   return (
                     <div key={el.id} className="mb-4">
-                      <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">
+                      <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-8 text-center leading-tight tracking-tight">
                         {rv(el.question || 'Pergunta')}
                       </h2>
                       <div
@@ -3089,11 +3173,11 @@ function QuizPlayer() {
 
                 if (el.type.startsWith('question-') && el.type !== 'question-open' && el.type !== 'question-rating' && el.type !== 'question-icons' && el.type !== 'question-swipe') {
                   return (
-                    <div key={el.id} className="mb-4">
-                      <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    <div key={el.id} className="mb-6">
+                      <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-8 leading-tight tracking-tight">
                         {rv(el.question || 'Pergunta')}
                       </h2>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {(el.options || []).map((opt, idx) => {
                           const selKey = `${el.id}-${idx}`;
                           // Check if option text starts with emoji
@@ -3105,6 +3189,9 @@ function QuizPlayer() {
                             ? opt.text.slice(leadingEmoji.length).trim() 
                             : opt.text;
                           
+                          const isSelected = selectedOption === selKey;
+                          const isOther = selectedOption !== null && !isSelected;
+                          
                           return (
                             <button
                               key={idx}
@@ -3112,45 +3199,63 @@ function QuizPlayer() {
                                 handleCompositeOptionSelect(el, idx, e)
                               }
                               disabled={selectedOption !== null}
-                              className="w-full text-left p-4 border-2 transition-all flex items-center gap-3"
+                              className="w-full text-left p-6 transition-all duration-200 flex items-center gap-5 group"
                               style={{
-                                borderRadius: btnRadius,
-                                borderColor:
-                                  selectedOption === selKey
-                                    ? theme.primaryColor
-                                    : '#e5e7eb',
-                                backgroundColor:
-                                  selectedOption === selKey
-                                    ? `${theme.primaryColor}10`
-                                    : 'transparent',
-                                opacity:
-                                  selectedOption !== null && selectedOption !== selKey ? 0.5 : 1,
-                                boxShadow:
-                                  selectedOption === selKey
-                                    ? `0 0 0 3px ${theme.primaryColor}20`
-                                    : 'none',
+                                borderRadius: '1.5rem',
+                                border: isSelected ? `4px solid ${theme.primaryColor}` : '4px solid transparent',
+                                background: 'white',
+                                opacity: isOther ? 0.5 : 1,
+                                boxShadow: isSelected
+                                  ? `0 10px 25px -5px ${theme.primaryColor}30`
+                                  : '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
+                                transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (selectedOption === null) {
+                                  e.currentTarget.style.transform = 'scale(1.05)';
+                                  e.currentTarget.style.border = `4px solid ${theme.primaryColor}`;
+                                  e.currentTarget.style.boxShadow = `0 15px 35px -5px ${theme.primaryColor}25`;
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected && selectedOption === null) {
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                  e.currentTarget.style.border = '4px solid transparent';
+                                  e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.05)';
+                                }
                               }}
                             >
                               <span
-                                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                                className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-200"
                                 style={{
-                                  backgroundColor:
-                                    selectedOption === selKey
-                                      ? theme.primaryColor
-                                      : '#f3f4f6',
-                                  color:
-                                    selectedOption === selKey
-                                      ? '#ffffff'
-                                      : '#6b7280',
-                                  fontSize: displayEmoji ? '1.25rem' : '0.875rem',
-                                  fontWeight: displayEmoji ? 'normal' : '500',
+                                  background: isSelected 
+                                    ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` 
+                                    : 'linear-gradient(135deg, #f8fafc, #f1f5f9)',
+                                  color: isSelected ? '#ffffff' : '#64748b',
+                                  fontSize: displayEmoji ? '2rem' : '1.25rem',
+                                  fontWeight: displayEmoji ? 'normal' : '700',
+                                  boxShadow: isSelected ? `0 6px 16px ${theme.primaryColor}40` : '0 4px 12px rgba(0,0,0,0.06)',
+                                  filter: displayEmoji ? 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' : 'none',
                                 }}
                               >
                                 {displayEmoji || String.fromCharCode(65 + idx)}
                               </span>
-                              <span className="font-medium text-gray-800 flex-1">
+                              <span className="text-xl font-bold flex-1" style={{ color: isSelected ? theme.primaryColor : '#1e293b' }}>
                                 {displayText}
                               </span>
+                              {isSelected && (
+                                <div 
+                                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                                  style={{ 
+                                    background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+                                    boxShadow: `0 4px 12px ${theme.primaryColor}50`,
+                                  }}
+                                >
+                                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              )}
                             </button>
                           );
                         })}
@@ -3324,10 +3429,26 @@ function QuizPlayer() {
                   onClick={() =>
                     advanceToNode(getNextNode(currentNodeId))
                   }
-                  className="w-full text-white py-3 font-medium flex items-center justify-center gap-2 transition-opacity hover:opacity-90 mt-2"
-                  style={{ backgroundColor: theme.primaryColor, borderRadius: btnRadius }}
+                  className="w-full text-white py-5 font-extrabold text-xl uppercase tracking-wider flex items-center justify-center gap-3 mt-4 transition-all active:translate-y-1"
+                  style={{ 
+                    background: theme.primaryColor, 
+                    borderRadius: '9999px',
+                    boxShadow: `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`,
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'translateY(4px)';
+                    e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+                  }}
                 >
-                  Continuar <ChevronRight size={20} />
+                  Continuar <ChevronRight size={24} />
                 </button>
               )}
             </div>
@@ -3335,8 +3456,17 @@ function QuizPlayer() {
 
           {/* ── Content / Media legacy nodes ──────────────── */}
           {!showLeadForm && !showResult && isContentOrMedia && (
-            <div className="bg-white rounded-3xl shadow-2xl p-10 text-center border border-gray-100" style={{ fontFamily: theme.fontFamily }}>
-              <p className="text-gray-800 font-semibold text-lg mb-6">
+            <div 
+              className="text-center relative overflow-hidden" 
+              style={{ 
+                fontFamily: theme.fontFamily,
+                background: 'white',
+                borderRadius: '2.5rem',
+                padding: '2.5rem',
+                boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+              }}
+            >
+              <p className="text-slate-800 font-bold text-xl mb-8 relative z-10">
                 {currentNode.data?.contentType ||
                   currentNode.data?.mediaType ||
                   'Conteúdo'}
@@ -3345,14 +3475,26 @@ function QuizPlayer() {
                 onClick={() =>
                   advanceToNode(getNextNode(currentNodeId))
                 }
-                className="text-white px-8 py-4 font-bold text-lg transition-all hover:shadow-xl hover:-translate-y-0.5 shadow-lg"
+                className="text-white px-12 py-5 font-extrabold text-xl uppercase tracking-wider transition-all active:translate-y-1 relative z-10"
                 style={{ 
-                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
-                  borderRadius: '1rem',
-                  boxShadow: `0 8px 24px ${theme.primaryColor}40`,
+                  background: theme.primaryColor,
+                  borderRadius: '9999px',
+                  boxShadow: `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`,
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translateY(4px)';
+                  e.currentTarget.style.boxShadow = `0 2px 0 ${theme.secondaryColor || '#2563EB'}, 0 5px 10px -2px ${theme.primaryColor}60`;
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = `0 6px 0 ${theme.secondaryColor || '#2563EB'}, 0 10px 20px -5px ${theme.primaryColor}80`;
                 }}
               >
-                Continuar
+                Continuar <ChevronRight size={24} className="inline ml-2" />
               </button>
             </div>
           )}
