@@ -1876,6 +1876,7 @@ function QuizPlayer() {
     
     const selKey = `${element.id}-${optionIndex}`;
     const maxSelect = element.maxSelect || element.options?.length || 999;
+    const wasSelected = multipleSelections.includes(selKey);
     
     setMultipleSelections((prev) => {
       if (prev.includes(selKey)) {
@@ -1889,6 +1890,15 @@ function QuizPlayer() {
         return prev;
       }
     });
+    
+    // Show animated points balloon when SELECTING (not deselecting)
+    if (!wasSelected) {
+      const option = element.options?.[optionIndex];
+      const optionScore = option?.score || 0;
+      if (optionScore > 0 && event) {
+        showPointsBalloon(optionScore, event);
+      }
+    }
   };
 
   // Handler for confirming multiple choice selection
@@ -3496,21 +3506,6 @@ function QuizPlayer() {
                               <span className="text-xl font-bold flex-1" style={{ color: isSelected ? theme.primaryColor : '#1e293b' }}>
                                 {displayText}
                               </span>
-                              {/* Points badge */}
-                              {opt.score > 0 && (
-                                <span 
-                                  className="px-3 py-1.5 rounded-full text-sm font-bold shrink-0"
-                                  style={{
-                                    background: isSelected 
-                                      ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`
-                                      : `linear-gradient(135deg, ${theme.primaryColor}15, ${theme.primaryColor}25)`,
-                                    color: isSelected ? 'white' : theme.primaryColor,
-                                    boxShadow: isSelected ? `0 4px 12px ${theme.primaryColor}40` : 'none',
-                                  }}
-                                >
-                                  +{opt.score} pts
-                                </span>
-                              )}
                             </button>
                           );
                         })}
