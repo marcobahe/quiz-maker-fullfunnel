@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Check, Eye, Send, ChevronLeft, CheckCircle, Link2 } from 'lucide-react';
+import { Check, Eye, Send, ChevronLeft, CheckCircle, Link2, MoreHorizontal } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Toast component
@@ -42,14 +42,55 @@ export default function TopBar({ quizId }) {
   const [linkCopied, setLinkCopied] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
+  
+  // Overflow state
+  const [showOverflow, setShowOverflow] = useState(false);
+  const [visibleTabCount, setVisibleTabCount] = useState(6);
+  const tabsContainerRef = useRef(null);
+  const tabRefs = useRef({});
 
   // Nova estrutura de abas - mais organizada
   const tabs = [
-    { label: 'Canvas', path: `/builder/${quizId || 'new'}` },
-    { label: 'Configurações', path: `/diagnostic/${quizId || 'new'}` },
-    { label: 'Aparência', path: `/appearance/${quizId || 'new'}` },
-    { label: 'Integração', path: `/integration/${quizId || 'new'}` },
+    { id: 'canvas', label: 'Canvas', path: `/builder/${quizId || 'new'}` },
+    { id: 'config', label: 'Configurações', path: `/diagnostic/${quizId || 'new'}` },
+    { id: 'appearance', label: 'Aparência', path: `/appearance/${quizId || 'new'}` },
+    { id: 'integration', label: 'Integração', path: `/integration/${quizId || 'new'}` },
+    { id: 'gamification', label: 'Gamificação', path: `/gamification/${quizId || 'new'}` },
+    { id: 'results', label: 'Resultados', path: `/results/${quizId || 'new'}` },
   ];
+
+  // Verifica quais abas cabem no container
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (!tabsContainerRef.current) return;
+      
+      const container = tabsContainerRef.current;
+      const containerWidth = container.offsetWidth - 48; // 48px para o botão overflow
+      let totalWidth = 0;
+      let visible = 0;
+
+      tabs.forEach((tab, index) => {
+        const tabEl = tabRefs.current[tab.id];
+        if (tabEl) {
+          const tabWidth = tabEl.offsetWidth + 4; // 4px gap
+          if (totalWidth + tabWidth <= containerWidth) {
+            totalWidth += tabWidth;
+            visible = index + 1;
+          }
+        }
+      });
+
+      setVisibleTabCount(Math.max(visible, 2)); // Mínimo 2 tabs visíveis
+    };
+
+    // Delay inicial para garantir que os refs estão populados
+    const timer = setTimeout(checkOverflow, 100);
+    window.addEventListener('resize', checkOverflow);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkOverflow);
+    };
+  }, [tabs]);
 
   // Carregar slug do quiz para mostrar botão de link
   useEffect(() => {
@@ -124,11 +165,25 @@ export default function TopBar({ quizId }) {
     }
   };
 
+  const isTabActive = (tab) => {
+    if (tab.id === 'canvas' && pathname.includes('/builder')) return true;
+    if (tab.id === 'config' && pathname.includes('/diagnostic')) return true;
+    if (tab.id === 'appearance' && pathname.includes('/appearance')) return true;
+    if (tab.id === 'integration' && pathname.includes('/integration')) return true;
+    if (tab.id === 'gamification' && pathname.includes('/gamification')) return true;
+    if (tab.id === 'results' && pathname.includes('/results')) return true;
+    return pathname === tab.path;
+  };
+
+  const visibleTabs = tabs.slice(0, visibleTabCount);
+  const overflowTabs = tabs.slice(visibleTabCount);
+  const hasOverflowActiveTab = overflowTabs.some(isTabActive);
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-3">
       <div className="flex items-center justify-between">
         {/* Left side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-shrink-0">
           <Link 
             href="/" 
             className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -143,43 +198,45 @@ export default function TopBar({ quizId }) {
               onChange={handleNameChange}
               onBlur={() => setIsEditing(false)}
               onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
-              className="text-xl font-semibold text-gray-800 border-b-2 border-accent outline-none bg-transparent"
+              className="text-xl font-semibold text-gray-800 border-b-2 border-accent outline-none bg-transparent max-w-[200px]"
               autoFocus
             />
           ) : (
             <h1 
-              className="text-xl font-semibold text-gray-800 cursor-pointer hover:text-accent transition-colors"
+              className="text-xl font-semibold text-gray-800 cursor-pointer hover:text-accent transition-colors truncate max-w-[200px]"
               onClick={() => setIsEditing(true)}
+              title={quizName}
             >
               {quizName}
             </h1>
           )}
           
-          <span className={`flex items-center gap-1 text-sm ${isSaved ? 'text-success' : 'text-amber-500'}`}>
+          <span className={`flex items-center gap-1 text-sm flex-shrink-0 ${isSaved ? 'text-success' : 'text-amber-500'}`}>
             <Check size={16} />
             {isSaved ? 'Salvo' : 'Não salvo'}
           </span>
 
           {/* Status badge */}
           {quizStatus === 'Publicado' && (
-            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full flex-shrink-0">
               Publicado
             </span>
           )}
         </div>
 
-        {/* Center - Tabs */}
-        <nav className="flex gap-1 bg-gray-100 rounded-lg p-1">
-          {tabs.map((tab) => {
-            const isActive = pathname === tab.path || 
-              (tab.label === 'Canvas' && pathname.includes('/builder')) ||
-              (tab.label === 'Configurações' && pathname.includes('/diagnostic')) ||
-              (tab.label === 'Aparência' && pathname.includes('/appearance'));
+        {/* Center - Tabs with overflow */}
+        <nav 
+          ref={tabsContainerRef}
+          className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-1 max-w-[600px] mx-4 relative"
+        >
+          {visibleTabs.map((tab) => {
+            const isActive = isTabActive(tab);
             return (
               <Link
-                key={tab.path}
+                key={tab.id}
+                ref={el => tabRefs.current[tab.id] = el}
                 href={tab.path}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive
                     ? 'bg-white text-accent shadow-sm'
                     : 'text-gray-600 hover:text-gray-800'
@@ -189,10 +246,55 @@ export default function TopBar({ quizId }) {
               </Link>
             );
           })}
+          
+          {/* Overflow dropdown */}
+          {overflowTabs.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowOverflow(!showOverflow)}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  showOverflow || hasOverflowActiveTab
+                    ? 'bg-white text-accent shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                title="Mais opções"
+              >
+                <MoreHorizontal size={18} />
+              </button>
+              
+              {showOverflow && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowOverflow(false)}
+                  />
+                  <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1 min-w-[160px]">
+                    {overflowTabs.map((tab) => {
+                      const isActive = isTabActive(tab);
+                      return (
+                        <Link
+                          key={tab.id}
+                          href={tab.path}
+                          onClick={() => setShowOverflow(false)}
+                          className={`block w-full px-4 py-2 text-sm transition-colors text-left ${
+                            isActive
+                              ? 'bg-accent/10 text-accent'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {tab.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </nav>
 
         {/* Right side */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           {/* Botão de Link - aparece quando quiz está publicado */}
           {quizSlug && (
             <button 
