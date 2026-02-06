@@ -1997,6 +1997,14 @@ function QuizPlayer() {
     const maxSelect = element.maxSelect || element.options?.length || 999;
     const wasSelected = multipleSelections.includes(selKey);
     
+    // Calculate the new selections count
+    let newSelectionsCount = multipleSelections.length;
+    if (wasSelected) {
+      newSelectionsCount--;
+    } else if (multipleSelections.length < maxSelect) {
+      newSelectionsCount++;
+    }
+    
     setMultipleSelections((prev) => {
       if (prev.includes(selKey)) {
         // Deselect
@@ -2017,6 +2025,13 @@ function QuizPlayer() {
       if (optionScore > 0 && event) {
         showPointsBalloon(optionScore, event);
       }
+    }
+    
+    // Auto-advance when max selections reached (if enabled)
+    if (element.autoAdvanceOnMax && !wasSelected && newSelectionsCount === maxSelect) {
+      setTimeout(() => {
+        handleMultipleConfirm(element, event);
+      }, 300);
     }
   };
 

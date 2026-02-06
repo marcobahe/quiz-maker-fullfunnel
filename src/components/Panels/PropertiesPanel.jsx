@@ -601,6 +601,27 @@ function QuestionElementEditor({ element, nodeId }) {
           <p className="text-xs text-purple-500">
             O usuário deve selecionar de {minSelect} a {maxSelect > optionsCount ? 'todas' : maxSelect} {maxSelect === 1 ? 'opção' : 'opções'}
           </p>
+          
+          {/* Auto-advance when max selections reached */}
+          <div className="flex items-center justify-between pt-2 border-t border-purple-200 mt-2">
+            <div>
+              <p className="text-xs font-medium text-purple-700">Avançar automaticamente</p>
+              <p className="text-[10px] text-purple-500">Ao atingir máximo de seleções</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => updateNodeElement(nodeId, element.id, { autoAdvanceOnMax: !element.autoAdvanceOnMax })}
+              className={`relative w-10 h-5 rounded-full transition-colors ${
+                element.autoAdvanceOnMax ? 'bg-purple-500' : 'bg-gray-300'
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                  element.autoAdvanceOnMax ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
         </div>
       )}
 
