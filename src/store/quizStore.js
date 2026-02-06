@@ -263,6 +263,15 @@ const useQuizStore = create((set, get) => ({
       isSaved: false,
     })),
 
+  updateQuizSettings: (updates) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        ...updates,
+      },
+      isSaved: false,
+    })),
+
   setNodes: (nodesOrUpdater) => {
     if (typeof nodesOrUpdater === 'function') {
       set((state) => ({ nodes: nodesOrUpdater(state.nodes), isSaved: false }));
@@ -405,6 +414,8 @@ const useQuizStore = create((set, get) => ({
           events: { ...defaults.tracking.events, ...(settings.tracking?.events || {}) },
         },
         behavior: { ...defaults.behavior, ...(settings.behavior || {}) },
+        notifications: { ...defaults.notifications, ...(settings.notifications || {}) },
+        gamification: { ...defaults.gamification, ...(settings.gamification || {}) },
       },
       isSaved: true,
     });
