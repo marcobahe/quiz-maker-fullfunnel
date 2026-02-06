@@ -42,45 +42,58 @@ export default function TopBar({ quizId }) {
   };
 
   const handleSave = useCallback(async () => {
-    if (!quizId || saving) return;
+    if (!quizId || saving) return false;
     setSaving(true);
     try {
+      // Pega dados frescos do store para garantir que estamos salvando a versão mais recente
+      const { nodes: currentNodes, edges: currentEdges, quizName: currentName, scoreRanges: currentScoreRanges, quizSettings: currentSettings } = useQuizStore.getState();
+      
       const res = await fetch(`/api/quizzes/${quizId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: quizName,
-          canvasData: JSON.stringify({ nodes, edges }),
-          scoreRanges,
-          settings: quizSettings,
+          name: currentName,
+          canvasData: JSON.stringify({ nodes: currentNodes, edges: currentEdges }),
+          scoreRanges: currentScoreRanges,
+          settings: currentSettings,
         }),
       });
       if (res.ok) {
         useQuizStore.getState().saveQuiz();
+        return true;
       }
+      return false;
     } catch (err) {
       console.error('Failed to save:', err);
+      return false;
     } finally {
       setSaving(false);
     }
-  }, [quizId, quizName, nodes, edges, scoreRanges, quizSettings, saving]);
+  }, [quizId, saving]);
 
   const handlePublish = useCallback(async () => {
     if (!quizId) return;
     
-    // Save first
-    await handleSave();
+    // Save first and wait for it to complete
+    const saved = await handleSave();
+    if (saved === false && saving) {
+      // Wait a bit if save is still in progress
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
     
     try {
+      // Pega dados frescos do store para publicar
+      const { nodes: currentNodes, edges: currentEdges, quizName: currentName, scoreRanges: currentScoreRanges, quizSettings: currentSettings } = useQuizStore.getState();
+      
       const res = await fetch(`/api/quizzes/${quizId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: 'published',
-          name: quizName,
-          canvasData: JSON.stringify({ nodes, edges }),
-          scoreRanges,
-          settings: quizSettings,
+          name: currentName,
+          canvasData: JSON.stringify({ nodes: currentNodes, edges: currentEdges }),
+          scoreRanges: currentScoreRanges,
+          settings: currentSettings,
         }),
       });
       if (res.ok) {
@@ -94,7 +107,7 @@ export default function TopBar({ quizId }) {
     } catch (err) {
       console.error('Failed to publish:', err);
     }
-  }, [quizId, quizName, nodes, edges, handleSave, scoreRanges, quizSettings]);
+  }, [quizId, handleSave, saving]);
 
   const quizUrl = publishedSlug 
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/q/${publishedSlug}` 
