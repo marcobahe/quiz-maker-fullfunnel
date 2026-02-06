@@ -1986,8 +1986,58 @@ function QuizPlayer() {
 
   if (loading) {
     return (
-      <div className={`${embedClass} flex items-center justify-center`} style={pageBgStyle}>
-        <Loader2 className="animate-spin" size={48} style={{ color: theme.textColor }} />
+      <div 
+        className={`${embedClass} flex items-center justify-center`} 
+        style={{ 
+          background: 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 25%, #FFF1F2 50%, #F0FDF4 75%, #F0F9FF 100%)',
+          fontFamily: 'Outfit, system-ui, sans-serif',
+        }}
+      >
+        <div className="text-center">
+          {/* Logo/Icon pulsando */}
+          <div 
+            className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 animate-pulse"
+            style={{ 
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              boxShadow: '0 16px 40px -8px rgba(99, 102, 241, 0.4)',
+            }}
+          >
+            <span className="text-white text-4xl font-extrabold">Q</span>
+          </div>
+          
+          {/* Texto */}
+          <p className="text-slate-600 font-semibold text-xl mb-6 tracking-tight">
+            Preparando seu quiz...
+          </p>
+          
+          {/* Dots animados */}
+          <div className="flex justify-center gap-2">
+            <div 
+              className="w-3 h-3 rounded-full animate-bounce"
+              style={{ 
+                backgroundColor: '#6366f1',
+                animationDelay: '0ms',
+                animationDuration: '0.6s',
+              }}
+            />
+            <div 
+              className="w-3 h-3 rounded-full animate-bounce"
+              style={{ 
+                backgroundColor: '#8b5cf6',
+                animationDelay: '150ms',
+                animationDuration: '0.6s',
+              }}
+            />
+            <div 
+              className="w-3 h-3 rounded-full animate-bounce"
+              style={{ 
+                backgroundColor: '#a855f7',
+                animationDelay: '300ms',
+                animationDuration: '0.6s',
+              }}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -3642,8 +3692,58 @@ export default function QuizPlayerPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center">
-          <Loader2 className="animate-spin text-white" size={48} />
+        <div 
+          className="min-h-screen flex items-center justify-center"
+          style={{ 
+            background: 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 25%, #FFF1F2 50%, #F0FDF4 75%, #F0F9FF 100%)',
+            fontFamily: 'Outfit, system-ui, sans-serif',
+          }}
+        >
+          <div className="text-center">
+            {/* Logo/Icon pulsando */}
+            <div 
+              className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 animate-pulse"
+              style={{ 
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                boxShadow: '0 16px 40px -8px rgba(99, 102, 241, 0.4)',
+              }}
+            >
+              <span className="text-white text-4xl font-extrabold">Q</span>
+            </div>
+            
+            {/* Texto */}
+            <p className="text-slate-600 font-semibold text-xl mb-6 tracking-tight">
+              Preparando seu quiz...
+            </p>
+            
+            {/* Dots animados */}
+            <div className="flex justify-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full animate-bounce"
+                style={{ 
+                  backgroundColor: '#6366f1',
+                  animationDelay: '0ms',
+                  animationDuration: '0.6s',
+                }}
+              />
+              <div 
+                className="w-3 h-3 rounded-full animate-bounce"
+                style={{ 
+                  backgroundColor: '#8b5cf6',
+                  animationDelay: '150ms',
+                  animationDuration: '0.6s',
+                }}
+              />
+              <div 
+                className="w-3 h-3 rounded-full animate-bounce"
+                style={{ 
+                  backgroundColor: '#a855f7',
+                  animationDelay: '300ms',
+                  animationDuration: '0.6s',
+                }}
+              />
+            </div>
+          </div>
         </div>
       }
     >

@@ -312,27 +312,27 @@ export default function PhoneCallScreen({ element, theme, onComplete }) {
 
   return (
     <>
-      {/* Fullscreen overlay - iOS call style */}
+      {/* Fullscreen overlay - iOS call style (dark mode) */}
       <div
         className="fixed inset-0 z-50 flex flex-col"
         style={{
           background: callerPhoto 
             ? 'transparent'
-            : 'linear-gradient(180deg, #1c1c1e 0%, #2c2c2e 50%, #1c1c1e 100%)',
+            : 'linear-gradient(180deg, #050508 0%, #0a0a12 35%, #0d0d15 65%, #050508 100%)',
         }}
       >
-        {/* Background image with blur (if photo provided) */}
+        {/* Background image with blur (if photo provided) - much darker */}
         {callerPhoto && (
           <>
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
                 backgroundImage: `url(${callerPhoto})`,
-                filter: 'blur(50px) brightness(0.4)',
-                transform: 'scale(1.2)',
+                filter: 'blur(60px) brightness(0.2) saturate(0.8)',
+                transform: 'scale(1.3)',
               }}
             />
-            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 bg-black/70" />
           </>
         )}
 
