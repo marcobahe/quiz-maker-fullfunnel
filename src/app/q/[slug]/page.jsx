@@ -2006,9 +2006,14 @@ function QuizPlayer() {
           </div>
           
           {/* Texto */}
-          <p className="text-slate-600 font-semibold text-xl mb-6 tracking-tight">
-            Preparando seu quiz...
-          </p>
+          <div className="text-center mb-6">
+            <p className="text-slate-700 font-bold text-2xl mb-2 tracking-tight">
+              👀 Antes de começar…
+            </p>
+            <p className="text-slate-500 font-medium text-lg max-w-xs mx-auto">
+              Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.
+            </p>
+          </div>
           
           {/* Dots animados */}
           <div className="flex justify-center gap-2">
@@ -3712,9 +3717,14 @@ export default function QuizPlayerPage() {
             </div>
             
             {/* Texto */}
-            <p className="text-slate-600 font-semibold text-xl mb-6 tracking-tight">
-              Preparando seu quiz...
-            </p>
+            <div className="text-center mb-6">
+              <p className="text-slate-700 font-bold text-2xl mb-2 tracking-tight">
+                👀 Antes de começar…
+              </p>
+              <p className="text-slate-500 font-medium text-lg max-w-xs mx-auto">
+                Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.
+              </p>
+            </div>
             
             {/* Dots animados */}
             <div className="flex justify-center gap-2">
