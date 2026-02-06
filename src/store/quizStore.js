@@ -37,12 +37,20 @@ const defaultQuizSettings = {
   },
   // Configuração da mensagem de pré-load
   preloadMessage: {
-    text: '👀 Antes de começar… Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.',
-    fontSize: '1.25rem',
-    fontFamily: 'Outfit',
-    color: '#475569',
+    // Título
+    title: '👀 Antes de começar…',
+    titleFontSize: '2rem',
+    titleFontFamily: 'Outfit',
+    titleColor: '#1e293b',
+    titleFontWeight: 'bold',
+    // Texto/Subtítulo
+    text: 'Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.',
+    textFontSize: '1.25rem',
+    textFontFamily: 'Outfit',
+    textColor: '#475569',
+    textFontWeight: 'medium',
+    // Geral
     textAlign: 'center',
-    fontWeight: 'medium',
   },
   aiResultConfig: {
     enabled: false,

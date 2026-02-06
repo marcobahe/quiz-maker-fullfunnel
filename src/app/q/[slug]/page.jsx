@@ -1102,12 +1102,17 @@ function QuizPlayer() {
   
   // Preload message settings
   const [preloadMessage, setPreloadMessage] = useState({
-    text: '👀 Antes de começar… Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.',
-    fontSize: '1.25rem',
-    fontFamily: 'Outfit',
-    color: '#475569',
+    title: '👀 Antes de começar…',
+    titleFontSize: '2rem',
+    titleFontFamily: 'Outfit',
+    titleColor: '#1e293b',
+    titleFontWeight: 'bold',
+    text: 'Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.',
+    textFontSize: '1.25rem',
+    textFontFamily: 'Outfit',
+    textColor: '#475569',
+    textFontWeight: 'medium',
     textAlign: 'center',
-    fontWeight: 'medium',
   });
   const [showPreload, setShowPreload] = useState(true); // Show preload message after data loads
 
@@ -2320,7 +2325,7 @@ function QuizPlayer() {
         className={`${embedClass} flex items-center justify-center`} 
         style={{ 
           background: 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 25%, #FFF1F2 50%, #F0FDF4 75%, #F0F9FF 100%)',
-          fontFamily: preloadMessage.fontFamily || 'Outfit, system-ui, sans-serif',
+          fontFamily: preloadMessage.titleFontFamily || 'Outfit, system-ui, sans-serif',
         }}
       >
         <div className="text-center px-4 animate-fade-in">
@@ -2335,23 +2340,36 @@ function QuizPlayer() {
             <span className="text-white text-4xl font-extrabold">Q</span>
           </div>
           
-          {/* Texto personalizado */}
+          {/* Título + Texto personalizados */}
           <div 
             className="mb-8 max-w-md mx-auto"
             style={{
               textAlign: preloadMessage.textAlign || 'center',
             }}
           >
+            {/* Título */}
+            <p 
+              className="mb-3 tracking-tight"
+              style={{
+                fontSize: preloadMessage.titleFontSize || '2rem',
+                color: preloadMessage.titleColor || '#1e293b',
+                fontWeight: fontWeightMap[preloadMessage.titleFontWeight] || '700',
+                fontFamily: preloadMessage.titleFontFamily || 'Outfit',
+              }}
+            >
+              {preloadMessage.title || '👀 Antes de começar…'}
+            </p>
+            {/* Texto/Subtítulo */}
             <p 
               className="leading-relaxed whitespace-pre-wrap"
               style={{
-                fontSize: preloadMessage.fontSize || '1.25rem',
-                color: preloadMessage.color || '#475569',
-                fontWeight: fontWeightMap[preloadMessage.fontWeight] || '500',
-                fontFamily: preloadMessage.fontFamily || 'Outfit',
+                fontSize: preloadMessage.textFontSize || '1.25rem',
+                color: preloadMessage.textColor || '#475569',
+                fontWeight: fontWeightMap[preloadMessage.textFontWeight] || '500',
+                fontFamily: preloadMessage.textFontFamily || 'Outfit',
               }}
             >
-              {preloadMessage.text || '👀 Antes de começar… Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.'}
+              {preloadMessage.text || 'Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.'}
             </p>
           </div>
           

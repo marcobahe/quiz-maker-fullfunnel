@@ -302,12 +302,17 @@ export default function ThemeEditor() {
   const theme = useQuizStore((s) => s.quizSettings.theme);
   const branding = useQuizStore((s) => s.quizSettings.branding);
   const preloadMessage = useQuizStore((s) => s.quizSettings.preloadMessage || {
-    text: '👀 Antes de começar… Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.',
-    fontSize: '1.25rem',
-    fontFamily: 'Outfit',
-    color: '#475569',
+    title: '👀 Antes de começar…',
+    titleFontSize: '2rem',
+    titleFontFamily: 'Outfit',
+    titleColor: '#1e293b',
+    titleFontWeight: 'bold',
+    text: 'Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.',
+    textFontSize: '1.25rem',
+    textFontFamily: 'Outfit',
+    textColor: '#475569',
+    textFontWeight: 'medium',
     textAlign: 'center',
-    fontWeight: 'medium',
   });
   const behavior = useQuizStore((s) => s.quizSettings.behavior || { shuffleQuestions: false, questionTimer: null });
   const updateTheme = useQuizStore((s) => s.updateTheme);
@@ -859,88 +864,225 @@ export default function ThemeEditor() {
               className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl p-6 border border-gray-200"
             >
               <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wider">Preview</p>
-              <div 
-                className="text-center"
-                style={{
-                  fontFamily: preloadMessage.fontFamily || 'Outfit',
-                  fontSize: preloadMessage.fontSize || '1.25rem',
-                  color: preloadMessage.color || '#475569',
-                  textAlign: preloadMessage.textAlign || 'center',
-                  fontWeight: preloadMessage.fontWeight === 'bold' ? '700' : preloadMessage.fontWeight === 'medium' ? '500' : '400',
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {preloadMessage.text || '👀 Antes de começar…'}
+              <div style={{ textAlign: preloadMessage.textAlign || 'center' }}>
+                {/* Título */}
+                <p
+                  className="mb-2"
+                  style={{
+                    fontFamily: preloadMessage.titleFontFamily || 'Outfit',
+                    fontSize: preloadMessage.titleFontSize || '2rem',
+                    color: preloadMessage.titleColor || '#1e293b',
+                    fontWeight: preloadMessage.titleFontWeight === 'bold' ? '700' : preloadMessage.titleFontWeight === 'medium' ? '500' : '400',
+                  }}
+                >
+                  {preloadMessage.title || '👀 Antes de começar…'}
+                </p>
+                {/* Texto */}
+                <p
+                  style={{
+                    fontFamily: preloadMessage.textFontFamily || 'Outfit',
+                    fontSize: preloadMessage.textFontSize || '1.25rem',
+                    color: preloadMessage.textColor || '#475569',
+                    fontWeight: preloadMessage.textFontWeight === 'bold' ? '700' : preloadMessage.textFontWeight === 'medium' ? '500' : '400',
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {preloadMessage.text || 'Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.'}
+                </p>
               </div>
             </div>
 
-            {/* Text */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Texto da Mensagem</p>
-              <textarea
-                value={preloadMessage.text}
-                onChange={(e) => updatePreloadMessage({ text: e.target.value })}
-                placeholder="👀 Antes de começar… Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais."
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none resize-none"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Use emojis para deixar mais atrativo! 🚀
-              </p>
-            </div>
+            {/* ════════════════ TÍTULO ════════════════ */}
+            <div className="border-t border-gray-100 pt-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <Type size={16} className="text-accent" /> Título
+              </h4>
+              
+              {/* Title Text */}
+              <div className="mb-3">
+                <p className="text-sm font-medium text-gray-700 mb-1">Texto do Título</p>
+                <input
+                  type="text"
+                  value={preloadMessage.title || ''}
+                  onChange={(e) => updatePreloadMessage({ title: e.target.value })}
+                  placeholder="👀 Antes de começar…"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                />
+              </div>
 
-            {/* Font Family */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Fonte</p>
-              <select
-                value={preloadMessage.fontFamily || 'Outfit'}
-                onChange={(e) => updatePreloadMessage({ fontFamily: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
-              >
-                <option value="Outfit">Outfit</option>
-                <option value="Inter">Inter</option>
-                <option value="Roboto">Roboto</option>
-                <option value="Open Sans">Open Sans</option>
-                <option value="Poppins">Poppins</option>
-                <option value="Montserrat">Montserrat</option>
-              </select>
-            </div>
+              {/* Title Font */}
+              <div className="mb-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">Fonte do Título</p>
+                <select
+                  value={preloadMessage.titleFontFamily || 'Outfit'}
+                  onChange={(e) => updatePreloadMessage({ titleFontFamily: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                >
+                  <option value="Outfit">Outfit</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Open Sans">Open Sans</option>
+                  <option value="Poppins">Poppins</option>
+                  <option value="Montserrat">Montserrat</option>
+                </select>
+              </div>
 
-            {/* Font Size */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Tamanho da Fonte</p>
-              <div className="flex gap-2">
-                {[
-                  { label: 'Pequeno', value: '1rem' },
-                  { label: 'Médio', value: '1.25rem' },
-                  { label: 'Grande', value: '1.5rem' },
-                  { label: 'Extra', value: '1.75rem' },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => updatePreloadMessage({ fontSize: opt.value })}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      (preloadMessage.fontSize || '1.25rem') === opt.value
-                        ? 'bg-accent text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+              {/* Title Size */}
+              <div className="mb-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">Tamanho do Título</p>
+                <div className="flex gap-2">
+                  {[
+                    { label: 'P', value: '1.5rem' },
+                    { label: 'M', value: '2rem' },
+                    { label: 'G', value: '2.5rem' },
+                    { label: 'XG', value: '3rem' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => updatePreloadMessage({ titleFontSize: opt.value })}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        (preloadMessage.titleFontSize || '2rem') === opt.value
+                          ? 'bg-accent text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Title Color & Weight Row */}
+              <div className="grid grid-cols-2 gap-3">
+                <ColorPicker
+                  label="Cor do Título"
+                  value={preloadMessage.titleColor || '#1e293b'}
+                  onChange={(color) => updatePreloadMessage({ titleColor: color })}
+                />
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Peso</p>
+                  <div className="flex gap-1">
+                    {[
+                      { label: 'N', value: 'normal', title: 'Normal' },
+                      { label: 'M', value: 'medium', title: 'Médio' },
+                      { label: 'B', value: 'bold', title: 'Negrito' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => updatePreloadMessage({ titleFontWeight: opt.value })}
+                        title={opt.title}
+                        className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                          (preloadMessage.titleFontWeight || 'bold') === opt.value
+                            ? 'bg-accent text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                        style={{ fontWeight: opt.value === 'bold' ? 700 : opt.value === 'medium' ? 500 : 400 }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Color */}
-            <ColorPicker
-              label="Cor do Texto"
-              value={preloadMessage.color || '#475569'}
-              onChange={(color) => updatePreloadMessage({ color })}
-            />
+            {/* ════════════════ TEXTO/SUBTÍTULO ════════════════ */}
+            <div className="border-t border-gray-100 pt-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <AlignLeft size={16} className="text-accent" /> Texto / Subtítulo
+              </h4>
+              
+              {/* Text Content */}
+              <div className="mb-3">
+                <p className="text-sm font-medium text-gray-700 mb-1">Texto</p>
+                <textarea
+                  value={preloadMessage.text || ''}
+                  onChange={(e) => updatePreloadMessage({ text: e.target.value })}
+                  placeholder="Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none resize-none"
+                />
+              </div>
 
-            {/* Text Align */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Alinhamento</p>
+              {/* Text Font */}
+              <div className="mb-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">Fonte do Texto</p>
+                <select
+                  value={preloadMessage.textFontFamily || 'Outfit'}
+                  onChange={(e) => updatePreloadMessage({ textFontFamily: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                >
+                  <option value="Outfit">Outfit</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Open Sans">Open Sans</option>
+                  <option value="Poppins">Poppins</option>
+                  <option value="Montserrat">Montserrat</option>
+                </select>
+              </div>
+
+              {/* Text Size */}
+              <div className="mb-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">Tamanho do Texto</p>
+                <div className="flex gap-2">
+                  {[
+                    { label: 'P', value: '1rem' },
+                    { label: 'M', value: '1.25rem' },
+                    { label: 'G', value: '1.5rem' },
+                    { label: 'XG', value: '1.75rem' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => updatePreloadMessage({ textFontSize: opt.value })}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        (preloadMessage.textFontSize || '1.25rem') === opt.value
+                          ? 'bg-accent text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Text Color & Weight Row */}
+              <div className="grid grid-cols-2 gap-3">
+                <ColorPicker
+                  label="Cor do Texto"
+                  value={preloadMessage.textColor || '#475569'}
+                  onChange={(color) => updatePreloadMessage({ textColor: color })}
+                />
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Peso</p>
+                  <div className="flex gap-1">
+                    {[
+                      { label: 'N', value: 'normal', title: 'Normal' },
+                      { label: 'M', value: 'medium', title: 'Médio' },
+                      { label: 'B', value: 'bold', title: 'Negrito' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => updatePreloadMessage({ textFontWeight: opt.value })}
+                        title={opt.title}
+                        className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                          (preloadMessage.textFontWeight || 'medium') === opt.value
+                            ? 'bg-accent text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                        style={{ fontWeight: opt.value === 'bold' ? 700 : opt.value === 'medium' ? 500 : 400 }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ════════════════ GERAL ════════════════ */}
+            <div className="border-t border-gray-100 pt-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3">Alinhamento Geral</h4>
               <div className="flex gap-2">
                 {[
                   { label: <AlignLeft size={18} />, value: 'left' },
@@ -962,31 +1104,6 @@ export default function ThemeEditor() {
               </div>
             </div>
 
-            {/* Font Weight */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Peso da Fonte</p>
-              <div className="flex gap-2">
-                {[
-                  { label: 'Normal', value: 'normal' },
-                  { label: 'Médio', value: 'medium' },
-                  { label: 'Negrito', value: 'bold' },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => updatePreloadMessage({ fontWeight: opt.value })}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      (preloadMessage.fontWeight || 'medium') === opt.value
-                        ? 'bg-accent text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                    style={{ fontWeight: opt.value === 'bold' ? 700 : opt.value === 'medium' ? 500 : 400 }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Info Box */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex gap-2">
@@ -994,7 +1111,7 @@ export default function ThemeEditor() {
                 <div className="text-xs text-blue-700">
                   <p className="font-medium mb-1">Dica:</p>
                   <p className="text-blue-600">
-                    Esta mensagem aparece enquanto o quiz está carregando. Use para criar expectativa ou preparar o usuário para o conteúdo!
+                    Esta mensagem aparece enquanto o quiz está carregando. Use para criar expectativa ou preparar o usuário para o conteúdo! 🚀
                   </p>
                 </div>
               </div>
