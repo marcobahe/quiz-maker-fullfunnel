@@ -788,6 +788,125 @@ function OpenQuestionPlayer({ element, nodeId, theme, btnRadius, rv, onSubmit })
   );
 }
 
+// ── Carousel Player Component ────────────────────────────────
+
+function CarouselPlayer({ element, theme }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const slides = element.slides || [];
+  
+  if (slides.length === 0) {
+    return (
+      <div className="mb-4 bg-white/80 backdrop-blur-sm rounded-2xl p-8 text-center" style={{ boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.08)' }}>
+        <ImageIcon size={48} className="mx-auto text-gray-300 mb-3" />
+        <p className="text-gray-500 font-medium">Nenhuma imagem no carrossel</p>
+      </div>
+    );
+  }
+
+  const goToPrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+  };
+
+  const currentSlide = slides[currentIndex];
+
+  return (
+    <div className="mb-4">
+      {/* Title */}
+      {element.title && (
+        <h3 className="text-lg font-bold text-gray-800 mb-3 text-center">{element.title}</h3>
+      )}
+      
+      {/* Carousel Container */}
+      <div 
+        className="relative bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden"
+        style={{ boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)' }}
+      >
+        {/* Main Image */}
+        <div className="relative aspect-[4/3] w-full">
+          <img
+            src={currentSlide.url}
+            alt={currentSlide.caption || `Slide ${currentIndex + 1}`}
+            className="w-full h-full object-cover transition-opacity duration-300"
+            onError={(e) => {
+              e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f3f4f6" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%239ca3af" font-size="14">Imagem</text></svg>';
+            }}
+          />
+          
+          {/* Navigation Arrows */}
+          {slides.length > 1 && (
+            <>
+              <button
+                onClick={goToPrev}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center transition-all hover:bg-white hover:scale-110 active:scale-95"
+                style={{ 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  color: theme.primaryColor 
+                }}
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <button
+                onClick={goToNext}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center transition-all hover:bg-white hover:scale-110 active:scale-95"
+                style={{ 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  color: theme.primaryColor 
+                }}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
+          
+          {/* Slide Counter Badge */}
+          <div 
+            className="absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-bold text-white"
+            style={{ 
+              background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}
+          >
+            {currentIndex + 1} / {slides.length}
+          </div>
+        </div>
+        
+        {/* Caption */}
+        {currentSlide.caption && (
+          <div className="px-5 py-4 bg-white/80 backdrop-blur-sm border-t border-gray-100">
+            <p className="text-gray-700 text-center font-medium">{currentSlide.caption}</p>
+          </div>
+        )}
+        
+        {/* Dot Indicators */}
+        {slides.length > 1 && (
+          <div className="flex items-center justify-center gap-2 py-4 bg-white/60">
+            {slides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className="transition-all duration-200"
+                style={{
+                  width: idx === currentIndex ? '24px' : '8px',
+                  height: '8px',
+                  borderRadius: '4px',
+                  background: idx === currentIndex 
+                    ? `linear-gradient(90deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`
+                    : '#d1d5db',
+                  boxShadow: idx === currentIndex ? `0 2px 8px ${theme.primaryColor}40` : 'none',
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Redirect Components ──────────────────────────────────────
 
 function RedirectCountdown({ url, delay, accentColor, secondaryColor, isEmbed, resultTitle }) {
@@ -3064,7 +3183,12 @@ function QuizPlayer() {
                   );
                 }
 
-                if (['video', 'audio', 'image', 'carousel'].includes(el.type)) {
+                // ── Carousel element ───────────────────────────────────
+                if (el.type === 'carousel') {
+                  return <CarouselPlayer key={el.id} element={el} theme={theme} />;
+                }
+
+                if (['video', 'audio', 'image'].includes(el.type)) {
                   const MediaIcon =
                     el.type === 'video'
                       ? Video
