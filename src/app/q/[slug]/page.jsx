@@ -3496,6 +3496,21 @@ function QuizPlayer() {
                               <span className="text-xl font-bold flex-1" style={{ color: isSelected ? theme.primaryColor : '#1e293b' }}>
                                 {displayText}
                               </span>
+                              {/* Points badge */}
+                              {opt.score > 0 && (
+                                <span 
+                                  className="px-3 py-1.5 rounded-full text-sm font-bold shrink-0"
+                                  style={{
+                                    background: isSelected 
+                                      ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`
+                                      : `linear-gradient(135deg, ${theme.primaryColor}15, ${theme.primaryColor}25)`,
+                                    color: isSelected ? 'white' : theme.primaryColor,
+                                    boxShadow: isSelected ? `0 4px 12px ${theme.primaryColor}40` : 'none',
+                                  }}
+                                >
+                                  +{opt.score} pts
+                                </span>
+                              )}
                             </button>
                           );
                         })}
