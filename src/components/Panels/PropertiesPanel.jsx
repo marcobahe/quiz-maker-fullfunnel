@@ -511,6 +511,7 @@ function CarouselElementEditor({ element, nodeId }) {
 
 function QuestionElementEditor({ element, nodeId }) {
   const updateNodeElement = useQuizStore((s) => s.updateNodeElement);
+  const isMultiple = element.type === 'question-multiple';
 
   const handleOptionChange = (index, value) => {
     const opts = [...(element.options || [])];
@@ -540,6 +541,10 @@ function QuestionElementEditor({ element, nodeId }) {
     updateNodeElement(nodeId, element.id, { options: opts });
   };
 
+  const optionsCount = element.options?.length || 0;
+  const minSelect = element.minSelect || 1;
+  const maxSelect = element.maxSelect || optionsCount || 999;
+
   return (
     <div className="space-y-3">
       <div>
@@ -552,6 +557,53 @@ function QuestionElementEditor({ element, nodeId }) {
           placeholder="Digite a pergunta..."
         />
       </div>
+
+      {/* Selection limits for multiple choice */}
+      {isMultiple && (
+        <div className="bg-purple-50 rounded-lg p-3 space-y-3">
+          <p className="text-xs font-medium text-purple-700 flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Limites de Seleção
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-purple-600 mb-1">Mínimo</label>
+              <input
+                type="number"
+                min={1}
+                max={optionsCount || 10}
+                value={minSelect}
+                onChange={(e) => {
+                  const val = Math.max(1, parseInt(e.target.value) || 1);
+                  updateNodeElement(nodeId, element.id, { minSelect: val });
+                }}
+                className="w-full bg-white border border-purple-200 rounded px-2 py-1.5 text-sm text-center focus:ring-1 focus:ring-purple-400 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-purple-600 mb-1">Máximo</label>
+              <input
+                type="number"
+                min={minSelect}
+                max={optionsCount || 10}
+                value={maxSelect > optionsCount ? optionsCount : maxSelect}
+                onChange={(e) => {
+                  const val = Math.max(minSelect, parseInt(e.target.value) || optionsCount);
+                  updateNodeElement(nodeId, element.id, { maxSelect: val });
+                }}
+                className="w-full bg-white border border-purple-200 rounded px-2 py-1.5 text-sm text-center focus:ring-1 focus:ring-purple-400 focus:border-transparent"
+                placeholder="∞"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-purple-500">
+            O usuário deve selecionar de {minSelect} a {maxSelect > optionsCount ? 'todas' : maxSelect} {maxSelect === 1 ? 'opção' : 'opções'}
+          </p>
+        </div>
+      )}
+
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-gray-700">Opções</label>

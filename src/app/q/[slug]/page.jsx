@@ -991,6 +991,7 @@ function QuizPlayer() {
   const [leadForm, setLeadForm] = useState({ name: '', email: '', phone: '' });
   const [leadSaved, setLeadSaved] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [multipleSelections, setMultipleSelections] = useState([]); // For question-multiple
   const [pointsBalloons, setPointsBalloons] = useState([]);
 
   // AI Analysis state
@@ -1869,6 +1870,84 @@ function QuizPlayer() {
     }, 500);
   };
 
+  // Handler for multiple choice toggle (question-multiple)
+  const handleMultipleOptionToggle = (element, optionIndex, event) => {
+    if (!currentNode) return;
+    
+    const selKey = `${element.id}-${optionIndex}`;
+    const maxSelect = element.maxSelect || element.options?.length || 999;
+    
+    setMultipleSelections((prev) => {
+      if (prev.includes(selKey)) {
+        // Deselect
+        return prev.filter((k) => k !== selKey);
+      } else {
+        // Select (if under max)
+        if (prev.length < maxSelect) {
+          return [...prev, selKey];
+        }
+        return prev;
+      }
+    });
+  };
+
+  // Handler for confirming multiple choice selection
+  const handleMultipleConfirm = (element, event) => {
+    if (!currentNode) return;
+    
+    const minSelect = element.minSelect || 1;
+    const maxSelect = element.maxSelect || element.options?.length || 999;
+    
+    // Validate selection count
+    if (multipleSelections.length < minSelect) {
+      return; // Don't proceed if under minimum
+    }
+    
+    setTimerActive(false);
+    
+    // Calculate total score from selected options
+    const selectedIndices = multipleSelections
+      .filter((k) => k.startsWith(`${element.id}-`))
+      .map((k) => parseInt(k.split('-').pop(), 10));
+    
+    const selectedOptions = selectedIndices.map((idx) => element.options?.[idx]).filter(Boolean);
+    const totalScore = selectedOptions.reduce((acc, opt) => acc + (opt?.score || 0), 0);
+    const selectedTexts = selectedOptions.map((opt) => opt?.text).join(', ');
+    
+    // Process gamification
+    const finalScore = processGamificationAnswer(totalScore, totalScore > 0);
+    
+    if (finalScore > 0 && event) showPointsBalloon(finalScore, event);
+    
+    setScore((prev) => prev + finalScore);
+    setAnswers((prev) => ({
+      ...prev,
+      [`${currentNodeId}__${element.id}`]: {
+        question: element.question,
+        answer: selectedTexts,
+        score: finalScore,
+        selectedIndices,
+        elementId: element.id,
+        isMultiple: true,
+      },
+    }));
+    
+    // Track questionAnswered
+    if (trackingConfig) {
+      trackEvent(trackingConfig, 'questionAnswered', {
+        quizTitle: quiz?.name || '',
+        questionNumber: answeredCount + 1,
+        questionTotal: totalQuestions,
+      });
+    }
+    
+    // Clear selections and advance
+    setTimeout(() => {
+      setMultipleSelections([]);
+      advanceToNode(getNextNode(currentNodeId, null, element.id));
+    }, 300);
+  };
+
   const handleLeadSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -1921,6 +2000,7 @@ function QuizPlayer() {
     setShowLeadForm(false);
     setShowResult(false);
     setTimerActive(false); // Desativar timer ao voltar
+    setMultipleSelections([]); // Reset multiple selections when going back
 
     const keysToRemove = Object.keys(answers).filter(
       (k) => k === currentNodeId || k.startsWith(`${currentNodeId}__`),
@@ -3228,7 +3308,8 @@ function QuizPlayer() {
                   );
                 }
 
-                if (el.type.startsWith('question-') && el.type !== 'question-open' && el.type !== 'question-rating' && el.type !== 'question-icons' && el.type !== 'question-swipe') {
+                {/* Question Single - single selection with auto-advance */}
+                if (el.type === 'question-single') {
                   return (
                     <div key={el.id} className="mb-6">
                       <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-8 leading-tight tracking-tight">
@@ -3237,7 +3318,6 @@ function QuizPlayer() {
                       <div className="space-y-4">
                         {(el.options || []).map((opt, idx) => {
                           const selKey = `${el.id}-${idx}`;
-                          // Check if option text starts with emoji
                           const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u;
                           const textMatch = (opt.text || '').match(emojiRegex);
                           const leadingEmoji = textMatch ? textMatch[0] : null;
@@ -3252,9 +3332,7 @@ function QuizPlayer() {
                           return (
                             <button
                               key={idx}
-                              onClick={(e) =>
-                                handleCompositeOptionSelect(el, idx, e)
-                              }
+                              onClick={(e) => handleCompositeOptionSelect(el, idx, e)}
                               disabled={selectedOption !== null}
                               className="w-full text-left p-6 transition-all duration-200 flex items-center gap-5 group"
                               style={{
@@ -3316,6 +3394,140 @@ function QuizPlayer() {
                             </button>
                           );
                         })}
+                      </div>
+                    </div>
+                  );
+                }
+
+                {/* Question Multiple - allows selecting multiple options with confirm button */}
+                if (el.type === 'question-multiple') {
+                  const minSelect = el.minSelect || 1;
+                  const maxSelect = el.maxSelect || el.options?.length || 999;
+                  const currentSelections = multipleSelections.filter((k) => k.startsWith(`${el.id}-`));
+                  const canConfirm = currentSelections.length >= minSelect && currentSelections.length <= maxSelect;
+                  
+                  return (
+                    <div key={el.id} className="mb-6">
+                      <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4 leading-tight tracking-tight">
+                        {rv(el.question || 'Pergunta')}
+                      </h2>
+                      <p className="text-sm text-slate-500 mb-6">
+                        {minSelect === maxSelect 
+                          ? `Selecione ${minSelect} ${minSelect === 1 ? 'opção' : 'opções'}`
+                          : maxSelect >= (el.options?.length || 999)
+                            ? `Selecione pelo menos ${minSelect} ${minSelect === 1 ? 'opção' : 'opções'}`
+                            : `Selecione de ${minSelect} a ${maxSelect} opções`
+                        }
+                        {currentSelections.length > 0 && ` (${currentSelections.length} selecionada${currentSelections.length > 1 ? 's' : ''})`}
+                      </p>
+                      <div className="space-y-4">
+                        {(el.options || []).map((opt, idx) => {
+                          const selKey = `${el.id}-${idx}`;
+                          const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u;
+                          const textMatch = (opt.text || '').match(emojiRegex);
+                          const leadingEmoji = textMatch ? textMatch[0] : null;
+                          const displayEmoji = opt.emoji || leadingEmoji;
+                          const displayText = leadingEmoji 
+                            ? opt.text.slice(leadingEmoji.length).trim() 
+                            : opt.text;
+                          
+                          const isSelected = multipleSelections.includes(selKey);
+                          const isMaxReached = currentSelections.length >= maxSelect && !isSelected;
+                          
+                          return (
+                            <button
+                              key={idx}
+                              onClick={(e) => handleMultipleOptionToggle(el, idx, e)}
+                              disabled={isMaxReached}
+                              className="w-full text-left p-6 transition-all duration-200 flex items-center gap-5 group"
+                              style={{
+                                borderRadius: '1.5rem',
+                                border: isSelected ? `4px solid ${theme.primaryColor}` : '4px solid transparent',
+                                background: 'white',
+                                opacity: isMaxReached ? 0.5 : 1,
+                                boxShadow: isSelected
+                                  ? `0 10px 25px -5px ${theme.primaryColor}30`
+                                  : '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
+                                transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isMaxReached) {
+                                  e.currentTarget.style.transform = 'scale(1.02)';
+                                  e.currentTarget.style.border = `4px solid ${theme.primaryColor}80`;
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                  e.currentTarget.style.border = '4px solid transparent';
+                                }
+                              }}
+                            >
+                              {/* Checkbox indicator */}
+                              <span
+                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 border-2"
+                                style={{
+                                  background: isSelected 
+                                    ? theme.primaryColor
+                                    : 'white',
+                                  borderColor: isSelected ? theme.primaryColor : '#d1d5db',
+                                }}
+                              >
+                                {isSelected && (
+                                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </span>
+                              <span
+                                className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-200"
+                                style={{
+                                  background: isSelected 
+                                    ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})` 
+                                    : 'linear-gradient(135deg, #f8fafc, #f1f5f9)',
+                                  color: isSelected ? '#ffffff' : '#64748b',
+                                  fontSize: displayEmoji ? '1.75rem' : '1.1rem',
+                                  fontWeight: displayEmoji ? 'normal' : '700',
+                                  boxShadow: isSelected ? `0 6px 16px ${theme.primaryColor}40` : '0 4px 12px rgba(0,0,0,0.06)',
+                                }}
+                              >
+                                {displayEmoji || String.fromCharCode(65 + idx)}
+                              </span>
+                              <span className="text-xl font-bold flex-1" style={{ color: isSelected ? theme.primaryColor : '#1e293b' }}>
+                                {displayText}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Confirm button */}
+                      <div className="mt-8 flex justify-center">
+                        <button
+                          onClick={(e) => handleMultipleConfirm(el, e)}
+                          disabled={!canConfirm}
+                          className="px-10 py-4 text-lg font-bold text-white transition-all duration-200 flex items-center gap-3"
+                          style={{
+                            background: canConfirm 
+                              ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor || theme.primaryColor})`
+                              : '#d1d5db',
+                            borderRadius: btnRadius,
+                            boxShadow: canConfirm ? `0 8px 24px ${theme.primaryColor}40` : 'none',
+                            cursor: canConfirm ? 'pointer' : 'not-allowed',
+                            transform: 'scale(1)',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (canConfirm) {
+                              e.currentTarget.style.transform = 'scale(1.05)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                        >
+                          Confirmar
+                          <ChevronRight size={24} />
+                        </button>
                       </div>
                     </div>
                   );

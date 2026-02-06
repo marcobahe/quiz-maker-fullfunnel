@@ -330,6 +330,49 @@ export function ConfettiEffect({ trigger, duration = 3000 }) {
 
 // ── Sound System ──────────────────────────────────────────────────
 
+// Singleton AudioContext - created once, reused for all sounds
+let audioContext = null;
+let audioContextResumed = false;
+
+function getAudioContext() {
+  if (typeof window === 'undefined') return null;
+  
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.debug('AudioContext not supported:', e);
+      return null;
+    }
+  }
+  return audioContext;
+}
+
+// Resume audio context on first user interaction
+function ensureAudioContextResumed() {
+  const ctx = getAudioContext();
+  if (!ctx || audioContextResumed) return;
+  
+  if (ctx.state === 'suspended') {
+    ctx.resume().then(() => {
+      audioContextResumed = true;
+    }).catch(() => {});
+  } else {
+    audioContextResumed = true;
+  }
+}
+
+// Add event listeners to resume audio context on user interaction
+if (typeof window !== 'undefined') {
+  const resumeOnInteraction = () => {
+    ensureAudioContextResumed();
+  };
+  
+  ['click', 'touchstart', 'keydown'].forEach(event => {
+    document.addEventListener(event, resumeOnInteraction, { once: true, passive: true });
+  });
+}
+
 export function SoundSystem({ level = 'medium' }) {
   const volumes = {
     subtle: 0.3,
@@ -341,8 +384,14 @@ export function SoundSystem({ level = 'medium' }) {
 
   const playSound = useCallback((type) => {
     try {
-      // Generate simple tones using Web Audio API
-      const context = new (window.AudioContext || window.webkitAudioContext)();
+      const context = getAudioContext();
+      if (!context) return;
+      
+      // Resume context if needed (in case we missed user interaction events)
+      if (context.state === 'suspended') {
+        context.resume();
+      }
+      
       const oscillator = context.createOscillator();
       const gainNode = context.createGain();
 
