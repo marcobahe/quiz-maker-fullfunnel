@@ -1489,7 +1489,10 @@ function QuizPlayer() {
   const fetchQuiz = async () => {
     try {
       const previewParam = isPreview ? '?preview=true' : '';
-      const res = await fetch(`/api/quizzes/${params.slug}/public${previewParam}`);
+      // Always fetch fresh data to ensure updated quiz content
+      const res = await fetch(`/api/quizzes/${params.slug}/public${previewParam}`, {
+        cache: 'no-store',
+      });
       if (!res.ok) {
         setError('Quiz não encontrado');
         setLoading(false);

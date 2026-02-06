@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// Disable caching to always get fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request, { params }) {
   try {
     const { id: slug } = await params;
@@ -103,7 +107,14 @@ export async function GET(request, { params }) {
       } catch (_e) { /* ignore */ }
     }
 
-    return NextResponse.json(quiz);
+    // Return with no-cache headers to ensure fresh data
+    return NextResponse.json(quiz, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error) {
     console.error('Error fetching public quiz:', error);
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
