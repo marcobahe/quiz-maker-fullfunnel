@@ -1099,6 +1099,17 @@ function QuizPlayer() {
   // Theme settings
   const [theme, setTheme] = useState(DEFAULT_THEME);
   const [branding, setBranding] = useState(DEFAULT_BRANDING);
+  
+  // Preload message settings
+  const [preloadMessage, setPreloadMessage] = useState({
+    text: '👀 Antes de começar… Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.',
+    fontSize: '1.25rem',
+    fontFamily: 'Outfit',
+    color: '#475569',
+    textAlign: 'center',
+    fontWeight: 'medium',
+  });
+  const [showPreload, setShowPreload] = useState(true); // Show preload message after data loads
 
   // Player state
   const [currentNodeId, setCurrentNodeId] = useState(null);
@@ -1194,6 +1205,17 @@ function QuizPlayer() {
     
     setAttribution(attributionData);
   }, []);
+
+  // ── Preload: hide after delay when quiz is loaded ───────────
+  useEffect(() => {
+    if (!loading && quiz && showPreload) {
+      // Show preload message for 2.5 seconds after data loads
+      const timer = setTimeout(() => {
+        setShowPreload(false);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, quiz, showPreload]);
 
   // ── Gamification: Confetti on result ─────────────────────────
   useEffect(() => {
@@ -1533,6 +1555,7 @@ function QuizPlayer() {
               setTheme(mergedTheme);
             }
             if (settings.branding) setBranding((prev) => ({ ...prev, ...settings.branding }));
+            if (settings.preloadMessage) setPreloadMessage((prev) => ({ ...prev, ...settings.preloadMessage }));
             if (settings.aiResultConfig) setAiConfig(settings.aiResultConfig);
             if (settings.tracking) setTrackingConfig(settings.tracking);
             if (settings.gamification) {
@@ -2279,6 +2302,94 @@ function QuizPlayer() {
         <div className="rounded-2xl p-8 max-w-md text-center" style={{ backgroundColor: '#ffffff' }}>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Oops!</h1>
           <p className="text-gray-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show personalized preload message after data loads
+  if (showPreload && quiz) {
+    const fontWeightMap = {
+      normal: '400',
+      medium: '500',
+      bold: '700',
+    };
+    
+    return (
+      <div 
+        className={`${embedClass} flex items-center justify-center`} 
+        style={{ 
+          background: 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 25%, #FFF1F2 50%, #F0FDF4 75%, #F0F9FF 100%)',
+          fontFamily: preloadMessage.fontFamily || 'Outfit, system-ui, sans-serif',
+        }}
+      >
+        <div className="text-center px-4 animate-fade-in">
+          {/* Logo/Icon pulsando */}
+          <div 
+            className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 animate-pulse"
+            style={{ 
+              background: `linear-gradient(135deg, ${theme.primaryColor || '#6366f1'}, ${theme.secondaryColor || '#8b5cf6'})`,
+              boxShadow: `0 16px 40px -8px ${theme.primaryColor || '#6366f1'}66`,
+            }}
+          >
+            <span className="text-white text-4xl font-extrabold">Q</span>
+          </div>
+          
+          {/* Texto personalizado */}
+          <div 
+            className="mb-8 max-w-md mx-auto"
+            style={{
+              textAlign: preloadMessage.textAlign || 'center',
+            }}
+          >
+            <p 
+              className="leading-relaxed whitespace-pre-wrap"
+              style={{
+                fontSize: preloadMessage.fontSize || '1.25rem',
+                color: preloadMessage.color || '#475569',
+                fontWeight: fontWeightMap[preloadMessage.fontWeight] || '500',
+                fontFamily: preloadMessage.fontFamily || 'Outfit',
+              }}
+            >
+              {preloadMessage.text || '👀 Antes de começar… Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.'}
+            </p>
+          </div>
+          
+          {/* Dots animados */}
+          <div className="flex justify-center gap-2">
+            <div 
+              className="w-3 h-3 rounded-full animate-bounce"
+              style={{ 
+                backgroundColor: theme.primaryColor || '#6366f1',
+                animationDelay: '0ms',
+                animationDuration: '0.6s',
+              }}
+            />
+            <div 
+              className="w-3 h-3 rounded-full animate-bounce"
+              style={{ 
+                backgroundColor: theme.secondaryColor || '#8b5cf6',
+                animationDelay: '150ms',
+                animationDuration: '0.6s',
+              }}
+            />
+            <div 
+              className="w-3 h-3 rounded-full animate-bounce"
+              style={{ 
+                backgroundColor: theme.primaryColor || '#a855f7',
+                animationDelay: '300ms',
+                animationDuration: '0.6s',
+              }}
+            />
+          </div>
+          
+          {/* Botão para pular (opcional) */}
+          <button
+            onClick={() => setShowPreload(false)}
+            className="mt-8 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            Começar quiz →
+          </button>
         </div>
       </div>
     );

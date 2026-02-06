@@ -35,6 +35,15 @@ const defaultQuizSettings = {
     faviconUrl: '',
     showBranding: true,
   },
+  // Configuração da mensagem de pré-load
+  preloadMessage: {
+    text: '👀 Antes de começar… Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.',
+    fontSize: '1.25rem',
+    fontFamily: 'Outfit',
+    color: '#475569',
+    textAlign: 'center',
+    fontWeight: 'medium',
+  },
   aiResultConfig: {
     enabled: false,
     provider: 'openai',
@@ -169,6 +178,20 @@ const useQuizStore = create((set, get) => ({
       quizSettings: {
         ...state.quizSettings,
         branding: { ...state.quizSettings.branding, ...brandingUpdates },
+      },
+      isSaved: false,
+    })),
+
+  // ── Preload Message actions ────────────────────────────────
+
+  updatePreloadMessage: (preloadUpdates) =>
+    set((state) => ({
+      quizSettings: {
+        ...state.quizSettings,
+        preloadMessage: { 
+          ...(state.quizSettings.preloadMessage || defaultQuizSettings.preloadMessage), 
+          ...preloadUpdates 
+        },
       },
       isSaved: false,
     })),
@@ -366,6 +389,7 @@ const useQuizStore = create((set, get) => ({
       quizSettings: {
         theme: { ...defaults.theme, ...(settings.theme || {}) },
         branding: { ...defaults.branding, ...(settings.branding || {}) },
+        preloadMessage: { ...defaults.preloadMessage, ...(settings.preloadMessage || {}) },
         aiResultConfig: { ...defaults.aiResultConfig, ...(settings.aiResultConfig || {}) },
         tracking: {
           ...defaults.tracking,
