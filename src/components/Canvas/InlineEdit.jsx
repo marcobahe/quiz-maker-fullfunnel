@@ -78,13 +78,17 @@ export default function InlineEdit({
     );
   }
 
+  // Check if className contains truncate or block to use appropriate display
+  const needsBlock = className.includes('truncate') || className.includes('block');
+  const displayClass = needsBlock ? 'block w-full max-w-full' : 'inline-block';
+
   return (
     <span
       onDoubleClick={(e) => {
         e.stopPropagation();
         setEditing(true);
       }}
-      className={`cursor-text rounded px-0.5 -mx-0.5 transition-colors hover:bg-accent/5 inline-block ${className}`}
+      className={`cursor-text rounded px-0.5 -mx-0.5 transition-colors hover:bg-accent/5 ${displayClass} ${className}`}
       title="Duplo clique para editar"
     >
       {renderValue
