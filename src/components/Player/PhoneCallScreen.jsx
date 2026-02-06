@@ -321,18 +321,26 @@ export default function PhoneCallScreen({ element, theme, onComplete }) {
             : 'linear-gradient(180deg, #050508 0%, #0a0a12 35%, #0d0d15 65%, #050508 100%)',
         }}
       >
-        {/* Background image with blur (if photo provided) - much darker */}
+        {/* Background: fundo escuro fixo + imagem em blur por cima */}
         {callerPhoto && (
           <>
+            {/* Camada 1: Fundo escuro sólido */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(180deg, #050508 0%, #0a0a12 35%, #0d0d15 65%, #050508 100%)',
+              }}
+            />
+            {/* Camada 2: Imagem em blur com opacidade reduzida (mantém cores, não escurece) */}
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
                 backgroundImage: `url(${callerPhoto})`,
-                filter: 'blur(60px) brightness(0.2) saturate(0.8)',
+                filter: 'blur(50px) saturate(1.2)',
                 transform: 'scale(1.3)',
+                opacity: 0.4,
               }}
             />
-            <div className="absolute inset-0 bg-black/70" />
           </>
         )}
 
