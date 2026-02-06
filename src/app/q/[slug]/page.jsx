@@ -2007,11 +2007,11 @@ function QuizPlayer() {
           </div>
           
           {/* Texto */}
-          <div className="text-center mb-6">
-            <p className="text-slate-700 font-bold text-2xl mb-2 tracking-tight">
+          <div className="text-center mb-8">
+            <p className="text-slate-700 font-bold text-3xl md:text-4xl mb-3 tracking-tight">
               👀 Antes de começar…
             </p>
-            <p className="text-slate-500 font-medium text-lg max-w-xs mx-auto">
+            <p className="text-slate-600 font-medium text-xl md:text-2xl max-w-sm mx-auto leading-relaxed">
               Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.
             </p>
           </div>
@@ -3735,11 +3735,11 @@ export default function QuizPlayerPage() {
             </div>
             
             {/* Texto */}
-            <div className="text-center mb-6">
-              <p className="text-slate-700 font-bold text-2xl mb-2 tracking-tight">
+            <div className="text-center mb-8">
+              <p className="text-slate-700 font-bold text-3xl md:text-4xl mb-3 tracking-tight">
                 👀 Antes de começar…
               </p>
-              <p className="text-slate-500 font-medium text-lg max-w-xs mx-auto">
+              <p className="text-slate-600 font-medium text-xl md:text-2xl max-w-sm mx-auto leading-relaxed">
                 Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.
               </p>
             </div>

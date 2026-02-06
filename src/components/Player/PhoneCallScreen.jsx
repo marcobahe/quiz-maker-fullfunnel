@@ -333,12 +333,12 @@ export default function PhoneCallScreen({ element, theme, onComplete }) {
             />
             {/* Camada 2: Imagem em blur com opacidade reduzida (mantém cores, não escurece) */}
             <div
-              className="absolute inset-0 bg-cover bg-center"
+              className="absolute inset-0 bg-cover bg-center overflow-hidden"
               style={{
                 backgroundImage: `url(${callerPhoto})`,
-                filter: 'blur(50px) saturate(1.2)',
-                transform: 'scale(1.3)',
-                opacity: 0.4,
+                filter: 'blur(40px) saturate(1.2)',
+                transform: 'scale(1.1)',
+                opacity: 0.35,
               }}
             />
           </>
