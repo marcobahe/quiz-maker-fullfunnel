@@ -2,20 +2,46 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Check, Eye, Send, ChevronLeft, Save, Copy, ExternalLink, X, CheckCircle, Link2 } from 'lucide-react';
+import { Check, Eye, Send, ChevronLeft, CheckCircle, Link2 } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
 import { useState, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Toast component
+function Toast({ message, show, onClose }) {
+  useEffect(() => {
+    if (show) {
+      const timer = setTimeout(onClose, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose]);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed top-4 right-4 z-[100] bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2"
+        >
+          <CheckCircle size={18} />
+          {message}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default function TopBar({ quizId }) {
   const pathname = usePathname();
   const { quizName, setQuizName, isSaved, nodes, edges, quizStatus, scoreRanges, quizSettings } = useQuizStore();
   const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [showPublishModal, setShowPublishModal] = useState(false);
-  const [publishedSlug, setPublishedSlug] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [quizSlug, setQuizSlug] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
   // Nova estrutura de abas - mais organizada
   const tabs = [
@@ -41,57 +67,13 @@ export default function TopBar({ quizId }) {
     setQuizName(e.target.value);
   };
 
-  const handleSave = useCallback(async () => {
-    if (!quizId || saving) return false;
-    setSaving(true);
-    try {
-      // Pega dados frescos do store para garantir que estamos salvando a versão mais recente
-      const { nodes: currentNodes, edges: currentEdges, quizName: currentName, scoreRanges: currentScoreRanges, quizSettings: currentSettings } = useQuizStore.getState();
-      
-      // DEBUG: Log para verificar o que está sendo salvo
-      console.log('[DEBUG SAVE] Nodes:', currentNodes.length, 'Edges:', currentEdges.length);
-      console.log('[DEBUG SAVE] Edges:', currentEdges.map(e => `${e.source} -> ${e.target}`));
-      
-      const res = await fetch(`/api/quizzes/${quizId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: currentName,
-          canvasData: JSON.stringify({ nodes: currentNodes, edges: currentEdges }),
-          scoreRanges: currentScoreRanges,
-          settings: currentSettings,
-        }),
-      });
-      if (res.ok) {
-        useQuizStore.getState().saveQuiz();
-        return true;
-      }
-      return false;
-    } catch (err) {
-      console.error('Failed to save:', err);
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }, [quizId, saving]);
-
   const handlePublish = useCallback(async () => {
-    if (!quizId) return;
-    
-    // Save first and wait for it to complete
-    const saved = await handleSave();
-    if (saved === false && saving) {
-      // Wait a bit if save is still in progress
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    if (!quizId || publishing) return;
+    setPublishing(true);
     
     try {
       // Pega dados frescos do store para publicar
       const { nodes: currentNodes, edges: currentEdges, quizName: currentName, scoreRanges: currentScoreRanges, quizSettings: currentSettings } = useQuizStore.getState();
-      
-      // DEBUG: Log para verificar o que está sendo publicado
-      console.log('[DEBUG PUBLISH] Nodes:', currentNodes.length, 'Edges:', currentEdges.length);
-      console.log('[DEBUG PUBLISH] Edges:', currentEdges.map(e => `${e.source} -> ${e.target}`));
       
       const res = await fetch(`/api/quizzes/${quizId}`, {
         method: 'PUT',
@@ -107,29 +89,28 @@ export default function TopBar({ quizId }) {
       if (res.ok) {
         const quiz = await res.json();
         useQuizStore.getState().publishQuiz();
-        setPublishedSlug(quiz.slug);
         setQuizSlug(quiz.slug);
-        setShowPublishModal(true);
-        setCopied(false);
+        
+        // Copiar link automaticamente para a área de transferência
+        const quizUrl = `${window.location.origin}/q/${quiz.slug}`;
+        await navigator.clipboard.writeText(quizUrl);
+        
+        // Mostrar toast de sucesso
+        setToastMessage('Publicado! Link copiado ✓');
+        setShowToast(true);
       }
     } catch (err) {
       console.error('Failed to publish:', err);
+      setToastMessage('Erro ao publicar');
+      setShowToast(true);
+    } finally {
+      setPublishing(false);
     }
-  }, [quizId, handleSave, saving]);
-
-  const quizUrl = publishedSlug 
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/q/${publishedSlug}` 
-    : '';
+  }, [quizId, publishing]);
 
   const permanentQuizUrl = quizSlug
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/q/${quizSlug}`
     : '';
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(quizUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const copyPermanentLink = () => {
     navigator.clipboard.writeText(permanentQuizUrl);
@@ -229,14 +210,6 @@ export default function TopBar({ quizId }) {
           )}
           
           <button 
-            onClick={handleSave}
-            disabled={saving || isSaved}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
-          >
-            <Save size={18} />
-            {saving ? 'Salvando...' : 'Salvar'}
-          </button>
-          <button 
             onClick={handlePreview}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
           >
@@ -245,71 +218,21 @@ export default function TopBar({ quizId }) {
           </button>
           <button 
             onClick={handlePublish}
-            className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors font-medium"
+            disabled={publishing}
+            className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors font-medium disabled:opacity-50"
           >
             <Send size={18} />
-            Publicar
+            {publishing ? 'Publicando...' : 'Publicar'}
           </button>
         </div>
       </div>
 
-      {/* Publish Success Modal */}
-      {showPublishModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-6 text-white text-center">
-              <CheckCircle size={48} className="mx-auto mb-3" />
-              <h2 className="text-2xl font-bold">Quiz Publicado! 🎉</h2>
-              <p className="text-green-100 mt-1">Seu quiz está no ar e pronto para receber respostas</p>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Link do Quiz</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={quizUrl}
-                    readOnly
-                    className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 font-mono"
-                  />
-                  <button
-                    onClick={copyLink}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                      copied 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-accent text-white hover:bg-accent-hover'
-                    }`}
-                  >
-                    {copied ? <Check size={18} /> : <Copy size={18} />}
-                    {copied ? 'Copiado!' : 'Copiar'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <a
-                  href={quizUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                >
-                  <ExternalLink size={18} />
-                  Abrir Quiz
-                </a>
-                <button
-                  onClick={() => setShowPublishModal(false)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors font-medium"
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Toast de sucesso */}
+      <Toast 
+        message={toastMessage} 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
     </header>
   );
 }
