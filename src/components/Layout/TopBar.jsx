@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Check, Eye, Send, ChevronLeft, CheckCircle, Link2, MoreHorizontal } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Toast component
@@ -59,6 +59,7 @@ export default function TopBar({ quizId }) {
   // Overflow state
   const [showOverflow, setShowOverflow] = useState(false);
   const [visibleTabCount, setVisibleTabCount] = useState(6);
+  const headerRef = useRef(null);
 
   // Nova estrutura de abas - mais organizada
   const tabs = useMemo(() => [
@@ -73,55 +74,71 @@ export default function TopBar({ quizId }) {
   // Soma total de todas as tabs
   const ALL_TABS_WIDTH = Object.values(TAB_WIDTHS).reduce((a, b) => a + b, 0) + (tabs.length - 1) * TAB_GAP + TAB_PADDING;
 
-  // Calcula quantas abas cabem baseado na largura da viewport
+  // Função para calcular quantas abas cabem
+  const calculateVisibleTabs = useCallback((headerWidth) => {
+    // Espaço ocupado pelos lados (estimativa):
+    // Left side: ~300px (back button + nome + salvo + badge)
+    // Right side: ~280px (link + preview + publicar)
+    // Gaps e padding: ~32px
+    const sideSpace = 300 + 280 + 32;
+    
+    // Espaço disponível para as tabs
+    const availableWidth = Math.max(headerWidth - sideSpace, 200);
+    
+    // Se cabem todas as tabs
+    if (availableWidth >= ALL_TABS_WIDTH) {
+      return tabs.length;
+    }
+    
+    // Precisa do botão overflow - calcula quantas cabem
+    const availableForTabs = availableWidth - OVERFLOW_BTN_WIDTH - TAB_GAP;
+    let totalWidth = 0;
+    let visible = 0;
+
+    for (let i = 0; i < tabs.length; i++) {
+      const tabWidth = TAB_WIDTHS[tabs[i].id] + (i > 0 ? TAB_GAP : 0);
+      if (totalWidth + tabWidth <= availableForTabs) {
+        totalWidth += tabWidth;
+        visible = i + 1;
+      } else {
+        break;
+      }
+    }
+
+    return Math.max(visible, 1); // Mínimo 1 tab visível
+  }, [tabs, ALL_TABS_WIDTH]);
+
+  // ResizeObserver para detectar mudanças de tamanho bidirecionalmente
   useEffect(() => {
-    const calculateVisibleTabs = () => {
-      // Largura total da janela
-      const windowWidth = window.innerWidth;
-      
-      // Espaço ocupado pelos lados (estimativa):
-      // Left side: ~300px (back button + nome + salvo + badge)
-      // Right side: ~280px (link + preview + publicar)
-      // Gaps e padding: ~48px
-      const sideSpace = 300 + 280 + 48;
-      
-      // Espaço disponível para as tabs
-      const availableWidth = Math.max(windowWidth - sideSpace, 200);
-      
-      // Se cabem todas as tabs
-      if (availableWidth >= ALL_TABS_WIDTH) {
-        return tabs.length;
-      }
-      
-      // Precisa do botão overflow - calcula quantas cabem
-      const availableForTabs = availableWidth - OVERFLOW_BTN_WIDTH - TAB_GAP;
-      let totalWidth = 0;
-      let visible = 0;
-
-      for (let i = 0; i < tabs.length; i++) {
-        const tabWidth = TAB_WIDTHS[tabs[i].id] + (i > 0 ? TAB_GAP : 0);
-        if (totalWidth + tabWidth <= availableForTabs) {
-          totalWidth += tabWidth;
-          visible = i + 1;
-        } else {
-          break;
-        }
-      }
-
-      return Math.max(visible, 1); // Mínimo 1 tab visível
-    };
-
-    const handleResize = () => {
-      setVisibleTabCount(calculateVisibleTabs());
-    };
+    const header = headerRef.current;
+    if (!header) return;
 
     // Cálculo inicial
-    handleResize();
+    setVisibleTabCount(calculateVisibleTabs(header.offsetWidth));
 
-    // Observa mudanças de tamanho
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [tabs, ALL_TABS_WIDTH]);
+    // ResizeObserver para mudanças contínuas
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        setVisibleTabCount(calculateVisibleTabs(width));
+      }
+    });
+
+    resizeObserver.observe(header);
+
+    // Fallback: window resize (para casos onde ResizeObserver não pega)
+    const handleWindowResize = () => {
+      if (header) {
+        setVisibleTabCount(calculateVisibleTabs(header.offsetWidth));
+      }
+    };
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, [calculateVisibleTabs]);
 
   // Carregar slug do quiz para mostrar botão de link
   useEffect(() => {
@@ -211,7 +228,7 @@ export default function TopBar({ quizId }) {
   const hasOverflowActiveTab = overflowTabs.some(isTabActive);
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-3">
+    <header ref={headerRef} className="bg-white border-b border-gray-200 px-4 py-3">
       {/* Grid layout: 3 colunas com centro verdadeiramente centralizado */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         {/* Left side */}
