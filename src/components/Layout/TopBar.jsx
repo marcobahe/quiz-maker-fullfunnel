@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Check, Eye, Send, ChevronLeft, CheckCircle, Link2, MoreHorizontal } from 'lucide-react';
 import useQuizStore from '@/store/quizStore';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Toast component
@@ -33,6 +33,19 @@ function Toast({ message, show, onClose }) {
   );
 }
 
+// Largura estimada de cada tab (para cálculo de overflow)
+const TAB_WIDTHS = {
+  canvas: 72,       // "Canvas"
+  config: 112,      // "Configurações"
+  appearance: 92,   // "Aparência"
+  integration: 96,  // "Integração"
+  gamification: 104, // "Gamificação"
+  results: 92,      // "Resultados"
+};
+const TAB_GAP = 4;
+const TAB_PADDING = 8; // padding interno do container (p-1 = 4px cada lado)
+const OVERFLOW_BTN_WIDTH = 44; // largura do botão "..."
+
 export default function TopBar({ quizId }) {
   const pathname = usePathname();
   const { quizName, setQuizName, isSaved, nodes, edges, quizStatus, scoreRanges, quizSettings } = useQuizStore();
@@ -46,51 +59,69 @@ export default function TopBar({ quizId }) {
   // Overflow state
   const [showOverflow, setShowOverflow] = useState(false);
   const [visibleTabCount, setVisibleTabCount] = useState(6);
-  const tabsContainerRef = useRef(null);
-  const tabRefs = useRef({});
 
   // Nova estrutura de abas - mais organizada
-  const tabs = [
+  const tabs = useMemo(() => [
     { id: 'canvas', label: 'Canvas', path: `/builder/${quizId || 'new'}` },
     { id: 'config', label: 'Configurações', path: `/diagnostic/${quizId || 'new'}` },
     { id: 'appearance', label: 'Aparência', path: `/appearance/${quizId || 'new'}` },
     { id: 'integration', label: 'Integração', path: `/integration/${quizId || 'new'}` },
     { id: 'gamification', label: 'Gamificação', path: `/gamification/${quizId || 'new'}` },
     { id: 'results', label: 'Resultados', path: `/results/${quizId || 'new'}` },
-  ];
+  ], [quizId]);
 
-  // Verifica quais abas cabem no container
+  // Soma total de todas as tabs
+  const ALL_TABS_WIDTH = Object.values(TAB_WIDTHS).reduce((a, b) => a + b, 0) + (tabs.length - 1) * TAB_GAP + TAB_PADDING;
+
+  // Calcula quantas abas cabem baseado na largura da viewport
   useEffect(() => {
-    const checkOverflow = () => {
-      if (!tabsContainerRef.current) return;
+    const calculateVisibleTabs = () => {
+      // Largura total da janela
+      const windowWidth = window.innerWidth;
       
-      const container = tabsContainerRef.current;
-      const containerWidth = container.offsetWidth - 48; // 48px para o botão overflow
+      // Espaço ocupado pelos lados (estimativa):
+      // Left side: ~300px (back button + nome + salvo + badge)
+      // Right side: ~280px (link + preview + publicar)
+      // Gaps e padding: ~48px
+      const sideSpace = 300 + 280 + 48;
+      
+      // Espaço disponível para as tabs
+      const availableWidth = Math.max(windowWidth - sideSpace, 200);
+      
+      // Se cabem todas as tabs
+      if (availableWidth >= ALL_TABS_WIDTH) {
+        return tabs.length;
+      }
+      
+      // Precisa do botão overflow - calcula quantas cabem
+      const availableForTabs = availableWidth - OVERFLOW_BTN_WIDTH - TAB_GAP;
       let totalWidth = 0;
       let visible = 0;
 
-      tabs.forEach((tab, index) => {
-        const tabEl = tabRefs.current[tab.id];
-        if (tabEl) {
-          const tabWidth = tabEl.offsetWidth + 4; // 4px gap
-          if (totalWidth + tabWidth <= containerWidth) {
-            totalWidth += tabWidth;
-            visible = index + 1;
-          }
+      for (let i = 0; i < tabs.length; i++) {
+        const tabWidth = TAB_WIDTHS[tabs[i].id] + (i > 0 ? TAB_GAP : 0);
+        if (totalWidth + tabWidth <= availableForTabs) {
+          totalWidth += tabWidth;
+          visible = i + 1;
+        } else {
+          break;
         }
-      });
+      }
 
-      setVisibleTabCount(Math.max(visible, 2)); // Mínimo 2 tabs visíveis
+      return Math.max(visible, 1); // Mínimo 1 tab visível
     };
 
-    // Delay inicial para garantir que os refs estão populados
-    const timer = setTimeout(checkOverflow, 100);
-    window.addEventListener('resize', checkOverflow);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', checkOverflow);
+    const handleResize = () => {
+      setVisibleTabCount(calculateVisibleTabs());
     };
-  }, [tabs]);
+
+    // Cálculo inicial
+    handleResize();
+
+    // Observa mudanças de tamanho
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [tabs, ALL_TABS_WIDTH]);
 
   // Carregar slug do quiz para mostrar botão de link
   useEffect(() => {
@@ -180,13 +211,14 @@ export default function TopBar({ quizId }) {
   const hasOverflowActiveTab = overflowTabs.some(isTabActive);
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-3">
-      <div className="flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200 px-4 py-3">
+      {/* Grid layout: 3 colunas com centro verdadeiramente centralizado */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         {/* Left side */}
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
           <Link 
             href="/" 
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
           >
             <ChevronLeft size={24} />
           </Link>
@@ -198,12 +230,12 @@ export default function TopBar({ quizId }) {
               onChange={handleNameChange}
               onBlur={() => setIsEditing(false)}
               onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
-              className="text-xl font-semibold text-gray-800 border-b-2 border-accent outline-none bg-transparent max-w-[200px]"
+              className="text-lg font-semibold text-gray-800 border-b-2 border-accent outline-none bg-transparent min-w-0 max-w-[180px]"
               autoFocus
             />
           ) : (
             <h1 
-              className="text-xl font-semibold text-gray-800 cursor-pointer hover:text-accent transition-colors truncate max-w-[200px]"
+              className="text-lg font-semibold text-gray-800 cursor-pointer hover:text-accent transition-colors truncate min-w-0"
               onClick={() => setIsEditing(true)}
               title={quizName}
             >
@@ -218,23 +250,19 @@ export default function TopBar({ quizId }) {
 
           {/* Status badge */}
           {quizStatus === 'Publicado' && (
-            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full flex-shrink-0">
+            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full flex-shrink-0 hidden sm:inline-flex">
               Publicado
             </span>
           )}
         </div>
 
-        {/* Center - Tabs with overflow */}
-        <nav 
-          ref={tabsContainerRef}
-          className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-1 max-w-[600px] mx-4 relative"
-        >
+        {/* Center - Tabs with overflow (sempre centralizado) */}
+        <nav className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
           {visibleTabs.map((tab) => {
             const isActive = isTabActive(tab);
             return (
               <Link
                 key={tab.id}
-                ref={el => tabRefs.current[tab.id] = el}
                 href={tab.path}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive
@@ -294,7 +322,7 @@ export default function TopBar({ quizId }) {
         </nav>
 
         {/* Right side */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 justify-end">
           {/* Botão de Link - aparece quando quiz está publicado */}
           {quizSlug && (
             <button 
@@ -307,24 +335,24 @@ export default function TopBar({ quizId }) {
               title="Copiar link do quiz"
             >
               {linkCopied ? <Check size={16} /> : <Link2 size={16} />}
-              {linkCopied ? 'Copiado!' : 'Link'}
+              <span className="hidden sm:inline">{linkCopied ? 'Copiado!' : 'Link'}</span>
             </button>
           )}
           
           <button 
             onClick={handlePreview}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
           >
             <Eye size={18} />
-            Preview
+            <span className="hidden sm:inline">Preview</span>
           </button>
           <button 
             onClick={handlePublish}
             disabled={publishing}
-            className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors font-medium disabled:opacity-50"
           >
             <Send size={18} />
-            {publishing ? 'Publicando...' : 'Publicar'}
+            <span className="hidden sm:inline">{publishing ? 'Publicando...' : 'Publicar'}</span>
           </button>
         </div>
       </div>
