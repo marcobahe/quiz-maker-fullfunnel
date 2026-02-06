@@ -111,9 +111,9 @@ function MediaUrlField({ label, value, onChange, accept, mediaType = 'audio', pl
   const [mode, setMode] = useState('url');
   const [urlStatus, setUrlStatus] = useState(null);
 
-  // Upload disabled until Uploadthing is configured with API keys
-  // Video never supports upload - use YouTube/Vimeo
-  const allowUpload = false; // TODO: Enable when UPLOADTHING_SECRET is configured
+  // Video never supports upload - use YouTube/Vimeo URLs
+  // Image and audio support upload via UploadThing
+  const allowUpload = mediaType !== 'video';
 
   // Validate URL accessibility when changed
   useEffect(() => {
