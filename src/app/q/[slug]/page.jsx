@@ -2458,37 +2458,71 @@ function QuizPlayer() {
       )}
 
       <div className="relative z-10 flex flex-col min-h-full">
-        {/* Header (hidden in embed mode for cleaner look) */}
-        {!isEmbed && (
-          <div className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        {/* Compact Header - Quiz name + Progress in same row */}
+        {!isEmbed && !showResult && (
+          <div className="px-4 py-2 flex items-center gap-3">
+            {/* Logo + Name */}
+            <div className="flex items-center gap-2 shrink-0">
               {branding.logoUrl ? (
                 <img
                   src={branding.logoUrl}
                   alt="Logo"
-                  className="w-8 h-8 rounded-lg object-cover"
+                  className="w-6 h-6 rounded-md object-cover"
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               ) : (
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  className="w-6 h-6 rounded-md flex items-center justify-center"
                   style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
                 >
-                  <span className="text-sm font-bold" style={{ color: theme.textColor }}>Q</span>
+                  <span className="text-xs font-bold" style={{ color: theme.textColor }}>Q</span>
                 </div>
               )}
-              <span className="text-sm font-medium" style={{ color: theme.textColor, opacity: 0.8 }}>
+              <span className="text-xs font-medium truncate max-w-[120px]" style={{ color: theme.textColor, opacity: 0.8 }}>
                 {quiz?.name}
               </span>
             </div>
-            <div className="flex items-center gap-4">
-              {!showResult && (
-                <span className="text-sm" style={{ color: theme.textColor, opacity: 0.6 }}>
-                  {answeredCount}/{totalQuestions}
-                </span>
+            
+            {/* Progress Bar - inline, compact */}
+            <div className="flex-1 flex items-center gap-2">
+              {gamificationConfig?.progressBar ? (
+                <div className="flex-1">
+                  <GamifiedProgressBar 
+                    current={questionsAnswered}
+                    total={totalQuestions}
+                    style={gamificationConfig.progressStyle || 'simple'}
+                    primaryColor={theme.primaryColor}
+                  />
+                </div>
+              ) : (
+                <>
+                  <div 
+                    className="flex-1 overflow-hidden"
+                    style={{ 
+                      height: '6px',
+                      background: 'rgba(255,255,255,0.3)',
+                      borderRadius: '9999px',
+                    }}
+                  >
+                    <div
+                      className="h-full transition-all duration-500"
+                      style={{ 
+                        width: `${progress}%`, 
+                        background: 'linear-gradient(to right, #6366f1, #8b5cf6)',
+                        borderRadius: '9999px',
+                        boxShadow: '0 0 8px rgba(99, 102, 241, 0.4)',
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold shrink-0" style={{ color: theme.textColor, opacity: 0.7 }}>
+                    {answeredCount}/{totalQuestions}
+                  </span>
+                </>
               )}
-              
-              {/* Gamification Header Elements */}
+            </div>
+            
+            {/* Gamification Header Elements */}
+            <div className="flex items-center gap-2 shrink-0">
               {gamificationConfig?.lives && (
                 <LivesDisplay 
                   current={lives}
@@ -2508,39 +2542,6 @@ function QuizPlayer() {
                 />
               )}
             </div>
-          </div>
-        )}
-
-        {/* Progress Bar - Stich Style */}
-        {!showResult && (
-          <div className={isEmbed ? 'px-2 mb-4' : 'px-4 mb-6'}>
-            {gamificationConfig?.progressBar ? (
-              <GamifiedProgressBar 
-                current={questionsAnswered}
-                total={totalQuestions}
-                style={gamificationConfig.progressStyle || 'simple'}
-                primaryColor={theme.primaryColor}
-              />
-            ) : (
-              <div 
-                className="overflow-hidden p-0.5"
-                style={{ 
-                  height: '0.75rem',
-                  background: 'rgba(255,255,255,0.3)',
-                  borderRadius: '9999px',
-                }}
-              >
-                <div
-                  className="h-full transition-all duration-500"
-                  style={{ 
-                    width: `${progress}%`, 
-                    background: 'linear-gradient(to right, #6366f1, #8b5cf6)',
-                    borderRadius: '9999px',
-                    boxShadow: '0 0 10px rgba(99, 102, 241, 0.5)',
-                  }}
-                />
-              </div>
-            )}
           </div>
         )}
         
@@ -3347,6 +3348,14 @@ function QuizPlayer() {
                   // For 'auto', default to horizontal (16:9); native <video> will
                   // auto-detect via its intrinsic aspect ratio thanks to object-fit.
                   const isVertical = vOri === 'vertical';
+                  
+                  // Image dimensions
+                  const imgWidth = el.imageWidth ? `${el.imageWidth}${el.imageWidthUnit || 'px'}` : undefined;
+                  const imgHeight = el.imageHeight 
+                    ? (el.imageHeightUnit === 'auto' ? 'auto' : `${el.imageHeight}${el.imageHeightUnit || 'px'}`)
+                    : undefined;
+                  const keepAspect = el.imageKeepAspectRatio !== false;
+                  
                   return (
                     <div
                       key={el.id}
@@ -3356,7 +3365,14 @@ function QuizPlayer() {
                         <img
                           src={el.url}
                           alt={el.title || ''}
-                          className="rounded-lg max-h-64 object-cover"
+                          className="rounded-lg"
+                          style={{
+                            width: imgWidth || 'auto',
+                            height: imgHeight || 'auto',
+                            maxWidth: '100%',
+                            maxHeight: imgWidth || imgHeight ? undefined : '16rem',
+                            objectFit: keepAspect ? 'contain' : 'cover',
+                          }}
                         />
                       ) : el.url && el.type === 'video' && ytId ? (
                         /* YouTube embed — orientation-aware */

@@ -416,6 +416,81 @@ function MediaElementEditor({ element, nodeId }) {
           </p>
         </div>
       )}
+
+      {/* Image dimensions selector */}
+      {mt === 'image' && (
+        <div className="space-y-3 pt-2 border-t border-gray-100">
+          <p className="text-sm font-medium text-gray-700">Dimensões da Imagem</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Largura</label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  value={element.imageWidth || ''}
+                  onChange={(e) => updateNodeElement(nodeId, element.id, { imageWidth: e.target.value ? parseInt(e.target.value) : null })}
+                  className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+                  placeholder="auto"
+                  min="50"
+                  max="1920"
+                />
+                <select
+                  value={element.imageWidthUnit || 'px'}
+                  onChange={(e) => updateNodeElement(nodeId, element.id, { imageWidthUnit: e.target.value })}
+                  className="p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm bg-white"
+                >
+                  <option value="px">px</option>
+                  <option value="%">%</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Altura</label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  value={element.imageHeight || ''}
+                  onChange={(e) => updateNodeElement(nodeId, element.id, { imageHeight: e.target.value ? parseInt(e.target.value) : null })}
+                  className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+                  placeholder="auto"
+                  min="50"
+                  max="1920"
+                />
+                <select
+                  value={element.imageHeightUnit || 'px'}
+                  onChange={(e) => updateNodeElement(nodeId, element.id, { imageHeightUnit: e.target.value })}
+                  className="p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm bg-white"
+                >
+                  <option value="px">px</option>
+                  <option value="auto">auto</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Manter proporção</p>
+              <p className="text-[10px] text-gray-400">Evita distorção da imagem</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => updateNodeElement(nodeId, element.id, { imageKeepAspectRatio: !element.imageKeepAspectRatio })}
+              className={`relative w-10 h-5 rounded-full transition-colors ${
+                element.imageKeepAspectRatio !== false ? 'bg-accent' : 'bg-gray-300'
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                  element.imageKeepAspectRatio !== false ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+          <p className="text-xs text-gray-400">
+            Deixe em branco para usar o tamanho original da imagem.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -1455,6 +1530,18 @@ function ScratchCardElementEditor({ element, nodeId }) {
         />
       </div>
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Porcentagem para revelar (%)</label>
+        <input
+          type="number"
+          value={element.revealThreshold ?? 60}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { revealThreshold: parseInt(e.target.value) || 60 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          min="20"
+          max="90"
+        />
+        <p className="text-xs text-gray-400 mt-1">Área que precisa ser raspada antes de revelar (20-90%)</p>
+      </div>
+      <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Cor da Cobertura</label>
         <div className="flex items-center gap-2">
           <input
@@ -1588,6 +1675,19 @@ function CardFlipElementEditor({ element, nodeId }) {
           rows={2}
           placeholder="Resultado aparece aqui"
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Tempo antes de avançar (segundos)</label>
+        <input
+          type="number"
+          value={element.delayBeforeAdvance ?? 3}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { delayBeforeAdvance: parseFloat(e.target.value) || 3 })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+          min="0"
+          max="30"
+          step="0.5"
+        />
+        <p className="text-xs text-gray-400 mt-1">Tempo para leitura após virar o card (0-30s)</p>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Cor da Frente</label>

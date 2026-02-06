@@ -25,6 +25,8 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
   const coverColor = element.coverColor || '#6366f1';
   const coverPattern = element.coverPattern || 'dots';
   const revealText = element.revealText || '🎉 Você ganhou!';
+  // Percentage of area that needs to be scratched before revealing (default: 60%)
+  const revealThreshold = element.revealThreshold ?? 60;
 
   // Responsive sizing
   useEffect(() => {
@@ -176,14 +178,15 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     const progress = Math.min(100, (scratchedRef.current / totalPixelsRef.current) * 100);
     setScratchProgress(Math.round(progress));
     
-    if (progress > 45 && !revealTriggeredRef.current) {
+    // Use configurable threshold (default 60%)
+    if (progress > revealThreshold && !revealTriggeredRef.current) {
       revealTriggeredRef.current = true;
       setTimeout(() => {
         setRevealed(true);
         setTimeout(() => setShowCelebration(true), 200);
       }, 300);
     }
-  }, [revealed]);
+  }, [revealed, revealThreshold]);
 
   // Mouse events
   const onMouseDown = (e) => {

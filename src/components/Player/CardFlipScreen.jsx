@@ -60,19 +60,23 @@ export default function CardFlipScreen({ element, theme, onComplete }) {
   const backPattern = element.backPattern || 'geometric';
   const autoAdvance = element.autoAdvance !== false;
 
+  // Delay before auto-advance (in seconds), default 3
+  const delayBeforeAdvance = element.delayBeforeAdvance ?? 3;
+
   const handleFlip = useCallback(() => {
     if (!isFlipped) {
       setIsFlipped(true);
       setHasRevealed(true);
       
       if (autoAdvance) {
-        // Wait for flip animation + reading time, then advance
+        // Wait for flip animation + configurable reading time, then advance
+        // Add 500ms for flip animation + user-defined delay
         setTimeout(() => {
           onComplete?.();
-        }, 2500);
+        }, 500 + (delayBeforeAdvance * 1000));
       }
     }
-  }, [isFlipped, autoAdvance, onComplete]);
+  }, [isFlipped, autoAdvance, onComplete, delayBeforeAdvance]);
 
   const handleContinue = useCallback(() => {
     onComplete?.();
