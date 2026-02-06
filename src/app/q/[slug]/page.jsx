@@ -12,6 +12,7 @@ import ScratchCard from '@/components/Player/ScratchCard';
 import PhoneCallScreen from '@/components/Player/PhoneCallScreen';
 import MysteryBox from '@/components/Player/MysteryBox';
 import CardFlipScreen from '@/components/Player/CardFlipScreen';
+import SlotMachineScreen from '@/components/Player/SlotMachineScreen';
 import SwipeQuestion from '@/components/QuizPlayer/elements/SwipeQuestion';
 import QuestionTimer from '@/components/Quiz/QuestionTimer';
 import {
@@ -3400,6 +3401,23 @@ function QuizPlayer() {
                         element={el}
                         theme={theme}
                         onComplete={() => {
+                          if (el.score > 0) {
+                            setScore((prev) => prev + el.score);
+                          }
+                          advanceToNode(getNextNode(currentNodeId));
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                if (el.type === 'slot-machine') {
+                  return (
+                    <div key={el.id} className="mb-4">
+                      <SlotMachineScreen
+                        element={el}
+                        theme={theme}
+                        onNext={() => {
                           if (el.score > 0) {
                             setScore((prev) => prev + el.score);
                           }
