@@ -48,6 +48,10 @@ export default function TopBar({ quizId }) {
       // Pega dados frescos do store para garantir que estamos salvando a versão mais recente
       const { nodes: currentNodes, edges: currentEdges, quizName: currentName, scoreRanges: currentScoreRanges, quizSettings: currentSettings } = useQuizStore.getState();
       
+      // DEBUG: Log para verificar o que está sendo salvo
+      console.log('[DEBUG SAVE] Nodes:', currentNodes.length, 'Edges:', currentEdges.length);
+      console.log('[DEBUG SAVE] Edges:', currentEdges.map(e => `${e.source} -> ${e.target}`));
+      
       const res = await fetch(`/api/quizzes/${quizId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -84,6 +88,10 @@ export default function TopBar({ quizId }) {
     try {
       // Pega dados frescos do store para publicar
       const { nodes: currentNodes, edges: currentEdges, quizName: currentName, scoreRanges: currentScoreRanges, quizSettings: currentSettings } = useQuizStore.getState();
+      
+      // DEBUG: Log para verificar o que está sendo publicado
+      console.log('[DEBUG PUBLISH] Nodes:', currentNodes.length, 'Edges:', currentEdges.length);
+      console.log('[DEBUG PUBLISH] Edges:', currentEdges.map(e => `${e.source} -> ${e.target}`));
       
       const res = await fetch(`/api/quizzes/${quizId}`, {
         method: 'PUT',
