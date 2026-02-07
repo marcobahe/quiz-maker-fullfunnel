@@ -4249,55 +4249,14 @@ export default function QuizPlayerPage() {
             fontFamily: 'Outfit, system-ui, sans-serif',
           }}
         >
-          <div className="text-center">
-            {/* Logo/Icon pulsando */}
-            <div 
-              className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 animate-pulse"
-              style={{ 
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                boxShadow: '0 16px 40px -8px rgba(99, 102, 241, 0.4)',
-              }}
-            >
-              <span className="text-white text-4xl font-extrabold">Q</span>
-            </div>
-            
-            {/* Texto */}
-            <div className="text-center mb-8">
-              <p className="text-slate-700 font-bold text-3xl md:text-4xl mb-3 tracking-tight">
-                👀 Antes de começar…
-              </p>
-              <p className="text-slate-600 font-medium text-xl md:text-2xl max-w-sm mx-auto leading-relaxed">
-                Esse quiz foi criado pra revelar coisas que muita gente só percebe tarde demais.
-              </p>
-            </div>
-            
-            {/* Dots animados */}
-            <div className="flex justify-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full animate-bounce"
-                style={{ 
-                  backgroundColor: '#6366f1',
-                  animationDelay: '0ms',
-                  animationDuration: '0.6s',
-                }}
-              />
-              <div 
-                className="w-3 h-3 rounded-full animate-bounce"
-                style={{ 
-                  backgroundColor: '#8b5cf6',
-                  animationDelay: '150ms',
-                  animationDuration: '0.6s',
-                }}
-              />
-              <div 
-                className="w-3 h-3 rounded-full animate-bounce"
-                style={{ 
-                  backgroundColor: '#a855f7',
-                  animationDelay: '300ms',
-                  animationDuration: '0.6s',
-                }}
-              />
-            </div>
+          {/* Minimal loading spinner - real preload message comes after data loads */}
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 
+              className="animate-spin" 
+              size={40} 
+              style={{ color: '#6366f1' }}
+            />
+            <p className="text-slate-500 text-sm font-medium">Carregando...</p>
           </div>
         </div>
       }
