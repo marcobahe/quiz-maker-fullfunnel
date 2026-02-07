@@ -330,46 +330,153 @@ export function ConfettiEffect({ trigger, duration = 3000 }) {
 
 // ── Sound System ──────────────────────────────────────────────────
 
-// Singleton AudioContext - created once, reused for all sounds
-let audioContext = null;
-let audioContextResumed = false;
-
-function getAudioContext() {
-  if (typeof window === 'undefined') return null;
+// Generate a WAV data URL from oscillator parameters (works offline, no files needed)
+function generateToneDataUrl(frequency, duration, volume = 0.5, waveType = 'sine') {
+  const sampleRate = 22050;
+  const numSamples = Math.floor(sampleRate * duration);
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
   
-  if (!audioContext) {
-    try {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (e) {
-      console.debug('AudioContext not supported:', e);
-      return null;
+  // WAV header
+  const writeString = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+  
+  // Generate samples
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    const envelope = Math.max(0, 1 - t / duration) * volume;
+    let sample;
+    if (waveType === 'triangle') {
+      sample = (2 * Math.abs(2 * (t * frequency - Math.floor(t * frequency + 0.5))) - 1) * envelope;
+    } else {
+      sample = Math.sin(2 * Math.PI * frequency * t) * envelope;
     }
+    view.setInt16(44 + i * 2, Math.max(-32768, Math.min(32767, sample * 32767)), true);
   }
-  return audioContext;
-}
-
-// Resume audio context on first user interaction
-function ensureAudioContextResumed() {
-  const ctx = getAudioContext();
-  if (!ctx || audioContextResumed) return;
   
-  if (ctx.state === 'suspended') {
-    ctx.resume().then(() => {
-      audioContextResumed = true;
-    }).catch(() => {});
-  } else {
-    audioContextResumed = true;
-  }
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  return URL.createObjectURL(blob);
 }
 
-// Add event listeners to resume audio context on user interaction
-if (typeof window !== 'undefined') {
-  const resumeOnInteraction = () => {
-    ensureAudioContextResumed();
+// Generate a multi-tone WAV (chord/sequence)
+function generateMultiToneDataUrl(notes, volume = 0.5) {
+  // notes: [{frequency, startTime, duration}]
+  const sampleRate = 22050;
+  const totalDuration = Math.max(...notes.map(n => n.startTime + n.duration));
+  const numSamples = Math.floor(sampleRate * totalDuration);
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+  
+  const writeString = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+  
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    let sample = 0;
+    for (const note of notes) {
+      if (t >= note.startTime && t < note.startTime + note.duration) {
+        const localT = t - note.startTime;
+        const envelope = Math.max(0, 1 - localT / note.duration) * (volume / notes.length);
+        sample += Math.sin(2 * Math.PI * note.frequency * localT) * envelope;
+      }
+    }
+    sample = Math.max(-1, Math.min(1, sample));
+    view.setInt16(44 + i * 2, Math.max(-32768, Math.min(32767, sample * 32767)), true);
+  }
+  
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  return URL.createObjectURL(blob);
+}
+
+// Pre-generate all sound data URLs (lazy, cached)
+let soundCache = null;
+function getSoundUrls(volume) {
+  if (soundCache && soundCache._vol === volume) return soundCache;
+  
+  soundCache = {
+    _vol: volume,
+    correct: generateMultiToneDataUrl([
+      { frequency: 600, startTime: 0, duration: 0.12 },
+      { frequency: 800, startTime: 0.08, duration: 0.15 },
+    ], volume),
+    incorrect: generateToneDataUrl(300, 0.3, volume, 'triangle'),
+    streak: generateMultiToneDataUrl([
+      { frequency: 800, startTime: 0, duration: 0.1 },
+      { frequency: 1000, startTime: 0.06, duration: 0.1 },
+      { frequency: 1200, startTime: 0.12, duration: 0.12 },
+    ], volume),
+    complete: generateMultiToneDataUrl([
+      { frequency: 523, startTime: 0, duration: 0.4 },
+      { frequency: 659, startTime: 0.1, duration: 0.35 },
+      { frequency: 784, startTime: 0.2, duration: 0.3 },
+      { frequency: 1047, startTime: 0.3, duration: 0.35 },
+    ], volume),
+    timer: generateToneDataUrl(1200, 0.1, volume * 0.7),
+    spin: generateMultiToneDataUrl([
+      { frequency: 400, startTime: 0, duration: 0.1 },
+      { frequency: 500, startTime: 0.06, duration: 0.1 },
+      { frequency: 600, startTime: 0.12, duration: 0.1 },
+      { frequency: 750, startTime: 0.18, duration: 0.1 },
+      { frequency: 900, startTime: 0.24, duration: 0.12 },
+    ], volume),
+    reveal: generateMultiToneDataUrl([
+      { frequency: 523, startTime: 0, duration: 0.35 },
+      { frequency: 659, startTime: 0.08, duration: 0.35 },
+      { frequency: 784, startTime: 0.16, duration: 0.35 },
+    ], volume),
+    win: generateMultiToneDataUrl([
+      { frequency: 523, startTime: 0, duration: 0.3 },
+      { frequency: 659, startTime: 0.12, duration: 0.3 },
+      { frequency: 784, startTime: 0.24, duration: 0.3 },
+      { frequency: 1047, startTime: 0.36, duration: 0.4 },
+    ], volume),
   };
-  
-  ['click', 'touchstart', 'keydown'].forEach(event => {
-    document.addEventListener(event, resumeOnInteraction, { once: true, passive: true });
+  return soundCache;
+}
+
+// Unlock audio on iOS/mobile: play a silent buffer via <audio> on first interaction
+let audioUnlocked = false;
+if (typeof window !== 'undefined') {
+  const unlock = () => {
+    if (audioUnlocked) return;
+    // Create a tiny silent WAV and play it — this unlocks Audio on iOS
+    try {
+      const silentWav = generateToneDataUrl(1, 0.01, 0);
+      const audio = new Audio(silentWav);
+      audio.volume = 0.01;
+      audio.play().then(() => {
+        audioUnlocked = true;
+        audio.pause();
+        URL.revokeObjectURL(silentWav);
+      }).catch(() => {});
+    } catch (_e) { /* ignore */ }
+  };
+  ['click', 'touchstart', 'touchend', 'keydown'].forEach(event => {
+    document.addEventListener(event, unlock, { once: false, passive: true, capture: true });
   });
 }
 
@@ -382,50 +489,23 @@ export function SoundSystem({ level = 'medium' }) {
 
   const baseVolume = volumes[level] || 0.6;
 
-  const playSound = useCallback(async (type) => {
+  const playSound = useCallback((type) => {
     try {
-      const context = getAudioContext();
-      if (!context) return;
+      if (typeof window === 'undefined') return;
       
-      // Resume context if needed — MUST await on mobile or sound won't play
-      if (context.state === 'suspended') {
-        await context.resume();
-      }
+      const urls = getSoundUrls(baseVolume);
+      const url = urls[type] || urls.correct;
       
-      const oscillator = context.createOscillator();
-      const gainNode = context.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(context.destination);
-
-      // Different sounds for different events
-      const sounds = {
-        correct: { frequency: 800, duration: 0.2 },
-        incorrect: { frequency: 300, duration: 0.3 },
-        streak: { frequency: 1000, duration: 0.15 },
-        complete: { frequency: 600, duration: 0.5 },
-        timer: { frequency: 1200, duration: 0.1 },
-      };
-
-      const sound = sounds[type] || sounds.correct;
-      
-      oscillator.frequency.setValueAtTime(sound.frequency, context.currentTime);
-      oscillator.type = type === 'incorrect' ? 'triangle' : 'sine';
-      
-      gainNode.gain.setValueAtTime(0, context.currentTime);
-      gainNode.gain.linearRampToValueAtTime(baseVolume, context.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + sound.duration);
-
-      oscillator.start(context.currentTime);
-      oscillator.stop(context.currentTime + sound.duration);
-
+      const audio = new Audio(url);
+      audio.volume = Math.min(1, baseVolume);
+      audio.play().catch((err) => {
+        console.debug('Sound play failed:', err.message);
+      });
     } catch (error) {
-      // Silent fail if Web Audio API is not supported
       console.debug('Sound playback failed:', error);
     }
   }, [baseVolume]);
 
-  // Return the play function to be used by parent components
   return { playSound };
 }
 

@@ -1167,6 +1167,13 @@ function QuizPlayer() {
   // Sound system
   const { playSound } = SoundSystem({ level: gamificationConfig?.soundLevel || 'medium' });
 
+  // Helper: play sound only if gamification sounds are enabled
+  const playSoundIfEnabled = useCallback((type) => {
+    if (gamificationConfig?.sounds) {
+      playSound(type);
+    }
+  }, [gamificationConfig, playSound]);
+
   // ── Custom favicon ───────────────────────────────────────────
   useEffect(() => {
     if (!branding.faviconUrl) return;
@@ -3524,6 +3531,7 @@ function QuizPlayer() {
                       rv={rv}
                       onSubmit={(result) => {
                         const elScore = result.score || 0;
+                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
                         if (elScore > 0) setScore((prev) => prev + elScore);
                         setAnswers((prev) => ({
                           ...prev,
@@ -3548,6 +3556,7 @@ function QuizPlayer() {
                       themeColors={{ text: theme.primaryColor }}
                       onAnswer={(result) => {
                         const elScore = result.score || 0;
+                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
                         if (elScore > 0) setScore((prev) => prev + elScore);
                         setAnswers((prev) => ({
                           ...prev,
@@ -3796,6 +3805,7 @@ function QuizPlayer() {
                         element={el}
                         theme={theme}
                         btnRadius={btnRadius}
+                        onSound={playSoundIfEnabled}
                         onComplete={(result) => {
                           // Add score if defined
                           if (el.score > 0) {
@@ -3816,6 +3826,7 @@ function QuizPlayer() {
                         element={el}
                         theme={theme}
                         btnRadius={btnRadius}
+                        onSound={playSoundIfEnabled}
                         onComplete={(result) => {
                           if (el.score > 0) {
                             setScore((prev) => prev + el.score);
@@ -3851,6 +3862,7 @@ function QuizPlayer() {
                         element={el}
                         theme={theme}
                         btnRadius={btnRadius}
+                        onSound={playSoundIfEnabled}
                         onComplete={() => {
                           if (el.score > 0) {
                             setScore((prev) => prev + el.score);
@@ -3868,6 +3880,7 @@ function QuizPlayer() {
                       <CardFlipScreen
                         element={el}
                         theme={theme}
+                        onSound={playSoundIfEnabled}
                         onComplete={() => {
                           if (el.score > 0) {
                             setScore((prev) => prev + el.score);
@@ -3885,6 +3898,7 @@ function QuizPlayer() {
                       <SlotMachineScreen
                         element={el}
                         theme={theme}
+                        onSound={playSoundIfEnabled}
                         onNext={() => {
                           if (el.score > 0) {
                             setScore((prev) => prev + el.score);
@@ -3907,6 +3921,7 @@ function QuizPlayer() {
                       rv={rv}
                       onSubmit={(text) => {
                         const elScore = el.score || 0;
+                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
                         if (elScore > 0) setScore((prev) => prev + elScore);
                         setAnswers((prev) => ({
                           ...prev,
@@ -3935,6 +3950,7 @@ function QuizPlayer() {
                       onSubmit={(ratingValue) => {
                         const multiplier = el.scoreMultiplier || 1;
                         const elScore = Math.round(ratingValue * multiplier);
+                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
                         if (elScore > 0) setScore((prev) => prev + elScore);
 
                         const ratingType = el.ratingType || 'number';
@@ -3964,6 +3980,7 @@ function QuizPlayer() {
                       themeColors={{ text: theme.primaryColor }}
                       onAnswer={(result) => {
                         const elScore = result.score || 0;
+                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
                         if (elScore > 0) setScore((prev) => prev + elScore);
                         setAnswers((prev) => ({
                           ...prev,

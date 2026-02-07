@@ -49,7 +49,7 @@ function PatternSvg({ pattern, color }) {
 }
 
 // ── Card Flip Screen Component ─────────────────────────────────
-export default function CardFlipScreen({ element, theme, onComplete }) {
+export default function CardFlipScreen({ element, theme, onComplete, onSound }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [hasRevealed, setHasRevealed] = useState(false);
 

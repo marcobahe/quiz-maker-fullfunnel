@@ -9,7 +9,7 @@ import { useState, useCallback, useEffect } from 'react';
  * Design System v2.0 - QuizMeBaby
  */
 
-export default function MysteryBox({ element, theme, btnRadius, onComplete }) {
+export default function MysteryBox({ element, theme, btnRadius, onComplete, onSound }) {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
@@ -43,6 +43,7 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete }) {
 
     // Start shake animation
     setIsShaking(true);
+    onSound?.('spin');
     
     // After shake, start opening
     setTimeout(() => {
@@ -53,6 +54,7 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete }) {
       setTimeout(() => {
         setIsRevealed(true);
         setIsOpening(false);
+        onSound?.('reveal');
         
         // Auto-advance after reveal
         setTimeout(() => {
@@ -60,7 +62,7 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete }) {
         }, 2500);
       }, 1000);
     }, 1200);
-  }, [isRevealed, isOpening, onComplete]);
+  }, [isRevealed, isOpening, onComplete, onSound]);
 
   return (
     <div className="mb-6">

@@ -21,7 +21,7 @@ const GRADIENT_COLORS = [
   { start: '#14b8a6', end: '#0d9488' },  // Teal
 ];
 
-export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
+export default function SpinWheel({ element, theme, btnRadius, onComplete, onSound }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [spinning, setSpinning] = useState(false);
@@ -259,6 +259,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
     setSpinning(true);
     setResult(null);
     setHasSpun(true);
+    onSound?.('spin');
 
     const winIndex = pickSegment();
 
@@ -292,6 +293,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete }) {
       } else {
         setSpinning(false);
         setResult(segments[winIndex]);
+        onSound?.('win');
       }
     };
 

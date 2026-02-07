@@ -8,7 +8,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
  * 
  * Design System v2.0 - QuizMeBaby
  */
-export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
+export default function ScratchCard({ element, theme, btnRadius, onComplete, onSound }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [revealed, setRevealed] = useState(false);
@@ -181,6 +181,7 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete }) {
     // Use configurable threshold (default 60%)
     if (progress > revealThreshold && !revealTriggeredRef.current) {
       revealTriggeredRef.current = true;
+      onSound?.('reveal');
       setTimeout(() => {
         setRevealed(true);
         setTimeout(() => setShowCelebration(true), 200);
