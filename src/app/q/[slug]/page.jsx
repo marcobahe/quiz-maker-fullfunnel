@@ -1145,6 +1145,7 @@ function QuizPlayer() {
   
   // Gamification state
   const [gamificationConfig, setGamificationConfig] = useState(null);
+  const gamificationConfigRef = useRef(null);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -1165,14 +1166,17 @@ function QuizPlayer() {
   const [questionOrder, setQuestionOrder] = useState([]); // ordem das perguntas para variáveis
   
   // Sound system
+  // Keep ref in sync so callbacks always see latest value
+  gamificationConfigRef.current = gamificationConfig;
+  
   const { playSound } = SoundSystem({ level: gamificationConfig?.soundLevel || 'medium' });
 
   // Helper: play sound only if gamification sounds are enabled
   const playSoundIfEnabled = useCallback((type) => {
-    if (gamificationConfig?.sounds) {
+    if (gamificationConfigRef.current?.sounds) {
       playSound(type);
     }
-  }, [gamificationConfig, playSound]);
+  }, [playSound]);
 
   // ── Custom favicon ───────────────────────────────────────────
   useEffect(() => {
@@ -1231,19 +1235,20 @@ function QuizPlayer() {
 
   // ── Gamification: Confetti on result ─────────────────────────
   useEffect(() => {
-    if (showResult && gamificationConfig?.confetti !== false) {
+    const gc = gamificationConfigRef.current;
+    if (showResult && gc?.confetti !== false) {
       setShowConfetti(true);
-      if (gamificationConfig?.sounds) {
+      if (gc?.sounds) {
         setTimeout(() => playSound('complete'), 300);
       }
     }
-  }, [showResult, gamificationConfig, playSound]);
+  }, [showResult, playSound]);
 
   // ── Gamification: Timer activation ───────────────────────────
   useEffect(() => {
     // Compute currentNode locally to avoid hoisting issues
     const node = nodes.find((n) => n.id === currentNodeId);
-    if (node && gamificationConfig?.timer) {
+    if (node && gamificationConfigRef.current?.timer) {
       const isQuestion = node.type === 'single-choice' || 
                         node.type === 'multiple-choice' ||
                         (node.type === 'composite' && 
@@ -1256,7 +1261,7 @@ function QuizPlayer() {
         setTimerActive(false);
       }
     }
-  }, [nodes, currentNodeId, gamificationConfig, selectedOption]);
+  }, [nodes, currentNodeId, selectedOption]);
 
   // ── Embed: auto-resize via postMessage ───────────────────────
   useEffect(() => {
@@ -1274,8 +1279,9 @@ function QuizPlayer() {
   // ── Gamification Helper Functions ───────────────────────────
   
   const processGamificationAnswer = useCallback((optionScore, isCorrect = false) => {
-    console.log('[SOUND DEBUG] processGamificationAnswer called', { optionScore, isCorrect, gamificationConfig: JSON.stringify(gamificationConfig) });
-    if (!gamificationConfig) return optionScore;
+    const gc = gamificationConfigRef.current;
+    console.log('[SOUND DEBUG] processGamificationAnswer called', { optionScore, isCorrect, gc: JSON.stringify(gc) });
+    if (!gc) return optionScore;
     
     let finalScore = optionScore;
     
@@ -1285,47 +1291,47 @@ function QuizPlayer() {
     if (isCorrect || optionScore > 0) {
       setCorrectAnswers(prev => prev + 1);
       
-      if (gamificationConfig.streak) {
+      if (gc.streak) {
         setCurrentStreak(prev => {
           const newStreak = prev + 1;
           
           // Apply streak multiplier if enabled and threshold reached
-          if (newStreak >= (gamificationConfig.streakAfter || 3)) {
-            const multiplier = gamificationConfig.streakMultiplier || 2;
+          if (newStreak >= (gc.streakAfter || 3)) {
+            const multiplier = gc.streakMultiplier || 2;
             finalScore = Math.floor(optionScore * multiplier);
           }
           
           return newStreak;
         });
         
-        if (gamificationConfig.sounds) {
+        if (gc.sounds) {
           playSound('streak');
         }
-      } else if (gamificationConfig.sounds) {
+      } else if (gc.sounds) {
         playSound('correct');
       }
     } else {
       // Wrong answer
       setCurrentStreak(0);
       
-      if (gamificationConfig.sounds) {
+      if (gc.sounds) {
         playSound('incorrect');
       }
       
       // Process lives system
-      if (gamificationConfig.lives && lives > 0) {
+      if (gc.lives && lives > 0) {
         setLives(prev => {
           const newLives = prev - 1;
           
           if (newLives === 0) {
             // Handle lives depleted
             setTimeout(() => {
-              if (gamificationConfig.livesAction === 'email') {
+              if (gc.livesAction === 'email') {
                 setShowLeadForm(true);
-              } else if (gamificationConfig.livesAction === 'partial') {
+              } else if (gc.livesAction === 'partial') {
                 setShowResult(true);
-              } else if (gamificationConfig.livesAction === 'redirect' && gamificationConfig.livesRedirectUrl) {
-                window.location.href = gamificationConfig.livesRedirectUrl;
+              } else if (gc.livesAction === 'redirect' && gc.livesRedirectUrl) {
+                window.location.href = gc.livesRedirectUrl;
               }
             }, 1000);
           }
@@ -1336,18 +1342,19 @@ function QuizPlayer() {
     }
     
     return finalScore;
-  }, [gamificationConfig, lives, playSound]);
+  }, [lives, playSound]);
   
   // Timer timeout state - navigation handled in separate effect
   const [timerExpired, setTimerExpired] = useState(false);
   
   const handleTimerTimeout = useCallback(() => {
-    if (!gamificationConfig?.timer) return;
+    const gc = gamificationConfigRef.current;
+    if (!gc?.timer) return;
     
     // Treat timeout as wrong answer for gamification purposes
     processGamificationAnswer(0, false);
     
-    if (gamificationConfig.sounds) {
+    if (gc.sounds) {
       playSound('timer');
     }
     
@@ -1356,10 +1363,11 @@ function QuizPlayer() {
       setTimerActive(false);
       setTimerExpired(true);
     }, 500);
-  }, [gamificationConfig, processGamificationAnswer, playSound]);
+  }, [processGamificationAnswer, playSound]);
   
   const handleSpeedBonus = useCallback((bonusLevel) => {
-    if (!gamificationConfig?.timer || speedBonusAwarded) return;
+    const gc = gamificationConfigRef.current;
+    if (!gc?.timer || speedBonusAwarded) return;
     
     const bonusMultipliers = {
       low: 1.1, // +10%
@@ -1373,7 +1381,7 @@ function QuizPlayer() {
     setScore(prev => prev + bonus);
     setSpeedBonusAwarded(true);
     
-    if (gamificationConfig.sounds) {
+    if (gc.sounds) {
       playSound('streak');
     }
     
@@ -1387,7 +1395,7 @@ function QuizPlayer() {
         setPointsBalloons((prev) => prev.filter((b) => b.id !== id));
       }, 1500);
     }
-  }, [gamificationConfig, speedBonusAwarded, playSound]);
+  }, [speedBonusAwarded, playSound]);
 
   // ── Derived styles ──────────────────────────────────────────
 
