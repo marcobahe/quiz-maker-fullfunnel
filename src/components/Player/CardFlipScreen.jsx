@@ -67,6 +67,7 @@ export default function CardFlipScreen({ element, theme, onComplete, onSound }) 
     if (!isFlipped) {
       setIsFlipped(true);
       setHasRevealed(true);
+      onSound?.('reveal');
       
       if (autoAdvance) {
         // Wait for flip animation + configurable reading time, then advance

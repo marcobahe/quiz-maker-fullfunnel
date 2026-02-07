@@ -7,6 +7,7 @@ export default function SlotMachineScreen({
   element,
   onNext,
   theme = {},
+  onSound,
 }) {
   const {
     title = 'Puxe a alavanca!',
@@ -33,6 +34,7 @@ export default function SlotMachineScreen({
     setSpinning(true);
     setShowResult(false);
     setResult(null);
+    onSound?.('spin');
 
     // Clear any existing intervals
     spinIntervals.current.forEach(clearInterval);
@@ -87,10 +89,13 @@ export default function SlotMachineScreen({
 
         if (isJackpot) {
           setResult({ type: 'jackpot', message: '🎉 JACKPOT! 🎉' });
+          onSound?.('win');
         } else if (hasPair) {
           setResult({ type: 'pair', message: '✨ Quase lá! ✨' });
+          onSound?.('reveal');
         } else {
           setResult({ type: 'miss', message: 'Tente novamente!' });
+          onSound?.('incorrect');
         }
         setShowResult(true);
         return currentSlots;
