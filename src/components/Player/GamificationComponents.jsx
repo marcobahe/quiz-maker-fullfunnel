@@ -490,6 +490,7 @@ export function SoundSystem({ level = 'medium' }) {
   const baseVolume = volumes[level] || 0.6;
 
   const playSound = useCallback((type) => {
+    console.log('[SOUND DEBUG] playSound called with type:', type, 'volume:', baseVolume);
     try {
       if (typeof window === 'undefined') return;
       

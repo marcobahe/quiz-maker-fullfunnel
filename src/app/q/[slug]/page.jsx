@@ -1274,6 +1274,7 @@ function QuizPlayer() {
   // ── Gamification Helper Functions ───────────────────────────
   
   const processGamificationAnswer = useCallback((optionScore, isCorrect = false) => {
+    console.log('[SOUND DEBUG] processGamificationAnswer called', { optionScore, isCorrect, gamificationConfig: JSON.stringify(gamificationConfig) });
     if (!gamificationConfig) return optionScore;
     
     let finalScore = optionScore;
