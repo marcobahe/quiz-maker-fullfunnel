@@ -382,14 +382,14 @@ export function SoundSystem({ level = 'medium' }) {
 
   const baseVolume = volumes[level] || 0.6;
 
-  const playSound = useCallback((type) => {
+  const playSound = useCallback(async (type) => {
     try {
       const context = getAudioContext();
       if (!context) return;
       
-      // Resume context if needed (in case we missed user interaction events)
+      // Resume context if needed — MUST await on mobile or sound won't play
       if (context.state === 'suspended') {
-        context.resume();
+        await context.resume();
       }
       
       const oscillator = context.createOscillator();
