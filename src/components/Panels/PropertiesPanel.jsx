@@ -1432,6 +1432,18 @@ function SpinWheelElementEditor({ element, nodeId }) {
         </div>
         <p className="text-xs text-gray-400 mt-1">Chance de cair no prêmio configurado (0% = nunca ganha)</p>
       </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Tentativas</label>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={element.maxAttempts || 1}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { maxAttempts: Math.max(1, Math.min(10, parseInt(e.target.value) || 1)) })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+        <p className="text-xs text-gray-400 mt-1">Quantas vezes o respondente pode tentar (1-10)</p>
+      </div>
       <div className="flex items-center justify-between py-2">
         <label className="text-sm font-medium text-gray-700">Permitir tentar novamente</label>
         <button
@@ -1612,6 +1624,18 @@ function ScratchCardElementEditor({ element, nodeId }) {
         />
       </div>
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Tentativas</label>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={element.maxAttempts || 1}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { maxAttempts: Math.max(1, Math.min(10, parseInt(e.target.value) || 1)) })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+        <p className="text-xs text-gray-400 mt-1">Quantas vezes o respondente pode tentar (1-10)</p>
+      </div>
+      <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação</label>
         <input
           type="number"
@@ -1697,6 +1721,18 @@ function MysteryBoxElementEditor({ element, nodeId }) {
           className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
           placeholder="😢 Não foi desta vez..."
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Tentativas</label>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={element.maxAttempts || 1}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { maxAttempts: Math.max(1, Math.min(10, parseInt(e.target.value) || 1)) })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+        <p className="text-xs text-gray-400 mt-1">Quantas vezes o respondente pode tentar (1-10)</p>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação</label>
@@ -1903,6 +1939,18 @@ function SlotMachineElementEditor({ element, nodeId }) {
           <span className="text-sm font-semibold text-gray-700 w-12 text-right">{element.winProbability ?? 100}%</span>
         </div>
         <p className="text-xs text-gray-400 mt-1">Chance de jackpot (0% = nunca ganha)</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Tentativas</label>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={element.maxAttempts || 1}
+          onChange={(e) => updateNodeElement(nodeId, element.id, { maxAttempts: Math.max(1, Math.min(10, parseInt(e.target.value) || 1)) })}
+          className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+        />
+        <p className="text-xs text-gray-400 mt-1">Quantas vezes o respondente pode tentar (1-10)</p>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Pontuação</label>

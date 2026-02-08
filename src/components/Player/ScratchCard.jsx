@@ -28,14 +28,14 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete, onS
   const originalRevealText = element.revealText || '🎉 Você ganhou!';
   // Percentage of area that needs to be scratched before revealing (default: 60%)
   const revealThreshold = element.revealThreshold ?? 60;
+  const maxAttempts = element.maxAttempts || 1;
+  const [attempts, setAttempts] = useState(0);
   
-  // Win probability check (done once on mount)
-  const winResultRef = useRef(null);
-  if (winResultRef.current === null) {
+  // Win probability check (re-rolled each attempt)
+  const [isWin, setIsWin] = useState(() => {
     const winProb = element.winProbability ?? 100;
-    winResultRef.current = Math.random() * 100 < winProb;
-  }
-  const isWin = winResultRef.current;
+    return Math.random() * 100 < winProb;
+  });
   const revealText = isWin ? originalRevealText : (element.loseText || '😢 Tente novamente!');
 
   // Responsive sizing
@@ -199,6 +199,7 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete, onS
     if (progress > revealThreshold && !revealTriggeredRef.current) {
       revealTriggeredRef.current = true;
       onSound?.('scratchReveal');
+      setAttempts(prev => prev + 1);
       setTimeout(() => {
         setRevealed(true);
         setTimeout(() => setShowCelebration(true), 200);
@@ -406,20 +407,68 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete, onS
       {showCelebration && (
         <div className="w-full max-w-xs" style={{ animation: 'slideUp 0.5s ease-out' }}>
           <div className="text-center mb-5">
-            <span className="text-5xl" style={{ animation: 'bounce-soft 1s ease-in-out infinite' }}>🎊</span>
-            <p className="text-xl font-bold text-gray-900 mt-2 font-display">Revelado!</p>
+            <span className="text-5xl" style={{ animation: 'bounce-soft 1s ease-in-out infinite' }}>
+              {isWin ? '🎊' : '😢'}
+            </span>
+            <p className="text-xl font-bold text-gray-900 mt-2 font-display">
+              {isWin ? 'Revelado!' : 'Não foi dessa vez...'}
+            </p>
+            {maxAttempts > 1 && (
+              <p className="text-sm text-gray-500 mt-1">
+                Tentativa {attempts} de {maxAttempts}
+              </p>
+            )}
           </div>
-          <button
-            onClick={() => onComplete && onComplete({ text: revealText })}
-            className="w-full text-white py-4 font-bold text-lg transition-all hover:-translate-y-0.5"
-            style={{
-              background: `linear-gradient(135deg, ${theme?.primaryColor || coverColor}, ${darkenColor(theme?.primaryColor || coverColor, 10)})`,
-              borderRadius: '1rem',
-              boxShadow: `0 6px 0 ${darkenColor(theme?.primaryColor || coverColor, 25)}, 0 10px 24px ${theme?.primaryColor || coverColor}40`,
-            }}
-          >
-            Continuar →
-          </button>
+
+          {/* Retry: lost AND has attempts left */}
+          {!isWin && attempts < maxAttempts && (
+            <button
+              onClick={() => {
+                // Reset for new attempt
+                setRevealed(false);
+                setShowCelebration(false);
+                setScratchProgress(0);
+                scratchedRef.current = 0;
+                revealTriggeredRef.current = false;
+                // Re-roll win probability
+                const winProb = element.winProbability ?? 100;
+                setIsWin(Math.random() * 100 < winProb);
+              }}
+              className="w-full text-white py-4 font-bold text-lg transition-all hover:-translate-y-0.5 mb-3"
+              style={{
+                background: `linear-gradient(135deg, ${theme?.primaryColor || coverColor}, ${darkenColor(theme?.primaryColor || coverColor, 10)})`,
+                borderRadius: '1rem',
+                boxShadow: `0 6px 0 ${darkenColor(theme?.primaryColor || coverColor, 25)}, 0 10px 24px ${theme?.primaryColor || coverColor}40`,
+              }}
+            >
+              🔄 Tentar novamente ({maxAttempts - attempts} restante{maxAttempts - attempts > 1 ? 's' : ''})
+            </button>
+          )}
+
+          {/* Continue: won OR no attempts left */}
+          {(isWin || attempts >= maxAttempts) && (
+            <button
+              onClick={() => onComplete && onComplete({ text: revealText })}
+              className="w-full text-white py-4 font-bold text-lg transition-all hover:-translate-y-0.5"
+              style={{
+                background: `linear-gradient(135deg, ${theme?.primaryColor || coverColor}, ${darkenColor(theme?.primaryColor || coverColor, 10)})`,
+                borderRadius: '1rem',
+                boxShadow: `0 6px 0 ${darkenColor(theme?.primaryColor || coverColor, 25)}, 0 10px 24px ${theme?.primaryColor || coverColor}40`,
+              }}
+            >
+              Continuar →
+            </button>
+          )}
+
+          {/* Secondary continue when retry available */}
+          {!isWin && attempts < maxAttempts && (
+            <button
+              onClick={() => onComplete && onComplete({ text: revealText })}
+              className="w-full py-3 font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all text-sm"
+            >
+              Continuar mesmo assim →
+            </button>
+          )}
         </div>
       )}
 

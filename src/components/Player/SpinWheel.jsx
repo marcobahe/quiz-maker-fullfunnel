@@ -5,6 +5,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 /**
  * Interactive Spin Wheel (Fortune Wheel) component for the Quiz Player.
  * Premium 3D tactile design with gradients, metallic border, and smooth animations.
+ * Supports maxAttempts for retry-on-lose logic.
  * 
  * Design System v2.0 - QuizMeBaby
  */
@@ -28,12 +29,14 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
   const [result, setResult] = useState(null);
   const [hasSpun, setHasSpun] = useState(false);
   const [canvasSize, setCanvasSize] = useState(320);
+  const [attempts, setAttempts] = useState(0);
+  const [lastWin, setLastWin] = useState(null); // null = not decided yet, true/false after spin
   const currentAngleRef = useRef(0);
   const animFrameRef = useRef(null);
 
   const segments = element.segments || [];
   const totalProb = segments.reduce((s, seg) => s + (seg.probability || 0), 0) || 1;
-  const allowRetry = element.allowRetry === true;
+  const maxAttempts = element.maxAttempts || 1;
 
   // Responsive sizing
   useEffect(() => {
@@ -256,7 +259,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
           minIdx = i;
         }
       });
-      return minIdx;
+      return { index: minIdx, isWin: false };
     }
     
     // Normal weighted random selection
@@ -264,22 +267,24 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
     let cum = 0;
     for (let i = 0; i < segments.length; i++) {
       cum += segments[i].probability || 0;
-      if (rand <= cum) return i;
+      if (rand <= cum) return { index: i, isWin: true };
     }
-    return segments.length - 1;
+    return { index: segments.length - 1, isWin: true };
   };
 
   // Spin animation with smooth easing and per-segment tick sounds
   const spin = () => {
     if (spinning || segments.length === 0) return;
-    if (hasSpun && !allowRetry) return;
     
     setSpinning(true);
     setResult(null);
+    setLastWin(null);
     setHasSpun(true);
     onSound?.('spinTick');
 
-    const winIndex = pickSegment();
+    const { index: winIndex, isWin } = pickSegment();
+    const newAttemptCount = attempts + 1;
+    setAttempts(newAttemptCount);
 
     // Calculate target angle
     let segStart = 0;
@@ -332,6 +337,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
       } else {
         setSpinning(false);
         setResult(segments[winIndex]);
+        setLastWin(isWin);
         onSound?.('spinWin');
       }
     };
@@ -341,6 +347,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
 
   const handleRetry = () => {
     setResult(null);
+    setLastWin(null);
   };
 
   useEffect(() => {
@@ -349,7 +356,11 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
     };
   }, []);
 
-  const canSpin = !spinning && (!hasSpun || allowRetry || !result);
+  // Can retry: lost and still has attempts remaining
+  const canRetry = result && !lastWin && attempts < maxAttempts;
+  // Must advance: won, or lost with no more attempts
+  const mustAdvance = result && (lastWin || attempts >= maxAttempts);
+  const canSpin = !spinning && !result;
 
   return (
     <div ref={containerRef} className="flex flex-col items-center w-full">
@@ -357,6 +368,13 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
       <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center font-display">
         {element.title || 'Gire a roleta!'}
       </h2>
+
+      {/* Attempts counter */}
+      {maxAttempts > 1 && (
+        <div className="text-sm text-gray-500 mb-4 font-medium">
+          Tentativa {Math.min(attempts + (result ? 0 : 1), maxAttempts)} de {maxAttempts}
+        </div>
+      )}
 
       {/* Wheel container with glow */}
       <div 
@@ -443,11 +461,15 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
           >
             {/* Celebration */}
             <div className="text-6xl mb-4" style={{ animation: 'float 2s ease-in-out infinite' }}>
-              🎉
+              {lastWin ? '🎉' : '😢'}
             </div>
             
-            <h3 className="text-3xl font-bold text-gray-900 mb-2 font-display">Parabéns!</h3>
-            <p className="text-lg text-gray-500 mb-4">Você ganhou:</p>
+            <h3 className="text-3xl font-bold text-gray-900 mb-2 font-display">
+              {lastWin ? 'Parabéns!' : 'Não foi dessa vez...'}
+            </h3>
+            <p className="text-lg text-gray-500 mb-4">
+              {lastWin ? 'Você ganhou:' : 'Resultado:'}
+            </p>
             
             {/* Prize display */}
             <div
@@ -459,28 +481,37 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
                 boxShadow: `0 8px 24px ${result.color || theme?.primaryColor}20`,
               }}
             >
-              ✨ {result.text}
+              {lastWin ? '✨' : ''} {result.text}
             </div>
             
             <div className="space-y-3">
-              <button
-                onClick={() => onComplete && onComplete(result)}
-                className="w-full text-white py-4 font-bold text-lg transition-all hover:-translate-y-0.5 shadow-lg"
-                style={{
-                  background: `linear-gradient(135deg, ${theme?.primaryColor || '#6366f1'}, ${darkenColor(theme?.primaryColor || '#6366f1', 10)})`,
-                  borderRadius: '1rem',
-                  boxShadow: `0 6px 0 ${darkenColor(theme?.primaryColor || '#6366f1', 25)}, 0 10px 20px ${theme?.primaryColor || '#6366f1'}30`,
-                }}
-              >
-                Continuar →
-              </button>
+              {/* Continue button — always show when won or all attempts used */}
+              {mustAdvance && (
+                <button
+                  onClick={() => onComplete && onComplete(result)}
+                  className="w-full text-white py-4 font-bold text-lg transition-all hover:-translate-y-0.5 shadow-lg"
+                  style={{
+                    background: `linear-gradient(135deg, ${theme?.primaryColor || '#6366f1'}, ${darkenColor(theme?.primaryColor || '#6366f1', 10)})`,
+                    borderRadius: '1rem',
+                    boxShadow: `0 6px 0 ${darkenColor(theme?.primaryColor || '#6366f1', 25)}, 0 10px 20px ${theme?.primaryColor || '#6366f1'}30`,
+                  }}
+                >
+                  Continuar →
+                </button>
+              )}
               
-              {allowRetry && (
+              {/* Retry button — only when lost and attempts remaining */}
+              {canRetry && (
                 <button
                   onClick={handleRetry}
-                  className="w-full py-3 font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all"
+                  className="w-full py-4 font-bold text-lg text-white transition-all hover:-translate-y-0.5 shadow-lg"
+                  style={{
+                    background: `linear-gradient(135deg, ${theme?.primaryColor || '#6366f1'}, ${darkenColor(theme?.primaryColor || '#6366f1', 10)})`,
+                    borderRadius: '1rem',
+                    boxShadow: `0 6px 0 ${darkenColor(theme?.primaryColor || '#6366f1', 25)}, 0 10px 20px ${theme?.primaryColor || '#6366f1'}30`,
+                  }}
                 >
-                  🔄 Tentar novamente
+                  🔄 Tentar novamente ({maxAttempts - attempts} restante{maxAttempts - attempts !== 1 ? 's' : ''})
                 </button>
               )}
             </div>

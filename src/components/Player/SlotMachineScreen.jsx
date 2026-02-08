@@ -19,7 +19,9 @@ export default function SlotMachineScreen({
   const [slots, setSlots] = useState(['❓', '❓', '❓']);
   const [result, setResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
+  const [attempts, setAttempts] = useState(0);
   const spinIntervals = useRef([]);
+  const maxAttempts = element?.maxAttempts || 1;
 
   // Cleanup intervals on unmount
   useEffect(() => {
@@ -30,10 +32,12 @@ export default function SlotMachineScreen({
 
   const spin = () => {
     if (spinning) return;
+    if (attempts >= maxAttempts && showResult) return;
     
     setSpinning(true);
     setShowResult(false);
     setResult(null);
+    setAttempts(prev => prev + 1);
 
     // Determine win/lose upfront based on winProbability
     const winProb = element.winProbability ?? 100;
@@ -233,6 +237,13 @@ export default function SlotMachineScreen({
         )}
       </motion.div>
 
+      {/* Attempts counter */}
+      {maxAttempts > 1 && (
+        <p className="text-white/70 text-xs font-medium mt-2 text-center">
+          Tentativa {Math.min(attempts + (showResult ? 0 : 1), maxAttempts)} de {maxAttempts}
+        </p>
+      )}
+
       {/* Result - Compact */}
       <AnimatePresence>
         {showResult && result && (
@@ -268,24 +279,43 @@ export default function SlotMachineScreen({
 
         {showResult && (
           <>
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={spin}
-              className="w-full py-2.5 bg-white/20 text-white font-medium rounded-xl hover:bg-white/30 transition-all text-sm"
-            >
-              🔄 Tentar novamente
-            </motion.button>
+            {/* Retry: only if lost AND has attempts left */}
+            {result.type !== 'jackpot' && attempts < maxAttempts && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={spin}
+                className="w-full py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all text-sm"
+              >
+                🔄 Tentar novamente ({maxAttempts - attempts} restante{maxAttempts - attempts > 1 ? 's' : ''})
+              </motion.button>
+            )}
             
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              onClick={handleContinue}
-              className="w-full py-3 bg-white text-gray-900 font-bold text-base rounded-xl shadow-lg hover:bg-gray-100 transition-all"
-            >
-              Continuar →
-            </motion.button>
+            {/* Continue: always show if won OR no attempts left */}
+            {(result.type === 'jackpot' || attempts >= maxAttempts) && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={handleContinue}
+                className="w-full py-3 bg-white text-gray-900 font-bold text-base rounded-xl shadow-lg hover:bg-gray-100 transition-all"
+              >
+                Continuar →
+              </motion.button>
+            )}
+
+            {/* Secondary continue when retry is available */}
+            {result.type !== 'jackpot' && attempts < maxAttempts && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={handleContinue}
+                className="w-full py-2.5 bg-white/20 text-white/80 font-medium rounded-xl hover:bg-white/30 transition-all text-xs"
+              >
+                Continuar mesmo assim →
+              </motion.button>
+            )}
           </>
         )}
       </div>

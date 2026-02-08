@@ -14,12 +14,14 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete, onSo
   const [isShaking, setIsShaking] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [sparkles, setSparkles] = useState([]);
+  const [attempts, setAttempts] = useState(0);
 
   const bgColor = element.bgColor || 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)';
   const boxColor = element.boxColor || theme?.primaryColor || '#6366f1';
+  const maxAttempts = element.maxAttempts || 1;
 
-  // Win probability check (determined once)
-  const [isWin] = useState(() => {
+  // Win probability check (re-rolled each attempt)
+  const [isWin, setIsWin] = useState(() => {
     const winProb = element.winProbability ?? 100;
     return Math.random() * 100 < winProb;
   });
@@ -50,6 +52,9 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete, onSo
   const handleClick = useCallback(() => {
     if (isRevealed || isOpening) return;
 
+    const currentAttempt = attempts + 1;
+    setAttempts(currentAttempt);
+
     // Start shake animation with rattle sound
     setIsShaking(true);
     onSound?.('boxShake');
@@ -65,13 +70,28 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete, onSo
         setIsOpening(false);
         onSound?.('boxOpen');
         
-        // Auto-advance after reveal
-        setTimeout(() => {
-          onComplete?.();
-        }, 2500);
+        // Auto-advance only if won OR no attempts left
+        // Check isWin from state won't work here since it's stale in callback,
+        // so we re-check using the ref approach
+        const winProb = element.winProbability ?? 100;
+        const won = Math.random() * 100 < winProb;
+        setIsWin(won);
+        
+        if (won || currentAttempt >= maxAttempts) {
+          setTimeout(() => {
+            onComplete?.();
+          }, 2500);
+        }
       }, 1000);
     }, 1200);
-  }, [isRevealed, isOpening, onComplete, onSound]);
+  }, [isRevealed, isOpening, attempts, maxAttempts, element.winProbability, onComplete, onSound]);
+
+  const handleRetry = useCallback(() => {
+    setIsRevealed(false);
+    setIsShaking(false);
+    setIsOpening(false);
+    // isWin will be re-rolled in handleClick
+  }, []);
 
   return (
     <div className="mb-6">
@@ -262,7 +282,7 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete, onSo
             <div className="text-center" style={{ animation: 'scaleIn 0.5s ease-out' }}>
               {/* Celebration */}
               <div className="text-5xl mb-4" style={{ animation: 'float 2s ease-in-out infinite' }}>
-                ✨🎉✨
+                {isWin ? '✨🎉✨' : '😢'}
               </div>
               
               {/* Revealed card */}
@@ -277,17 +297,46 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete, onSo
                     boxShadow: `0 4px 12px ${boxColor}40`,
                   }}
                 >
-                  <span className="text-2xl">🎁</span>
+                  <span className="text-2xl">{isWin ? '🎁' : '📦'}</span>
                 </div>
                 <p className="text-xl font-bold text-gray-900 leading-relaxed font-display">
                   {revealText}
                 </p>
+                {maxAttempts > 1 && (
+                  <p className="text-sm text-gray-400 mt-2">
+                    Tentativa {attempts} de {maxAttempts}
+                  </p>
+                )}
               </div>
               
-              {/* Continue hint */}
-              <p className="text-white/60 text-sm mt-6">
-                Continuando automaticamente...
-              </p>
+              {/* Retry button: lost AND has attempts left */}
+              {!isWin && attempts < maxAttempts && (
+                <div className="mt-6 space-y-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleRetry(); }}
+                    className="w-full py-3 text-white font-bold rounded-xl transition-all text-sm"
+                    style={{
+                      background: `linear-gradient(135deg, ${boxColor}, ${darkenColor(boxColor, 15)})`,
+                      boxShadow: `0 4px 12px ${boxColor}40`,
+                    }}
+                  >
+                    🔄 Tentar novamente ({maxAttempts - attempts} restante{maxAttempts - attempts > 1 ? 's' : ''})
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onComplete?.(); }}
+                    className="w-full py-2 text-white/60 font-medium text-xs hover:text-white/80 transition-all"
+                  >
+                    Continuar mesmo assim →
+                  </button>
+                </div>
+              )}
+
+              {/* Auto-advance hint: won OR no attempts left */}
+              {(isWin || attempts >= maxAttempts) && (
+                <p className="text-white/60 text-sm mt-6">
+                  Continuando automaticamente...
+                </p>
+              )}
             </div>
           )}
         </div>
