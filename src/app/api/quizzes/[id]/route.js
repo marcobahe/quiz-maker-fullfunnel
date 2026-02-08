@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { publishToEdge, unpublishFromEdge, refreshEdgeCache } from '@/lib/cloudflare-kv';
 
 function generateSlug(name) {
   return name
@@ -94,6 +95,20 @@ export async function PUT(request, { params }) {
       where: { id },
       data: updateData,
     });
+
+    // Publish/refresh edge cache on Cloudflare
+    if (quiz.slug && quiz.status === 'published') {
+      if (existing.status !== 'published') {
+        // First time publishing — push to edge
+        publishToEdge(quiz.slug).catch(() => {});
+      } else {
+        // Already published, content may have changed — refresh
+        refreshEdgeCache(quiz.slug).catch(() => {});
+      }
+    } else if (quiz.status !== 'published' && existing.status === 'published' && existing.slug) {
+      // Unpublished — remove from edge
+      unpublishFromEdge(existing.slug).catch(() => {});
+    }
 
     return NextResponse.json(quiz);
   } catch (error) {
