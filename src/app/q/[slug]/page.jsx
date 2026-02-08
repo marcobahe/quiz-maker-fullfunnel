@@ -2440,7 +2440,7 @@ function QuizPlayer() {
         </div>
       )}
 
-      <div className="relative z-10 flex flex-col min-h-full">
+      <div className="relative z-10 flex flex-col flex-1 min-h-full">
         {/* Compact Header - Quiz name + Progress in same row */}
         {!isEmbed && !showResult && (
           <div className="px-4 py-2 flex items-center gap-3">
