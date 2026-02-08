@@ -1582,7 +1582,9 @@ function QuizPlayer() {
             if (settings.preloadMessage) setPreloadMessage((prev) => ({ ...prev, ...settings.preloadMessage }));
             if (settings.aiResultConfig) setAiConfig(settings.aiResultConfig);
             if (settings.tracking) setTrackingConfig(settings.tracking);
+            console.log('[SOUND DEBUG] settings.gamification =', JSON.stringify(settings.gamification), 'settings keys =', Object.keys(settings));
             if (settings.gamification) {
+              console.log('[SOUND DEBUG] calling setGamificationConfig with', JSON.stringify(settings.gamification));
               setGamificationConfig(settings.gamification);
               if (settings.gamification.lives && settings.gamification.livesCount) {
                 setLives(settings.gamification.livesCount);
