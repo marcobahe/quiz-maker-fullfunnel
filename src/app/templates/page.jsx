@@ -9,7 +9,7 @@ import { templates, categories } from '@/data/templates';
 
 function TemplateCard({ template, onUse, loading }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-accent/20 transition-all overflow-hidden group">
+    <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl shadow-sm border border-gray-100 dark:border-white/10 hover:shadow-md hover:border-accent/20 transition-all overflow-hidden group">
       {/* Header */}
       <div className="p-6 pb-4">
         <div className="flex items-start justify-between mb-3">
@@ -18,7 +18,7 @@ function TemplateCard({ template, onUse, loading }) {
               {template.icon}
             </div>
             <div>
-              <h3 className="font-semibold text-gray-800 group-hover:text-accent transition-colors">
+              <h3 className="font-semibold text-gray-800 dark:text-white group-hover:text-accent transition-colors">
                 {template.name}
               </h3>
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent">
@@ -28,12 +28,12 @@ function TemplateCard({ template, onUse, loading }) {
           </div>
         </div>
         
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           {template.description}
         </p>
 
         {/* Preview Info */}
-        <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-4">
           <span>{template.canvasData.nodes.length} etapas</span>
           <span>{template.scoreRanges.length} resultados</span>
         </div>
@@ -66,13 +66,13 @@ function EmptyState({ searchQuery, selectedCategory }) {
       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
         <FileText size={32} className="text-gray-400" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+      <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">
         {searchQuery || selectedCategory !== 'Todos' 
           ? 'Nenhum template encontrado' 
           : 'Nenhum template disponível'
         }
       </h3>
-      <p className="text-gray-500 max-w-md">
+      <p className="text-gray-500 dark:text-gray-400 max-w-md">
         {searchQuery || selectedCategory !== 'Todos'
           ? 'Tente ajustar os filtros ou pesquise por outros termos.'
           : 'Templates aparecerão aqui em breve.'
@@ -158,7 +158,7 @@ export default function TemplatesPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
       </div>
     );
@@ -178,7 +178,7 @@ export default function TemplatesPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       <Sidebar 
         onCreateQuiz={handleCreateQuiz} 
         onOpenTemplates={() => {/* Already on templates page */}}
@@ -190,11 +190,11 @@ export default function TemplatesPage() {
       <main className="flex-1 p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
             <FileText size={28} className="text-accent" />
             Templates de Quiz
           </h1>
-          <p className="text-gray-500">Comece rápido com templates prontos para usar</p>
+          <p className="text-gray-500 dark:text-gray-400">Comece rápido com templates prontos para usar</p>
         </div>
 
         {/* Filters */}
@@ -207,7 +207,7 @@ export default function TemplatesPage() {
               placeholder="Buscar templates..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none bg-white dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
             />
           </div>
 
@@ -217,7 +217,7 @@ export default function TemplatesPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none bg-white"
+              className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none bg-white dark:bg-white/5 dark:text-white"
             >
               {categories.map(category => (
                 <option key={category} value={category}>{category}</option>

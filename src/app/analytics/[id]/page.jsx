@@ -14,15 +14,15 @@ import useQuizStore from '@/store/quizStore';
 // ── Stat Card ────────────────────────────────────────────────
 function StatCard({ icon: Icon, label, value, subtitle, color = '#7c3aed' }) {
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl p-5 shadow-sm border border-gray-100 dark:border-white/10 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
           <Icon size={20} style={{ color }} />
         </div>
       </div>
-      <p className="text-2xl font-bold text-gray-800">{value}</p>
-      <p className="text-sm text-gray-500 mt-1">{label}</p>
-      {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+      <p className="text-2xl font-bold text-gray-800 dark:text-white">{value}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{label}</p>
+      {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{subtitle}</p>}
     </div>
   );
 }
@@ -39,17 +39,17 @@ function FunnelChart({ data }) {
         return (
           <div key={step.nodeId} className="group">
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-gray-700 font-medium truncate max-w-[60%]">
+              <span className="text-gray-700 dark:text-gray-200 font-medium truncate max-w-[60%]">
                 {step.label.length > 40 ? step.label.substring(0, 40) + '…' : step.label}
               </span>
               <div className="flex items-center gap-3">
-                <span className="text-gray-500 font-medium">{step.views}</span>
+                <span className="text-gray-500 dark:text-gray-400 font-medium">{step.views}</span>
                 {i > 0 && step.dropoff > 0 && (
                   <span className="text-xs text-red-500 font-medium">-{step.dropoff}%</span>
                 )}
               </div>
             </div>
-            <div className="h-8 bg-gray-100 rounded-lg overflow-hidden">
+            <div className="h-8 bg-gray-100 dark:bg-white/5 rounded-lg overflow-hidden">
               <div
                 className="h-full rounded-lg transition-all duration-700 flex items-center justify-end pr-2"
                 style={{
@@ -80,11 +80,11 @@ function DailyChart({ data, days = 14 }) {
       <div className="flex items-center gap-4 mb-4 text-sm">
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-sm bg-[#7c3aed]"></span>
-          <span className="text-gray-600">Inícios</span>
+          <span className="text-gray-600 dark:text-gray-400">Inícios</span>
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-sm bg-[#a78bfa]"></span>
-          <span className="text-gray-600">Conclusões</span>
+          <span className="text-gray-600 dark:text-gray-400">Conclusões</span>
         </span>
       </div>
       <div className="flex items-end gap-1 h-44">
@@ -156,7 +156,7 @@ function ResultsChart({ data }) {
             })()}
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-lg font-bold text-gray-700">{total}</span>
+            <span className="text-lg font-bold text-gray-700 dark:text-white">{total}</span>
           </div>
         </div>
       </div>
@@ -168,11 +168,11 @@ function ResultsChart({ data }) {
             <div className="flex items-center justify-between text-sm mb-1">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colors[i % colors.length] }}></span>
-                <span className="text-gray-700 font-medium">{item.title}</span>
+                <span className="text-gray-700 dark:text-gray-200 font-medium">{item.title}</span>
               </div>
-              <span className="text-gray-500">{item.count} ({item.percentage}%)</span>
+              <span className="text-gray-500 dark:text-gray-400">{item.count} ({item.percentage}%)</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${item.percentage}%`, backgroundColor: colors[i % colors.length] }}
@@ -257,10 +257,10 @@ function ABTestSection({ quizId, onRefresh }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl shadow-sm border border-gray-100 dark:border-white/10 p-6">
         <div className="flex items-center gap-2 mb-4">
           <FlaskConical size={18} className="text-[#7c3aed]" />
-          <h2 className="text-lg font-semibold text-gray-800">A/B Test</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">A/B Test</h2>
         </div>
         <div className="flex justify-center py-8">
           <Loader2 className="animate-spin text-[#7c3aed]" size={24} />
@@ -308,11 +308,11 @@ function ABTestSection({ quizId, onRefresh }) {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl shadow-sm border border-gray-100 dark:border-white/10 p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <FlaskConical size={18} className="text-[#7c3aed]" />
-          <h2 className="text-lg font-semibold text-gray-800">A/B Test</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">A/B Test</h2>
           {hasVariants && (
             <span
               className="text-xs font-medium px-2 py-0.5 rounded-full"
@@ -338,8 +338,8 @@ function ABTestSection({ quizId, onRefresh }) {
 
       {!hasVariants ? (
         <div className="text-center py-8">
-          <FlaskConical size={40} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">
+          <FlaskConical size={40} className="text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Crie uma variante B para iniciar um teste A/B.
             <br />
             O quiz será duplicado e o tráfego será dividido entre as versões.
@@ -349,10 +349,10 @@ function ABTestSection({ quizId, onRefresh }) {
         <>
           {/* Split Control */}
           {testStatus !== 'completed' && (
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="mb-6 p-4 bg-gray-50 dark:bg-white/5 rounded-lg">
               <div className="flex items-center gap-2 mb-3">
-                <Sliders size={16} className="text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">Divisão de Tráfego</span>
+                <Sliders size={16} className="text-gray-500 dark:text-gray-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Divisão de Tráfego</span>
               </div>
               <div className="flex gap-2 mb-3">
                 {splitPresets.map(preset => (
@@ -526,11 +526,11 @@ function ABTestSection({ quizId, onRefresh }) {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+      <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
         <Inbox size={32} className="text-gray-400" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-700 mb-2">Nenhum dado ainda</h3>
-      <p className="text-gray-500 max-w-md">
+      <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Nenhum dado ainda</h3>
+      <p className="text-gray-500 dark:text-gray-400 max-w-md">
         Os dados de analytics aparecerão aqui quando pessoas começarem a responder seu quiz.
         Publique e compartilhe o quiz para começar a receber respostas!
       </p>
@@ -587,7 +587,7 @@ export default function AnalyticsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <Loader2 className="animate-spin text-[#7c3aed]" size={40} />
       </div>
     );
@@ -607,21 +607,21 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f1129] flex flex-col">
       <TopBar quizId={quizId} />
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => router.push('/')} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={() => router.push('/')} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h1 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
               <BarChart2 size={22} className="text-[#7c3aed]" />
               Analytics
             </h1>
-            <p className="text-sm text-gray-500">Dados de performance do seu quiz</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Dados de performance do seu quiz</p>
           </div>
         </div>
 
@@ -651,8 +651,8 @@ export default function AnalyticsPage() {
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Funnel */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl shadow-sm border border-gray-100 dark:border-white/10 p-6">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                   <BarChart2 size={18} className="text-[#7c3aed]" />
                   Funil de Conversão
                 </h2>
@@ -664,8 +664,8 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Daily */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl shadow-sm border border-gray-100 dark:border-white/10 p-6">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                   <Activity size={18} className="text-[#7c3aed]" />
                   Atividade Diária
                 </h2>
@@ -679,8 +679,8 @@ export default function AnalyticsPage() {
 
             {/* Results Distribution */}
             {analytics?.results?.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-lg mb-8">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl shadow-sm border border-gray-100 dark:border-white/10 p-6 max-w-lg mb-8">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                   <PieChart size={18} className="text-[#7c3aed]" />
                   Distribuição de Resultados
                 </h2>

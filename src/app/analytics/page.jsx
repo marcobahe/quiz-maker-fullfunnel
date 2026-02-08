@@ -8,15 +8,15 @@ import Sidebar from '@/components/Layout/Sidebar';
 
 function StatCard({ icon: Icon, label, value, subtitle, color = '#7c3aed' }) {
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl p-5 shadow-sm border border-gray-100 dark:border-white/10 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
           <Icon size={20} style={{ color }} />
         </div>
       </div>
-      <p className="text-2xl font-bold text-gray-800">{value}</p>
-      <p className="text-sm text-gray-500 mt-1">{label}</p>
-      {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+      <p className="text-2xl font-bold text-gray-800 dark:text-white">{value}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{label}</p>
+      {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{subtitle}</p>}
     </div>
   );
 }
@@ -28,11 +28,11 @@ function QuizAnalyticsCard({ quiz, onClick }) {
   return (
     <div 
       onClick={() => onClick(quiz.id)}
-      className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-accent/20 transition-all cursor-pointer group"
+      className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl p-6 shadow-sm border border-gray-100 dark:border-white/10 hover:shadow-md hover:border-accent/20 transition-all cursor-pointer group"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-800 truncate group-hover:text-accent transition-colors">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white truncate group-hover:text-accent transition-colors">
             {quiz.name}
           </h3>
           <div className="flex items-center gap-3 mt-1">
@@ -59,33 +59,33 @@ function QuizAnalyticsCard({ quiz, onClick }) {
             <Play size={14} className="text-accent" />
             <span className="text-xs text-gray-500">Inícios</span>
           </div>
-          <p className="text-lg font-bold text-gray-800">{quiz.totalStarts || 0}</p>
+          <p className="text-lg font-bold text-gray-800 dark:text-white">{quiz.totalStarts || 0}</p>
         </div>
         
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <CheckCircle size={14} className="text-green-600" />
-            <span className="text-xs text-gray-500">Conclusões</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Conclusões</span>
           </div>
-          <p className="text-lg font-bold text-gray-800">{quiz.totalCompletes || 0}</p>
-          <p className="text-xs text-gray-400">{completionRate}%</p>
+          <p className="text-lg font-bold text-gray-800 dark:text-white">{quiz.totalCompletes || 0}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{completionRate}%</p>
         </div>
 
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Users size={14} className="text-pink-600" />
-            <span className="text-xs text-gray-500">Leads</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Leads</span>
           </div>
-          <p className="text-lg font-bold text-gray-800">{quiz.totalLeads || 0}</p>
-          <p className="text-xs text-gray-400">{conversionRate}%</p>
+          <p className="text-lg font-bold text-gray-800 dark:text-white">{quiz.totalLeads || 0}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{conversionRate}%</p>
         </div>
 
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Target size={14} className="text-blue-600" />
-            <span className="text-xs text-gray-500">Score Médio</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Score Médio</span>
           </div>
-          <p className="text-lg font-bold text-gray-800">{quiz.avgScore || '—'}</p>
+          <p className="text-lg font-bold text-gray-800 dark:text-white">{quiz.avgScore || '—'}</p>
         </div>
       </div>
     </div>
@@ -98,8 +98,8 @@ function EmptyState({ onCreateQuiz }) {
       <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4">
         <BarChart3 size={32} className="text-accent" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-700 mb-2">Nenhum quiz ainda</h3>
-      <p className="text-gray-500 max-w-md mb-6">
+      <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Nenhum quiz ainda</h3>
+      <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
         Crie seu primeiro quiz para começar a ver analytics e insights detalhados sobre suas conversões.
       </p>
       <button
@@ -183,7 +183,7 @@ export default function AnalyticsOverviewPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
       </div>
     );
@@ -200,7 +200,7 @@ export default function AnalyticsOverviewPage() {
   const avgConversionRate = totalStarts > 0 ? Math.round((totalLeads / totalStarts) * 100) : 0;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       <Sidebar 
         onCreateQuiz={handleCreateQuiz} 
         onOpenTemplates={() => router.push('/templates')}
@@ -211,11 +211,11 @@ export default function AnalyticsOverviewPage() {
       
       <main className="flex-1 p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
             <BarChart3 size={28} className="text-accent" />
             Analytics Overview
           </h1>
-          <p className="text-gray-500">Visão geral das métricas dos seus quizzes</p>
+          <p className="text-gray-500 dark:text-gray-400">Visão geral das métricas dos seus quizzes</p>
         </div>
 
         {loading ? (
@@ -257,7 +257,7 @@ export default function AnalyticsOverviewPage() {
 
             {/* Quiz List */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-800">Seus Quizzes</h2>
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Seus Quizzes</h2>
               
               {quizzes.map((quiz) => (
                 <QuizAnalyticsCard 

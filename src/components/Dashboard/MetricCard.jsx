@@ -2,7 +2,7 @@
 
 export default function MetricCard({ icon: Icon, label, value, change, changeType }) {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl p-6 shadow-sm border border-gray-100 dark:border-white/10">
       <div className="flex items-center justify-between mb-4">
         <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
           <Icon className="text-accent" size={24} />
@@ -19,8 +19,8 @@ export default function MetricCard({ icon: Icon, label, value, change, changeTyp
           </span>
         )}
       </div>
-      <p className="text-gray-500 text-sm mb-1">{label}</p>
-      <p className="text-2xl font-bold text-gray-800">{value}</p>
+      <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">{label}</p>
+      <p className="text-2xl font-bold text-gray-800 dark:text-white">{value}</p>
     </div>
   );
 }

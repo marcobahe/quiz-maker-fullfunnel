@@ -151,7 +151,7 @@ export default function TeamPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <Loader2 className="animate-spin text-accent" size={32} />
       </div>
     );
@@ -160,7 +160,7 @@ export default function TeamPage() {
   const selectedWs = workspaces.find(w => w.id === selectedWsId);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       <Sidebar
         onCreateQuiz={handleCreateQuiz}
         onOpenTemplates={() => router.push('/templates')}
@@ -174,23 +174,23 @@ export default function TeamPage() {
 
       <main className="flex-1 p-8">
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
             <Link href="/settings" className="hover:text-accent transition-colors">Configurações</Link>
             <ChevronLeft size={14} className="rotate-180" />
-            <span className="text-gray-800">Time</span>
+            <span className="text-gray-800 dark:text-white">Time</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
             <Users size={28} className="text-accent" />
             Time & Workspace
           </h1>
-          <p className="text-gray-500">Gerencie membros e permissões</p>
+          <p className="text-gray-500 dark:text-gray-400">Gerencie membros e permissões</p>
         </div>
 
       <div className="max-w-4xl space-y-6">
         {/* Workspace Selector */}
         {workspaces.length > 1 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Workspace</label>
+          <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl border border-gray-200 dark:border-white/10 p-4">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Workspace</label>
             <div className="flex gap-2 flex-wrap">
               {workspaces.map(ws => (
                 <button
@@ -199,7 +199,7 @@ export default function TeamPage() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     ws.id === selectedWsId
                       ? 'bg-accent text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/15'
                   }`}
                 >
                   <Building2 size={14} />
@@ -211,8 +211,8 @@ export default function TeamPage() {
         )}
 
         {/* Role Explanation */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-800 mb-3">Níveis de Acesso</h3>
+        <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl border border-gray-200 dark:border-white/10 p-5">
+          <h3 className="font-semibold text-gray-800 dark:text-white mb-3">Níveis de Acesso</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {Object.entries(ROLE_INFO).map(([key, info]) => {
               const Icon = info.icon;
@@ -231,8 +231,8 @@ export default function TeamPage() {
 
         {/* Invite Form */}
         {canManage && (
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl border border-gray-200 dark:border-white/10 p-5">
+            <h3 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
               <UserPlus size={18} className="text-accent" />
               Convidar Membro
             </h3>
@@ -242,13 +242,13 @@ export default function TeamPage() {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="email@exemplo.com"
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none text-sm"
+                className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none text-sm bg-white dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
                 required
               />
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value)}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none text-sm bg-white"
+                className="px-4 py-2.5 border border-gray-300 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none text-sm bg-white dark:bg-white/5 dark:text-white"
               >
                 <option value="viewer">Viewer</option>
                 <option value="editor">Editor</option>
@@ -273,9 +273,9 @@ export default function TeamPage() {
         )}
 
         {/* Members List */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-800">
+        <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-white/10">
+            <h3 className="font-semibold text-gray-800 dark:text-white">
               Membros {selectedWs && <span className="text-gray-400 font-normal">— {selectedWs.name}</span>}
             </h3>
           </div>
@@ -287,12 +287,12 @@ export default function TeamPage() {
           ) : members.length === 0 ? (
             <div className="p-8 text-center text-gray-400 text-sm">Nenhum membro encontrado</div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-white/10">
               {members.map((member) => {
                 const roleInfo = ROLE_INFO[member.role] || ROLE_INFO.viewer;
                 const RoleIcon = roleInfo.icon;
                 return (
-                  <div key={member.id} className="px-5 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors">
+                  <div key={member.id} className="px-5 py-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                     {/* Avatar */}
                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
                       <span className="text-accent font-semibold text-sm">
@@ -302,10 +302,10 @@ export default function TeamPage() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 truncate">
+                      <p className="font-medium text-gray-800 dark:text-white truncate">
                         {member.user.name || 'Sem nome'}
                       </p>
-                      <p className="text-sm text-gray-500 truncate">{member.user.email}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{member.user.email}</p>
                     </div>
 
                     {/* Role */}
@@ -330,7 +330,7 @@ export default function TeamPage() {
                     {canManage && member.role !== 'owner' && (
                       <button
                         onClick={() => handleRemove(member.id, member.user.name || member.user.email)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         title="Remover membro"
                       >
                         <Trash2 size={16} />

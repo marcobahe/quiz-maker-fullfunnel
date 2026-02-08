@@ -94,7 +94,7 @@ function IntegrationCard({ integration, onConfigure }) {
   const isActive = integration.status === 'active';
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-accent/20 transition-all group">
+    <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur rounded-xl p-6 shadow-sm border border-gray-100 dark:border-white/10 hover:shadow-md hover:border-accent/20 transition-all group">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-4">
           <div 
@@ -106,15 +106,15 @@ function IntegrationCard({ integration, onConfigure }) {
           
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
-              <h3 className="font-semibold text-gray-800 group-hover:text-accent transition-colors">
+              <h3 className="font-semibold text-gray-800 dark:text-white group-hover:text-accent transition-colors">
                 {integration.name}
               </h3>
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400">
                 {integration.category}
               </span>
             </div>
             
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
               {integration.description}
             </p>
 
@@ -142,7 +142,7 @@ function IntegrationCard({ integration, onConfigure }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
             {isActive ? 'Ativo' : 'Inativo'}
           </span>
         </div>
@@ -164,7 +164,7 @@ function CategorySection({ category, integrations, onConfigure }) {
 
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">{category}</h2>
+      <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{category}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {integrations.map(integration => (
           <IntegrationCard
@@ -184,8 +184,8 @@ function EmptyState({ onCreateQuiz }) {
       <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4">
         <Puzzle size={32} className="text-accent" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-700 mb-2">Configure suas integrações</h3>
-      <p className="text-gray-500 max-w-md mb-6">
+      <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Configure suas integrações</h3>
+      <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
         As integrações são configuradas por quiz. Crie seu primeiro quiz para começar a conectar com suas ferramentas favoritas.
       </p>
       <button
@@ -285,7 +285,7 @@ export default function IntegrationsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
       </div>
     );
@@ -304,7 +304,7 @@ export default function IntegrationsPage() {
   const categories = Object.keys(integrationsByCategory);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       <Sidebar 
         onCreateQuiz={handleCreateQuiz} 
         onOpenTemplates={() => router.push('/templates')}
@@ -316,13 +316,13 @@ export default function IntegrationsPage() {
       <main className="flex-1 p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
             <Puzzle size={28} className="text-accent" />
             Integrações
           </h1>
-          <p className="text-gray-500">Conecte seus quizzes com suas ferramentas favoritas</p>
+          <p className="text-gray-500 dark:text-gray-400">Conecte seus quizzes com suas ferramentas favoritas</p>
           {quizzes.length > 0 && (
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Você tem <strong>{quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''}</strong> disponíve{quizzes.length !== 1 ? 'is' : 'l'} para integração
             </div>
           )}
@@ -345,8 +345,8 @@ export default function IntegrationsPage() {
                       <Settings size={20} className="text-accent" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 mb-1">Como funcionam as integrações</h3>
-                      <p className="text-sm text-gray-600">
+                      <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Como funcionam as integrações</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         Cada integração é configurada individualmente por quiz. Ao clicar em "Configurar", você será direcionado para a página de integração do seu quiz ativo.
                       </p>
                     </div>

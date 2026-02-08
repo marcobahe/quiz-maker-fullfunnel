@@ -26,7 +26,7 @@ function TemplateCard({ template, onClick }) {
   return (
     <button
       onClick={() => onClick(template)}
-      className="group text-left bg-white border border-gray-200 rounded-xl p-5 hover:border-accent hover:shadow-lg transition-all duration-200 flex flex-col"
+      className="group text-left bg-white dark:bg-[#151837]/60 border border-gray-200 dark:border-white/10 rounded-xl p-5 hover:border-accent hover:shadow-lg transition-all duration-200 flex flex-col"
     >
       <div className="flex items-start justify-between mb-3">
         <span className="text-3xl">{template.icon}</span>
@@ -34,10 +34,10 @@ function TemplateCard({ template, onClick }) {
           {template.category}
         </span>
       </div>
-      <h3 className="font-semibold text-gray-800 group-hover:text-accent transition-colors mb-1.5">
+      <h3 className="font-semibold text-gray-800 dark:text-white group-hover:text-accent transition-colors mb-1.5">
         {template.name}
       </h3>
-      <p className="text-sm text-gray-500 mb-4 flex-1 line-clamp-2">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex-1 line-clamp-2">
         {template.description}
       </p>
       <div className="flex items-center justify-between">
@@ -72,28 +72,28 @@ function ConfirmModal({ template, onConfirm, onCancel, loading }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-white dark:bg-[#151837] rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
         <div className="text-center mb-6">
           <span className="text-5xl block mb-3">{template.icon}</span>
-          <h3 className="text-xl font-bold text-gray-800 mb-1">{template.name}</h3>
-          <p className="text-sm text-gray-500">{template.description}</p>
+          <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-1">{template.name}</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{template.description}</p>
         </div>
 
-        <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2">
+        <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 mb-6 space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">Perguntas</span>
-            <span className="font-medium text-gray-800">{questionCount}</span>
+            <span className="text-gray-500 dark:text-gray-400">Perguntas</span>
+            <span className="font-medium text-gray-800 dark:text-white">{questionCount}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">Faixas de resultado</span>
-            <span className="font-medium text-gray-800">{template.scoreRanges.length}</span>
+            <span className="text-gray-500 dark:text-gray-400">Faixas de resultado</span>
+            <span className="font-medium text-gray-800 dark:text-white">{template.scoreRanges.length}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">Formulário de lead</span>
-            <span className="font-medium text-gray-800">{hasLeadForm ? 'Sim ✅' : 'Não'}</span>
+            <span className="text-gray-500 dark:text-gray-400">Formulário de lead</span>
+            <span className="font-medium text-gray-800 dark:text-white">{hasLeadForm ? 'Sim ✅' : 'Não'}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">Categoria</span>
+            <span className="text-gray-500 dark:text-gray-400">Categoria</span>
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${categoryColors[template.category] || 'bg-gray-100 text-gray-600'}`}>
               {template.category}
             </span>
@@ -103,7 +103,7 @@ function ConfirmModal({ template, onConfirm, onCancel, loading }) {
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
+            className="flex-1 px-4 py-3 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-medium text-sm"
           >
             Cancelar
           </button>
@@ -174,28 +174,28 @@ export default function TemplateGallery({ isOpen, onClose, onCreateBlank }) {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-white dark:bg-[#151837] rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-white/10">
           <div>
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
               <Sparkles size={22} className="text-accent" />
               Escolha um Template
             </h2>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Comece com um template pronto ou crie do zero
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+            className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors"
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} className="text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         {/* Category Filters */}
-        <div className="px-6 py-3 border-b border-gray-100 flex gap-2 overflow-x-auto scrollbar-hide">
+        <div className="px-6 py-3 border-b border-gray-100 dark:border-white/10 flex gap-2 overflow-x-auto scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -203,7 +203,7 @@ export default function TemplateGallery({ isOpen, onClose, onCreateBlank }) {
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeCategory === cat
                   ? 'bg-accent text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/15'
               }`}
             >
               {cat}
@@ -220,12 +220,12 @@ export default function TemplateGallery({ isOpen, onClose, onCreateBlank }) {
                 onClose();
                 if (onCreateBlank) onCreateBlank();
               }}
-              className="group text-left border-2 border-dashed border-gray-200 rounded-xl p-5 hover:border-accent hover:bg-accent/5 transition-all duration-200 flex flex-col items-center justify-center min-h-[180px]"
+              className="group text-left border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl p-5 hover:border-accent hover:bg-accent/5 transition-all duration-200 flex flex-col items-center justify-center min-h-[180px]"
             >
-              <div className="w-14 h-14 bg-gray-100 group-hover:bg-accent/10 rounded-xl flex items-center justify-center mb-3 transition-colors">
+              <div className="w-14 h-14 bg-gray-100 dark:bg-white/10 group-hover:bg-accent/10 rounded-xl flex items-center justify-center mb-3 transition-colors">
                 <FileText size={24} className="text-gray-400 group-hover:text-accent transition-colors" />
               </div>
-              <h3 className="font-semibold text-gray-600 group-hover:text-accent transition-colors mb-1">
+              <h3 className="font-semibold text-gray-600 dark:text-gray-300 group-hover:text-accent transition-colors mb-1">
                 Criar do Zero
               </h3>
               <p className="text-xs text-gray-400 text-center">

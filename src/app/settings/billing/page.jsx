@@ -23,7 +23,7 @@ import { PLANS, FEATURE_LABELS } from '@/lib/plans';
 export default function BillingPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent"></div>
       </div>
     }>
@@ -55,14 +55,14 @@ function UsageBar({ label, icon: Icon, current, limit, className }) {
   const isDanger = !isUnlimited && percentage >= 100;
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-xl p-5 shadow-sm ${className || ''}`}>
+    <div className={`bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 rounded-xl p-5 shadow-sm ${className || ''}`}>
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
           <Icon size={18} className="text-accent" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-800">{label}</p>
-          <p className="text-xs text-gray-500">
+          <p className="text-sm font-medium text-gray-800 dark:text-white">{label}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {isUnlimited
               ? `${current} utilizados • Ilimitado`
               : `${current} de ${limit.toLocaleString('pt-BR')}`}
@@ -83,7 +83,7 @@ function UsageBar({ label, icon: Icon, current, limit, className }) {
         )}
       </div>
       {!isUnlimited && (
-        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               isDanger
@@ -175,7 +175,7 @@ function BillingContent() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent"></div>
       </div>
     );
@@ -186,7 +186,7 @@ function BillingContent() {
   const PlanIcon = PLAN_ICONS[plan];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       <Sidebar
         onCreateQuiz={handleCreateQuiz}
         onOpenTemplates={() => router.push('/templates')}
@@ -197,16 +197,16 @@ function BillingContent() {
 
       <main className="flex-1 p-8">
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
             <Link href="/settings" className="hover:text-accent transition-colors">Configurações</Link>
             <ChevronLeft size={14} className="rotate-180" />
-            <span className="text-gray-800">Plano</span>
+            <span className="text-gray-800 dark:text-white">Plano</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
             <CreditCard size={28} className="text-accent" />
             Plano & Cobrança
           </h1>
-          <p className="text-gray-500">Gerencie seu plano, veja uso e histórico de pagamentos</p>
+          <p className="text-gray-500 dark:text-gray-400">Gerencie seu plano, veja uso e histórico de pagamentos</p>
         </div>
 
       <div className="max-w-4xl space-y-6">
@@ -224,7 +224,7 @@ function BillingContent() {
         )}
 
         {/* Current Plan Card */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div
@@ -244,7 +244,7 @@ function BillingContent() {
               </div>
               <div>
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold text-gray-800">
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">
                     Plano {planDetails.name}
                   </h2>
                   <span
@@ -253,7 +253,7 @@ function BillingContent() {
                     Atual
                   </span>
                 </div>
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                   {plan === 'free'
                     ? 'Funcionalidades básicas para começar'
                     : `R$ ${planDetails.price.toFixed(2).replace('.', ',')} /mês`}
@@ -272,7 +272,7 @@ function BillingContent() {
                 <button
                   onClick={handleManageSubscription}
                   disabled={portalLoading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/15 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
                 >
                   {portalLoading ? (
                     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -297,7 +297,7 @@ function BillingContent() {
 
         {/* Usage Section */}
         <div>
-          <h3 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
+          <h3 className="text-gray-800 dark:text-white font-semibold mb-4 flex items-center gap-2">
             <BarChart3 size={18} className="text-accent" />
             Uso Atual
           </h3>
@@ -319,18 +319,18 @@ function BillingContent() {
 
         {/* Features */}
         <div>
-          <h3 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
+          <h3 className="text-gray-800 dark:text-white font-semibold mb-4 flex items-center gap-2">
             <Zap size={18} className="text-accent" />
             Funcionalidades do Plano
           </h3>
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm">
             <div className="grid sm:grid-cols-2 gap-3">
               {planDetails.limits.features.map((feature) => (
                 <div key={feature} className="flex items-center gap-3 text-sm">
                   <div className="w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
                     <Check size={12} className="text-accent" />
                   </div>
-                  <span className="text-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300">
                     {FEATURE_LABELS[feature] || feature}
                   </span>
                 </div>
@@ -343,10 +343,10 @@ function BillingContent() {
         {plan === 'free' && (
           <div className="bg-gradient-to-r from-accent/10 to-purple-500/10 border border-accent/20 rounded-2xl p-8 text-center">
             <Crown size={40} className="text-accent mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
               Desbloqueie todo o potencial
             </h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 max-w-md mx-auto">
               Faça upgrade para o Pro e tenha acesso a templates, analytics
               avançado, webhooks e muito mais.
             </p>

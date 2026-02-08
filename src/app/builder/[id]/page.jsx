@@ -256,7 +256,7 @@ export default function BuilderPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-100">
+      <div className="flex h-screen items-center justify-center bg-gray-100 dark:bg-[#0f1129]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
       </div>
     );
@@ -265,7 +265,7 @@ export default function BuilderPage() {
   if (status === 'unauthenticated') return null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 dark:bg-[#0f1129]">
       <TopBar quizId={params.id} />
 
       <div className="flex flex-1 overflow-hidden">
@@ -283,7 +283,7 @@ export default function BuilderPage() {
           {!propertiesPanelOpen && (
             <button
               onClick={() => setPropertiesPanelOpen(true)}
-              className="absolute top-4 right-4 z-10 bg-white shadow-lg rounded-lg p-2.5 hover:bg-gray-50 transition-all border border-gray-200 hover:shadow-xl group"
+              className="absolute top-4 right-4 z-10 bg-white dark:bg-[#151837] shadow-lg rounded-lg p-2.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-all border border-gray-200 dark:border-white/10 hover:shadow-xl group"
               title="Abrir propriedades"
             >
               <PanelRightOpen size={20} className="text-gray-500 group-hover:text-accent transition-colors" />

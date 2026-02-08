@@ -25,7 +25,7 @@ export default function HomePage() {
   // Show loading while checking auth
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
       </div>
     );
@@ -107,7 +107,7 @@ function Dashboard({ session }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
       </div>
     );
@@ -127,7 +127,7 @@ function Dashboard({ session }) {
   // Show First Quiz Wizard when user has no quizzes
   if (hasNoQuizzes) {
     return (
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
         <Sidebar onCreateQuiz={handleCreateQuiz} onOpenTemplates={() => setShowTemplates(true)} onOpenAIWizard={() => setShowAIWizard(true)} userName={session?.user?.name || session?.user?.email} activeWorkspaceId={activeWorkspaceId} onWorkspaceChange={handleWorkspaceChange} />
         
         <main className="flex-1 p-8">
@@ -156,25 +156,25 @@ function Dashboard({ session }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       <Sidebar onCreateQuiz={handleCreateQuiz} onOpenTemplates={() => setShowTemplates(true)} onOpenAIWizard={() => setShowAIWizard(true)} userName={session?.user?.name || session?.user?.email} activeWorkspaceId={activeWorkspaceId} onWorkspaceChange={handleWorkspaceChange} />
       
       <main className="flex-1 p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-500">Bem-vindo de volta! Aqui está um resumo dos seus quizzes.</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400">Bem-vindo de volta! Aqui está um resumo dos seus quizzes.</p>
         </div>
 
         {/* Error Banner */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start gap-3">
             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
               <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="flex-1">
-              <p className="text-red-800 font-medium">{error}</p>
+              <p className="text-red-800 dark:text-red-300 font-medium">{error}</p>
               {error.includes('limite do seu plano') && (
                 <button
                   onClick={() => router.push('/pricing')}

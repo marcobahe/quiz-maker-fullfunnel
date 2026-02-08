@@ -57,10 +57,10 @@ export default function FirstQuizWizard({ onSelectAI, onSelectTemplate, onSelect
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl mb-4 shadow-lg shadow-purple-500/30">
           <Rocket size={32} className="text-white" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Crie seu primeiro Quiz! 🎉
         </h1>
-        <p className="text-gray-500 text-lg max-w-md">
+        <p className="text-gray-500 dark:text-gray-400 text-lg max-w-md">
           Escolha como você quer começar. Você pode mudar tudo depois!
         </p>
       </div>
@@ -81,9 +81,9 @@ export default function FirstQuizWizard({ onSelectAI, onSelectTemplate, onSelect
                 relative group flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-300
                 ${isHovered 
                   ? 'border-transparent shadow-xl scale-[1.02]' 
-                  : 'border-gray-200 hover:border-gray-300 shadow-sm'
+                  : 'border-gray-200 dark:border-white/10 hover:border-gray-300 shadow-sm'
                 }
-                bg-white
+                bg-white dark:bg-[#151837]/60
               `}
             >
               {/* Badge */}
@@ -99,7 +99,7 @@ export default function FirstQuizWizard({ onSelectAI, onSelectTemplate, onSelect
                   w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-300
                   ${isHovered 
                     ? `bg-gradient-to-br ${option.gradient} shadow-lg` 
-                    : 'bg-gray-100'
+                    : 'bg-gray-100 dark:bg-white/10'
                   }
                 `}
               >
@@ -110,10 +110,10 @@ export default function FirstQuizWizard({ onSelectAI, onSelectTemplate, onSelect
               </div>
 
               {/* Text */}
-              <h3 className="text-lg font-bold text-gray-900 mb-1">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
                 {option.title}
               </h3>
-              <p className="text-sm text-gray-500 text-center mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-4">
                 {option.description}
               </p>
 

@@ -90,7 +90,7 @@ function LoadingAnimation({ progress, hasUrl }) {
         <div className="absolute inset-0 w-20 h-20 rounded-full border-2 border-purple-300/30 animate-ping" />
       </div>
 
-      <h3 className="text-lg font-bold text-gray-800 mb-6">✨ Gerando seu quiz...</h3>
+      <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6">✨ Gerando seu quiz...</h3>
 
       <div className="space-y-3 w-full max-w-xs">
         {steps.map((step, idx) => {
@@ -103,10 +103,10 @@ function LoadingAnimation({ progress, hasUrl }) {
               key={idx}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-500 ${
                 isActive
-                  ? 'bg-purple-50 border border-purple-200'
+                  ? 'bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800'
                   : isDone
-                  ? 'bg-green-50 border border-green-200'
-                  : 'bg-gray-50 border border-gray-100'
+                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                  : 'bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5'
               }`}
             >
               <div
@@ -146,7 +146,7 @@ function QuestionPreview({ question, index, onChange }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-[#151837]/60 border border-gray-200 dark:border-white/10 rounded-xl p-4 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
           Pergunta {index + 1}
@@ -159,7 +159,7 @@ function QuestionPreview({ question, index, onChange }) {
       <textarea
         value={question.question}
         onChange={(e) => onChange({ ...question, question: e.target.value })}
-        className="w-full text-sm font-medium text-gray-800 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
+        className="w-full text-sm font-medium text-gray-800 dark:text-white border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
         rows={2}
       />
 
@@ -200,7 +200,7 @@ function QuestionPreview({ question, index, onChange }) {
                   newOpts[optIdx] = { ...opt, label: e.target.value };
                   onChange({ ...question, options: newOpts });
                 }}
-                className="flex-1 text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-purple-400"
+                className="flex-1 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-white/5 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-purple-400"
               />
               <span className="text-xs text-purple-500 font-medium bg-purple-50 px-2 py-0.5 rounded min-w-[40px] text-center">
                 +{opt.score}
@@ -215,7 +215,7 @@ function QuestionPreview({ question, index, onChange }) {
 
 function ScoreRangePreview({ range, index, onChange }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-[#151837]/60 border border-gray-200 dark:border-white/10 rounded-xl p-4 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
           Faixa {index + 1}
@@ -228,7 +228,7 @@ function ScoreRangePreview({ range, index, onChange }) {
         type="text"
         value={range.title}
         onChange={(e) => onChange({ ...range, title: e.target.value })}
-        className="w-full text-sm font-semibold text-gray-800 border border-gray-200 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+        className="w-full text-sm font-semibold text-gray-800 dark:text-white border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
       />
       <textarea
         value={range.description}
@@ -430,7 +430,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-[#151837] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-5">
           <button
@@ -466,7 +466,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
           {step === 1 && (
             <div className="space-y-5 animate-in fade-in duration-300">
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                   <Target size={14} className="text-purple-500" />
                   Tema do quiz <span className="text-red-400">*</span>
                 </label>
@@ -475,12 +475,12 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
                   value={tema}
                   onChange={(e) => setTema(e.target.value)}
                   placeholder="Ex: Perfil de investidor"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                 />
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                   <Sparkles size={14} className="text-purple-500" />
                   Objetivo
                 </label>
@@ -489,12 +489,12 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
                   value={objetivo}
                   onChange={(e) => setObjetivo(e.target.value)}
                   placeholder="Ex: Captar leads e segmentar por perfil de risco"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                 />
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                   <Users size={14} className="text-purple-500" />
                   Público-alvo
                 </label>
@@ -503,13 +503,13 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
                   value={publicoAlvo}
                   onChange={(e) => setPublicoAlvo(e.target.value)}
                   placeholder="Ex: Empreendedores de 25-45 anos"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                 />
               </div>
 
               {/* Optional site URL for AI context */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                   <Globe size={14} className="text-purple-500" />
                   Link do seu site ou página de vendas
                   <span className="text-xs font-normal text-gray-400">(opcional)</span>
@@ -520,7 +520,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
                     value={siteUrl}
                     onChange={(e) => setSiteUrl(e.target.value)}
                     placeholder="https://seusite.com.br/pagina-de-vendas"
-                    className="w-full px-4 py-2.5 pl-10 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                    className="w-full px-4 py-2.5 pl-10 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                   />
                   <Link2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
@@ -531,14 +531,14 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                   <Hash size={14} className="text-purple-500" />
                   Número de perguntas
                 </label>
                 <select
                   value={numPerguntas}
                   onChange={(e) => setNumPerguntas(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white dark:bg-white/5 dark:text-white transition-all"
                 >
                   <option value={3}>3 perguntas</option>
                   <option value={5}>5 perguntas</option>
@@ -560,7 +560,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
                       className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all ${
                         tiposPerguntas.includes(tipo)
                           ? 'bg-purple-50 border-purple-300 text-purple-700 font-medium'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                          : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-gray-300'
                       }`}
                     >
                       <div
@@ -606,39 +606,39 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
               {temMetodologia && (
                 <div className="space-y-4 pl-2 border-l-2 border-purple-200 ml-3.5">
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
                       Descreva sua metodologia
                     </label>
                     <textarea
                       value={metodologia}
                       onChange={(e) => setMetodologia(e.target.value)}
                       placeholder="Ex: Uso a metodologia DISC com 4 perfis: Dominante (orientado a resultados), Influente (orientado a pessoas), Estável (orientado a processos), Cauteloso (orientado a dados). Cada pergunta deve ter 4 opções, uma para cada perfil."
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none transition-all"
+                      className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none transition-all"
                       rows={4}
                     />
                   </div>
 
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
                       Categorias de resultado
                     </label>
                     <textarea
                       value={categorias}
                       onChange={(e) => setCategorias(e.target.value)}
                       placeholder="Ex: Conservador, Moderado, Arrojado, Agressivo"
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none transition-all"
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none transition-all"
                       rows={2}
                     />
                   </div>
 
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
                       Tom da linguagem
                     </label>
                     <select
                       value={tom}
                       onChange={(e) => setTom(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white transition-all"
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white dark:bg-white/5 dark:text-white transition-all"
                     >
                       <option value="Formal">Formal</option>
                       <option value="Casual">Casual</option>
@@ -651,14 +651,14 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
 
               {/* Sempre visível */}
               <div>
-                <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
                   Informações adicionais
                 </label>
                 <textarea
                   value={informacoesAdicionais}
                   onChange={(e) => setInformacoesAdicionais(e.target.value)}
                   placeholder="Qualquer contexto extra que ajude a IA: referências, exemplos de perguntas, observações sobre o público, etc."
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl text-sm dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none transition-all"
                   rows={3}
                 />
               </div>
@@ -678,26 +678,26 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
               ) : quizData ? (
                 <div className="space-y-6">
                   {/* Title & Description */}
-                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border border-purple-100">
+                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-purple-100 dark:border-purple-800/30">
                     <label className="text-xs font-bold text-purple-600 mb-1 block">TÍTULO</label>
                     <input
                       type="text"
                       value={quizData.title}
                       onChange={(e) => setQuizData({ ...quizData, title: e.target.value })}
-                      className="w-full text-lg font-bold text-gray-800 bg-transparent border-none focus:outline-none"
+                      className="w-full text-lg font-bold text-gray-800 dark:text-white bg-transparent border-none focus:outline-none"
                     />
                     <label className="text-xs font-bold text-purple-600 mt-2 mb-1 block">DESCRIÇÃO</label>
                     <input
                       type="text"
                       value={quizData.description}
                       onChange={(e) => setQuizData({ ...quizData, description: e.target.value })}
-                      className="w-full text-sm text-gray-600 bg-transparent border-none focus:outline-none"
+                      className="w-full text-sm text-gray-600 dark:text-gray-400 bg-transparent border-none focus:outline-none"
                     />
                   </div>
 
                   {/* Questions */}
                   <div>
-                    <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                       <MessageSquare size={14} className="text-purple-500" />
                       Perguntas ({quizData.questions.length})
                     </h4>
@@ -715,7 +715,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
 
                   {/* Score Ranges */}
                   <div>
-                    <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                       <Target size={14} className="text-indigo-500" />
                       Faixas de Resultado ({quizData.scoreRanges.length})
                     </h4>
@@ -737,7 +737,7 @@ export default function AIWizardModal({ isOpen, onClose, activeWorkspaceId }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-4 bg-gray-50 dark:bg-[#0f1129]/50 border-t border-gray-100 dark:border-white/10 flex items-center justify-between">
           {step === 1 && (
             <>
               <button

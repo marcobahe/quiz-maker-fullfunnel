@@ -71,7 +71,7 @@ export default function SettingsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <Settings className="animate-spin text-accent" size={32} />
       </div>
     );
@@ -80,7 +80,7 @@ export default function SettingsPage() {
   if (status === 'unauthenticated') return null;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       <Sidebar
         onCreateQuiz={handleCreateQuiz}
         onOpenTemplates={() => router.push('/templates')}
@@ -91,11 +91,11 @@ export default function SettingsPage() {
 
       <main className="flex-1 p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
             <Settings size={28} className="text-accent" />
             Configurações
           </h1>
-          <p className="text-gray-500">Gerencie seu workspace, plano e preferências</p>
+          <p className="text-gray-500 dark:text-gray-400">Gerencie seu workspace, plano e preferências</p>
         </div>
 
         <div className="max-w-4xl space-y-4">
@@ -105,17 +105,17 @@ export default function SettingsPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="block bg-white border border-gray-200 rounded-xl p-5 hover:border-accent/50 hover:shadow-md transition-all group"
+                className="block bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 rounded-xl p-5 hover:border-accent/50 hover:shadow-md transition-all group"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                     <Icon size={24} className="text-accent" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-gray-800 font-medium group-hover:text-accent transition-colors">
+                    <h3 className="text-gray-800 dark:text-white font-medium group-hover:text-accent transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-sm text-gray-500 mt-0.5">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                       {item.description}
                     </p>
                   </div>

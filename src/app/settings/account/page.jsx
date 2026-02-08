@@ -155,7 +155,7 @@ export default function AccountPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0f1129]">
         <Loader2 className="animate-spin text-accent" size={32} />
       </div>
     );
@@ -169,7 +169,7 @@ export default function AccountPage() {
     : '';
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       <Sidebar
         onCreateQuiz={handleCreateQuiz}
         onOpenTemplates={() => router.push('/templates')}
@@ -205,7 +205,7 @@ export default function AccountPage() {
 
         <form onSubmit={handleSaveProfile} className="space-y-6">
           {/* Avatar + Info card */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+          <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 rounded-xl p-6">
             <div className="flex items-center gap-5">
               <div className="relative group">
                 <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center overflow-hidden border-2 border-accent/20">
@@ -221,7 +221,7 @@ export default function AccountPage() {
                 <p className="text-sm text-gray-500 dark:text-gray-400">{profile.email}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    profile.plan === 'free' ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                    profile.plan === 'free' ? 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300'
                     : 'bg-accent/10 text-accent'
                   }`}>
                     {planLabels[profile.plan] || profile.plan}
@@ -235,7 +235,7 @@ export default function AccountPage() {
           </div>
 
           {/* Dados pessoais */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
+          <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 rounded-xl p-6 space-y-5">
             <h3 className="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2">
               <Mail size={18} className="text-accent" />
               Dados Pessoais
@@ -247,7 +247,7 @@ export default function AccountPage() {
                 type="text"
                 value={profile.name || ''}
                 onChange={e => setProfile(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
                 placeholder="Seu nome"
               />
             </div>
@@ -258,14 +258,14 @@ export default function AccountPage() {
                 type="email"
                 value={profile.email || ''}
                 onChange={e => setProfile(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
                 placeholder="seu@email.com"
               />
             </div>
           </div>
 
           {/* Segurança */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
+          <div className="bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 rounded-xl p-6 space-y-5">
             <h3 className="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2">
               <Shield size={18} className="text-accent" />
               Segurança
@@ -286,7 +286,7 @@ export default function AccountPage() {
                   type="password"
                   value={currentPassword}
                   onChange={e => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
                   placeholder="••••••••"
                 />
               </div>
@@ -300,7 +300,7 @@ export default function AccountPage() {
                 type="password"
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
                 placeholder="Mínimo 6 caracteres"
               />
             </div>
@@ -312,7 +312,7 @@ export default function AccountPage() {
                   type="password"
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-800 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition"
                   placeholder="Repita a nova senha"
                 />
                 {confirmPassword && newPassword !== confirmPassword && (
@@ -343,7 +343,7 @@ export default function AccountPage() {
         </form>
 
         {/* Zona perigosa */}
-        <div className="mt-10 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900 rounded-xl p-6">
+        <div className="mt-10 bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-red-200 dark:border-red-900 rounded-xl p-6">
           <h3 className="text-base font-semibold text-red-600 dark:text-red-400 flex items-center gap-2 mb-2">
             <Trash2 size={18} />
             Zona Perigosa
@@ -368,7 +368,7 @@ export default function AccountPage() {
                 type="text"
                 value={deleteText}
                 onChange={e => setDeleteText(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-red-300 dark:border-red-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-red-500/50 outline-none"
+                className="w-full px-4 py-2.5 rounded-lg border border-red-300 dark:border-red-800 bg-white dark:bg-white/5 text-gray-800 dark:text-white focus:ring-2 focus:ring-red-500/50 outline-none"
                 placeholder="EXCLUIR"
               />
               <div className="flex gap-3">
@@ -382,7 +382,7 @@ export default function AccountPage() {
                 </button>
                 <button
                   onClick={() => { setShowDeleteConfirm(false); setDeleteText(''); }}
-                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition"
                 >
                   Cancelar
                 </button>

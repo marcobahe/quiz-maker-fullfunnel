@@ -69,20 +69,20 @@ export default function PricingPage() {
   const [showComparison, setShowComparison] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f1129]">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white dark:bg-[#151837] border-b border-gray-200 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-bold">Q</span>
               </div>
-              <span className="text-lg font-bold text-gray-900">QuizMeBaby</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-white">QuizMeBaby</span>
             </Link>
             <Link
               href={session ? '/' : '/login'}
-              className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1"
             >
               <ArrowLeft size={16} />
               Voltar
@@ -94,7 +94,7 @@ export default function PricingPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Title */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Escolha o plano ideal
           </h1>
           <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-8">
@@ -103,7 +103,7 @@ export default function PricingPage() {
 
           {/* Annual/Monthly toggle */}
           <div className="flex items-center justify-center gap-3">
-            <span className={`text-sm font-medium ${!annual ? 'text-gray-900' : 'text-gray-400'}`}>
+            <span className={`text-sm font-medium ${!annual ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`}>
               Mensal
             </span>
             <button
@@ -118,7 +118,7 @@ export default function PricingPage() {
                 }`}
               />
             </button>
-            <span className={`text-sm font-medium ${annual ? 'text-gray-900' : 'text-gray-400'}`}>
+            <span className={`text-sm font-medium ${annual ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`}>
               Anual
             </span>
             {annual && (
@@ -145,7 +145,7 @@ export default function PricingPage() {
                     ? 'bg-gradient-to-b from-accent to-purple-700 text-white shadow-xl shadow-accent/20 lg:scale-105 lg:-my-2 z-10'
                     : isEnterprise
                     ? 'bg-gradient-to-b from-gray-800 to-gray-900 text-white shadow-lg'
-                    : 'bg-white border border-gray-200 hover:border-accent/30 hover:shadow-lg'
+                    : 'bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 hover:border-accent/30 hover:shadow-lg'
                 }`}
               >
                 {plan.popular && (
@@ -160,7 +160,7 @@ export default function PricingPage() {
                 )}
 
                 <h3 className={`text-lg font-semibold mb-1 ${
-                  plan.popular || isEnterprise ? 'text-white' : 'text-gray-900'
+                  plan.popular || isEnterprise ? 'text-white' : 'text-gray-900 dark:text-white'
                 }`}>
                   {plan.name}
                 </h3>
@@ -172,7 +172,7 @@ export default function PricingPage() {
 
                 <div className="mb-6">
                   <span className={`text-3xl xl:text-4xl font-bold ${
-                    plan.popular || isEnterprise ? 'text-white' : 'text-gray-900'
+                    plan.popular || isEnterprise ? 'text-white' : 'text-gray-900 dark:text-white'
                   }`}>
                     {plan.price === 0 ? 'R$ 0' : `R$ ${Math.round(displayPrice)}`}
                   </span>
@@ -211,7 +211,7 @@ export default function PricingPage() {
                 {isCurrentPlan ? (
                   <div
                     className={`w-full text-center py-2.5 rounded-xl font-medium text-sm ${
-                      plan.popular ? 'bg-white/20 text-white' : isEnterprise ? 'bg-white/10 text-gray-300' : 'bg-gray-100 text-gray-500'
+                      plan.popular ? 'bg-white/20 text-white' : isEnterprise ? 'bg-white/10 text-gray-300' : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'
                     }`}
                   >
                     Plano Atual
@@ -250,10 +250,10 @@ export default function PricingPage() {
           <div className="overflow-x-auto mb-16">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 w-48">Feature</th>
+                <tr className="border-b border-gray-200 dark:border-white/10">
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-gray-400 w-48">Feature</th>
                   {PLAN_ORDER.map((planId) => (
-                    <th key={planId} className="text-center py-3 px-3 font-semibold text-gray-900 min-w-[100px]">
+                    <th key={planId} className="text-center py-3 px-3 font-semibold text-gray-900 dark:text-white min-w-[100px]">
                       {PLANS[planId].name}
                     </th>
                   ))}
@@ -261,8 +261,8 @@ export default function PricingPage() {
               </thead>
               <tbody>
                 {COMPARISON_FEATURES.map((feature) => (
-                  <tr key={feature.key} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium text-gray-600">{feature.label}</td>
+                  <tr key={feature.key} className="border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5">
+                    <td className="py-3 px-4 font-medium text-gray-600 dark:text-gray-300">{feature.label}</td>
                     {PLAN_ORDER.map((planId) => {
                       const value = getComparisonValue(PLANS[planId], feature);
                       return (
@@ -274,7 +274,7 @@ export default function PricingPage() {
                               <X size={16} className="text-gray-300 mx-auto" />
                             )
                           ) : (
-                            <span className="text-gray-700 text-xs">{value}</span>
+                            <span className="text-gray-700 dark:text-gray-300 text-xs">{value}</span>
                           )}
                         </td>
                       );
