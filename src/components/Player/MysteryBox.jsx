@@ -18,6 +18,15 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete, onSo
   const bgColor = element.bgColor || 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)';
   const boxColor = element.boxColor || theme?.primaryColor || '#6366f1';
 
+  // Win probability check (determined once)
+  const [isWin] = useState(() => {
+    const winProb = element.winProbability ?? 100;
+    return Math.random() * 100 < winProb;
+  });
+  const revealText = isWin 
+    ? (element.revealText || 'Parabéns! Você ganhou! 🎊') 
+    : (element.loseText || '😢 Não foi desta vez...');
+
   // Generate sparkles on hover
   useEffect(() => {
     if (!isRevealed && !isOpening) {
@@ -271,7 +280,7 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete, onSo
                   <span className="text-2xl">🎁</span>
                 </div>
                 <p className="text-xl font-bold text-gray-900 leading-relaxed font-display">
-                  {element.revealText || 'Parabéns! Você ganhou! 🎊'}
+                  {revealText}
                 </p>
               </div>
               

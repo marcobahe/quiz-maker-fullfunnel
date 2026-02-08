@@ -25,9 +25,18 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete, onS
 
   const coverColor = element.coverColor || '#6366f1';
   const coverPattern = element.coverPattern || 'dots';
-  const revealText = element.revealText || '🎉 Você ganhou!';
+  const originalRevealText = element.revealText || '🎉 Você ganhou!';
   // Percentage of area that needs to be scratched before revealing (default: 60%)
   const revealThreshold = element.revealThreshold ?? 60;
+  
+  // Win probability check (done once on mount)
+  const winResultRef = useRef(null);
+  if (winResultRef.current === null) {
+    const winProb = element.winProbability ?? 100;
+    winResultRef.current = Math.random() * 100 < winProb;
+  }
+  const isWin = winResultRef.current;
+  const revealText = isWin ? originalRevealText : (element.loseText || '😢 Tente novamente!');
 
   // Responsive sizing
   useEffect(() => {

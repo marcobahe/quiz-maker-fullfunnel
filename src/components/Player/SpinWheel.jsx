@@ -242,6 +242,24 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
 
   // Weighted random selection
   const pickSegment = () => {
+    // Check win probability first (default 100 = always win normally)
+    const winProb = element.winProbability ?? 100;
+    const isWin = Math.random() * 100 < winProb;
+    
+    if (!isWin && segments.length > 1) {
+      // Lost: pick the segment with the lowest probability (least valuable prize)
+      let minIdx = 0;
+      let minProb = Infinity;
+      segments.forEach((seg, i) => {
+        if ((seg.probability || 0) < minProb) {
+          minProb = seg.probability || 0;
+          minIdx = i;
+        }
+      });
+      return minIdx;
+    }
+    
+    // Normal weighted random selection
     const rand = Math.random() * totalProb;
     let cum = 0;
     for (let i = 0; i < segments.length; i++) {

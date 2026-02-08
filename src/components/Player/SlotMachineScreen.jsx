@@ -35,6 +35,29 @@ export default function SlotMachineScreen({
     setShowResult(false);
     setResult(null);
 
+    // Determine win/lose upfront based on winProbability
+    const winProb = element.winProbability ?? 100;
+    const isWin = Math.random() * 100 < winProb;
+
+    // Pre-determine final results
+    let finalSlots;
+    if (isWin) {
+      // Jackpot: all three match
+      const jackpotEmoji = slotEmojis[Math.floor(Math.random() * slotEmojis.length)];
+      finalSlots = [jackpotEmoji, jackpotEmoji, jackpotEmoji];
+    } else {
+      // Lose: ensure no three-of-a-kind
+      finalSlots = [];
+      for (let i = 0; i < 3; i++) {
+        finalSlots.push(slotEmojis[Math.floor(Math.random() * slotEmojis.length)]);
+      }
+      // If accidentally all match, change the last one
+      if (finalSlots[0] === finalSlots[1] && finalSlots[1] === finalSlots[2]) {
+        const others = slotEmojis.filter(e => e !== finalSlots[0]);
+        finalSlots[2] = others.length > 0 ? others[Math.floor(Math.random() * others.length)] : '❌';
+      }
+    }
+
     // Clear any existing intervals
     spinIntervals.current.forEach(clearInterval);
     spinIntervals.current = [];
@@ -67,10 +90,10 @@ export default function SlotMachineScreen({
         clearInterval(interval);
         // Play stop "clunk" for each reel
         onSound?.('slotStop');
-        // Set final random emoji
+        // Set pre-determined final emoji
         setSlots(prev => {
           const newSlots = [...prev];
-          newSlots[index] = slotEmojis[Math.floor(Math.random() * slotEmojis.length)];
+          newSlots[index] = finalSlots[index];
           return newSlots;
         });
 
@@ -118,42 +141,44 @@ export default function SlotMachineScreen({
 
   return (
     <div 
-      className="min-h-screen flex flex-col items-center justify-center p-4"
-      style={{ backgroundColor: bgColor }}
+      className="flex flex-col items-center justify-center w-full"
+      style={{ backgroundColor: bgColor, borderRadius: '1.5rem', padding: '1.25rem 1rem' }}
     >
       {/* Title */}
       <motion.h1
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-2xl md:text-3xl font-bold text-white text-center mb-8"
+        className="text-xl font-bold text-white text-center mb-4"
       >
         {title}
       </motion.h1>
 
-      {/* Slot Machine */}
+      {/* Slot Machine - Compact */}
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="relative"
+        className="relative w-full max-w-[280px] cursor-pointer"
+        onClick={!spinning ? spin : undefined}
       >
-        {/* Machine Frame */}
-        <div className="bg-gradient-to-b from-yellow-500 via-yellow-600 to-yellow-700 p-6 rounded-3xl shadow-2xl">
+        {/* Machine Frame - Compact */}
+        <div className="bg-gradient-to-b from-yellow-500 via-yellow-600 to-yellow-700 p-3 rounded-2xl shadow-xl">
           {/* Top decoration */}
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-            <div className="bg-red-500 text-white px-6 py-1 rounded-full text-sm font-bold shadow-lg">
+          <div className="flex justify-center mb-2">
+            <div className="bg-red-500 text-white px-4 py-0.5 rounded-full text-xs font-bold shadow-md">
               777
             </div>
           </div>
 
-          {/* Slots container */}
-          <div className="bg-black/90 rounded-2xl p-4 flex gap-2">
+          {/* Slots container - Compact */}
+          <div className="bg-black/90 rounded-xl p-2.5 flex gap-1.5 justify-center">
             {slots.map((emoji, index) => (
               <motion.div
                 key={index}
-                className="w-20 h-24 md:w-24 md:h-28 bg-white rounded-xl flex items-center justify-center overflow-hidden"
+                className="w-16 h-18 bg-white rounded-lg flex items-center justify-center overflow-hidden"
+                style={{ height: '4.5rem' }}
                 animate={spinning ? { 
-                  y: [0, -5, 0, 5, 0],
+                  y: [0, -3, 0, 3, 0],
                 } : {}}
                 transition={{ 
                   repeat: spinning ? Infinity : 0, 
@@ -161,7 +186,7 @@ export default function SlotMachineScreen({
                 }}
               >
                 <span 
-                  className="text-5xl md:text-6xl"
+                  className="text-4xl"
                   style={{
                     filter: spinning ? 'blur(2px)' : 'none',
                     transition: 'filter 0.2s',
@@ -173,12 +198,12 @@ export default function SlotMachineScreen({
             ))}
           </div>
 
-          {/* Decorative lights */}
-          <div className="flex justify-center gap-2 mt-3">
+          {/* Decorative lights - Compact */}
+          <div className="flex justify-center gap-1.5 mt-2">
             {[...Array(7)].map((_, i) => (
               <motion.div
                 key={i}
-                className="w-3 h-3 rounded-full"
+                className="w-2 h-2 rounded-full"
                 style={{
                   backgroundColor: spinning 
                     ? ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#ec4899', '#8b5cf6', '#f97316'][i]
@@ -198,35 +223,24 @@ export default function SlotMachineScreen({
           </div>
         </div>
 
-        {/* Lever */}
-        <motion.button
-          onClick={spin}
-          disabled={spinning}
-          className="absolute -right-8 top-1/2 -translate-y-1/2 cursor-pointer disabled:cursor-not-allowed"
-          whileHover={!spinning ? { scale: 1.1 } : {}}
-          whileTap={!spinning ? { scale: 0.95 } : {}}
-        >
-          <div className="relative">
-            {/* Lever base */}
-            <div className="w-6 h-32 bg-gradient-to-b from-gray-600 to-gray-800 rounded-full" />
-            {/* Lever ball */}
-            <motion.div
-              className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-10 bg-gradient-to-br from-red-500 to-red-700 rounded-full shadow-lg border-4 border-red-400"
-              animate={spinning ? { y: [0, 40, 0] } : {}}
-              transition={{ duration: 0.5 }}
-            />
+        {/* Hover hint on machine */}
+        {!spinning && !showResult && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <div className="bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+              ✨ Clique para girar!
+            </div>
           </div>
-        </motion.button>
+        )}
       </motion.div>
 
-      {/* Result */}
+      {/* Result - Compact */}
       <AnimatePresence>
         {showResult && result && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+            initial={{ opacity: 0, scale: 0.5, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.5 }}
-            className={`mt-8 px-8 py-4 rounded-2xl text-center ${
+            className={`mt-4 px-6 py-2.5 rounded-xl text-center ${
               result.type === 'jackpot' 
                 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-black' 
                 : result.type === 'pair'
@@ -234,19 +248,19 @@ export default function SlotMachineScreen({
                 : 'bg-gray-700 text-white'
             }`}
           >
-            <p className="text-2xl font-bold">{result.message}</p>
+            <p className="text-lg font-bold">{result.message}</p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Actions */}
-      <div className="mt-8 flex flex-col gap-3 w-full max-w-xs">
+      {/* Actions - Compact */}
+      <div className="mt-4 flex flex-col gap-2 w-full max-w-[280px]">
         {!showResult && !spinning && (
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             onClick={spin}
-            className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg rounded-xl shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all"
+            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-base rounded-xl shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all"
           >
             🎰 Girar!
           </motion.button>
@@ -258,7 +272,7 @@ export default function SlotMachineScreen({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               onClick={spin}
-              className="w-full py-3 bg-white/20 text-white font-medium rounded-xl hover:bg-white/30 transition-all"
+              className="w-full py-2.5 bg-white/20 text-white font-medium rounded-xl hover:bg-white/30 transition-all text-sm"
             >
               🔄 Tentar novamente
             </motion.button>
@@ -268,7 +282,7 @@ export default function SlotMachineScreen({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               onClick={handleContinue}
-              className="w-full py-4 bg-white text-gray-900 font-bold text-lg rounded-xl shadow-lg hover:bg-gray-100 transition-all"
+              className="w-full py-3 bg-white text-gray-900 font-bold text-base rounded-xl shadow-lg hover:bg-gray-100 transition-all"
             >
               Continuar →
             </motion.button>
@@ -276,15 +290,15 @@ export default function SlotMachineScreen({
         )}
       </div>
 
-      {/* Instruction */}
+      {/* Instruction - Compact */}
       {!spinning && !showResult && (
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-6 text-white/60 text-sm text-center"
+          className="mt-3 text-white/60 text-xs text-center"
         >
-          Clique na alavanca ou no botão para girar!
+          Toque na máquina ou no botão para girar!
         </motion.p>
       )}
     </div>
