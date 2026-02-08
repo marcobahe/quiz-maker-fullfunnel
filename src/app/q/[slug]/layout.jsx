@@ -92,5 +92,14 @@ export async function generateMetadata({ params }) {
 }
 
 export default function QuizLayout({ children }) {
-  return children;
+  return (
+    <>
+      {/* Preconnect to external resources used by quiz player */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      {/* DNS prefetch for APIs used later */}
+      <link rel="dns-prefetch" href="https://utfs.io" />
+      {children}
+    </>
+  );
 }
