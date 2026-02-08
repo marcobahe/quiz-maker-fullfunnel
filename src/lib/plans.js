@@ -30,9 +30,10 @@ export const PLANS = {
   pro: {
     id: 'pro',
     name: 'Pro',
-    price: 49.90,
-    priceAnnual: 39.92,
-    priceLabel: 'R$ 49,90',
+    price: 47,
+    priceAnnual: 33.08,
+    priceLabel: 'R$ 47',
+    priceAnnualLabel: 'R$ 397/ano',
     period: '/mês',
     description: 'Para profissionais e pequenas empresas',
     popular: true,
@@ -58,9 +59,10 @@ export const PLANS = {
   business: {
     id: 'business',
     name: 'Business',
-    price: 149.90,
-    priceAnnual: 119.92,
-    priceLabel: 'R$ 149,90',
+    price: 97,
+    priceAnnual: 74.75,
+    priceLabel: 'R$ 97',
+    priceAnnualLabel: 'R$ 897/ano',
     period: '/mês',
     description: 'Para agências e empresas',
     features: [
