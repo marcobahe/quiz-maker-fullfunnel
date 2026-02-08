@@ -56,6 +56,17 @@ export default function AdminLayout({ children }) {
     <div className="flex min-h-screen bg-[#0f1129]">
       {/* Sidebar */}
       <aside className="w-64 bg-[#151837]/80 backdrop-blur-xl border-r border-white/5 min-h-screen flex flex-col">
+        {/* Back to app (topo — mesma posição visual de onde se entra no admin) */}
+        <div className="p-4 border-b border-white/5">
+          <Link
+            href="/"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 text-gray-300 hover:bg-indigo-500/20 hover:text-indigo-400 transition-all duration-200 group"
+          >
+            <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+            <span className="font-medium text-sm">Voltar ao App</span>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="p-6 border-b border-white/5">
           <div className="flex items-center gap-3">
@@ -91,17 +102,6 @@ export default function AdminLayout({ children }) {
             );
           })}
         </nav>
-
-        {/* Back to app */}
-        <div className="p-4 border-t border-white/5">
-          <Link
-            href="/"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-200"
-          >
-            <ArrowLeft size={20} />
-            <span className="font-medium text-sm">Voltar ao App</span>
-          </Link>
-        </div>
       </aside>
 
       {/* Content */}
