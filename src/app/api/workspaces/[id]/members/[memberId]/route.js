@@ -2,18 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-
-async function checkAccess(workspaceId, userId, minRole = 'viewer') {
-  const member = await prisma.workspaceMember.findUnique({
-    where: { workspaceId_userId: { workspaceId, userId } },
-  });
-  if (!member) return null;
-
-  const roleHierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 };
-  if ((roleHierarchy[member.role] || 0) < (roleHierarchy[minRole] || 0)) return null;
-
-  return member;
-}
+import { checkWorkspaceAccess } from '@/lib/admin';
 
 // Update member role
 export async function PUT(request, { params }) {
@@ -24,7 +13,7 @@ export async function PUT(request, { params }) {
     }
 
     const { id, memberId } = params;
-    const access = await checkAccess(id, session.user.id, 'admin');
+    const access = await checkWorkspaceAccess(id, session.user.id, 'admin', session);
     if (!access) {
       return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
     }
@@ -65,7 +54,7 @@ export async function DELETE(request, { params }) {
     }
 
     const { id, memberId } = params;
-    const access = await checkAccess(id, session.user.id, 'admin');
+    const access = await checkWorkspaceAccess(id, session.user.id, 'admin', session);
     if (!access) {
       return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
     }

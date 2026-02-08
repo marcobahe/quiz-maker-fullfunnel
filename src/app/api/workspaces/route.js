@@ -3,8 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { ensurePersonalWorkspace, getUserWorkspaces } from '@/lib/workspace';
+import { isAdmin } from '@/lib/admin';
 
-export async function GET() {
+export async function GET(request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -15,6 +16,32 @@ export async function GET() {
     await ensurePersonalWorkspace(session.user.id);
 
     const workspaces = await getUserWorkspaces(session.user.id);
+
+    // If SaaS admin is requesting a specific workspace they're not a member of,
+    // include it in the results so the sidebar can display it
+    const { searchParams } = new URL(request.url);
+    const includeWsId = searchParams.get('include');
+
+    if (includeWsId && isAdmin(session)) {
+      const alreadyIncluded = workspaces.some(w => w.id === includeWsId);
+      if (!alreadyIncluded) {
+        const extraWs = await prisma.workspace.findUnique({
+          where: { id: includeWsId },
+          include: {
+            owner: { select: { id: true, name: true, email: true } },
+            _count: { select: { members: true, quizzes: true } },
+          },
+        });
+        if (extraWs) {
+          workspaces.push({
+            ...extraWs,
+            role: 'admin', // SaaS admin viewing
+            _adminAccess: true, // Flag for UI
+          });
+        }
+      }
+    }
+
     return NextResponse.json(workspaces);
   } catch (error) {
     console.error('Error fetching workspaces:', error);

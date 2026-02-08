@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkLimit } from '@/lib/planLimits';
+import { checkWorkspaceAccess } from '@/lib/admin';
 
 function generateSlug(name) {
   return name
@@ -30,10 +31,8 @@ export async function GET(request) {
     };
 
     if (workspaceId) {
-      // Check user has access to workspace
-      const member = await prisma.workspaceMember.findUnique({
-        where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
-      });
+      // Check user has access to workspace (SaaS admins bypass)
+      const member = await checkWorkspaceAccess(workspaceId, session.user.id, 'viewer', session);
       if (!member) {
         return NextResponse.json({ error: 'Sem acesso ao workspace' }, { status: 403 });
       }
@@ -150,13 +149,11 @@ export async function POST(request) {
           edges: [],
         });
 
-    // If workspaceId provided, verify access
+    // If workspaceId provided, verify access (SaaS admins bypass)
     let assignedWorkspaceId = workspaceId || null;
     if (assignedWorkspaceId) {
-      const member = await prisma.workspaceMember.findUnique({
-        where: { workspaceId_userId: { workspaceId: assignedWorkspaceId, userId: session.user.id } },
-      });
-      if (!member || member.role === 'viewer') {
+      const member = await checkWorkspaceAccess(assignedWorkspaceId, session.user.id, 'editor', session);
+      if (!member) {
         return NextResponse.json({ error: 'Sem permissão neste workspace' }, { status: 403 });
       }
     }

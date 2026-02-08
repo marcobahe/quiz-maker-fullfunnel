@@ -2,18 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-
-async function checkAccess(workspaceId, userId, minRole = 'viewer') {
-  const member = await prisma.workspaceMember.findUnique({
-    where: { workspaceId_userId: { workspaceId, userId } },
-  });
-  if (!member) return null;
-
-  const roleHierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 };
-  if ((roleHierarchy[member.role] || 0) < (roleHierarchy[minRole] || 0)) return null;
-
-  return member;
-}
+import { checkWorkspaceAccess } from '@/lib/admin';
 
 export async function POST(request, { params }) {
   try {
@@ -23,7 +12,7 @@ export async function POST(request, { params }) {
     }
 
     const { id } = params;
-    const access = await checkAccess(id, session.user.id, 'admin');
+    const access = await checkWorkspaceAccess(id, session.user.id, 'admin', session);
     if (!access) {
       return NextResponse.json({ error: 'Sem permissão para convidar' }, { status: 403 });
     }

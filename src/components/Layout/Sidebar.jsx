@@ -61,7 +61,19 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
       .then(data => { if (data?.plan) setUserPlan(data.plan); })
       .catch(() => {});
     
-    fetch('/api/workspaces')
+    // Check if admin is accessing another user's workspace
+    let wsUrl = '/api/workspaces';
+    try {
+      const adminCtx = localStorage.getItem('adminWorkspaceContext');
+      if (adminCtx) {
+        const parsed = JSON.parse(adminCtx);
+        if (parsed?.workspaceId && parsed?.fromAdmin) {
+          wsUrl = `/api/workspaces?include=${parsed.workspaceId}`;
+        }
+      }
+    } catch {}
+
+    fetch(wsUrl)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         setWorkspaces(data);
@@ -148,7 +160,14 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
                     }`}
                   >
                     <Building2 size={14} className="shrink-0" />
-                    <span className="truncate flex-1 text-left">{ws.name}</span>
+                    <span className="truncate flex-1 text-left">
+                      {ws.name}
+                      {ws._adminAccess && (
+                        <span className="ml-1 text-[9px] bg-indigo-500/30 text-indigo-300 px-1 py-0.5 rounded font-bold">
+                          ADMIN
+                        </span>
+                      )}
+                    </span>
                     {ws.id === activeWorkspaceId && <Check size={14} />}
                   </button>
                 ))}

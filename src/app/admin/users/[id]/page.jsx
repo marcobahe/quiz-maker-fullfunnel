@@ -148,6 +148,18 @@ export default function AdminUserDetailPage() {
     }
   };
 
+  const handleAccessWorkspace = (workspaceId, workspaceName, ownerName) => {
+    // Store admin workspace context in localStorage for the banner
+    localStorage.setItem('activeWorkspaceId', workspaceId);
+    localStorage.setItem('adminWorkspaceContext', JSON.stringify({
+      workspaceId,
+      workspaceName,
+      ownerName,
+      fromAdmin: true,
+    }));
+    router.push('/?adminWs=' + workspaceId);
+  };
+
   const handleDelete = async () => {
     if (!confirm('⚠️ ATENÇÃO: Isso vai deletar PERMANENTEMENTE o usuário, todos os quizzes, leads e dados. Continuar?')) return;
     if (!confirm('Tem certeza absoluta? Esta ação NÃO pode ser desfeita.')) return;
@@ -394,21 +406,31 @@ export default function AdminUserDetailPage() {
           <div className="space-y-2">
             {user.memberships?.length > 0 ? (
               user.memberships.map(m => (
-                <div key={m.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                  <div>
+                <div key={m.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl group">
+                  <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium">{m.workspace.name}</p>
                     <p className="text-gray-500 text-xs">
                       {m.workspace._count?.members} membros • {m.workspace._count?.quizzes} quizzes
                     </p>
                   </div>
-                  <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${
-                    m.role === 'owner' ? 'bg-amber-500/20 text-amber-400' :
-                    m.role === 'admin' ? 'bg-blue-500/20 text-blue-400' :
-                    m.role === 'editor' ? 'bg-green-500/20 text-green-400' :
-                    'bg-gray-500/20 text-gray-400'
-                  }`}>
-                    {m.role.toUpperCase()}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${
+                      m.role === 'owner' ? 'bg-amber-500/20 text-amber-400' :
+                      m.role === 'admin' ? 'bg-blue-500/20 text-blue-400' :
+                      m.role === 'editor' ? 'bg-green-500/20 text-green-400' :
+                      'bg-gray-500/20 text-gray-400'
+                    }`}>
+                      {m.role.toUpperCase()}
+                    </span>
+                    <button
+                      onClick={() => handleAccessWorkspace(m.workspace.id, m.workspace.name, user.name || user.email)}
+                      className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 text-xs font-medium transition-all"
+                      title="Acessar workspace como admin"
+                    >
+                      <Eye size={12} />
+                      Acessar
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
