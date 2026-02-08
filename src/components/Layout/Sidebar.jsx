@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   LayoutDashboard, 
   BarChart3, 
@@ -23,6 +23,7 @@ import {
   Sun,
   Moon,
   Shield,
+  Search,
 } from 'lucide-react';
 import { useTheme } from '@/components/Layout/ThemeProvider';
 import { useSession } from 'next-auth/react';
@@ -48,12 +49,16 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
   const { theme, toggleTheme } = useTheme();
   const { data: session } = useSession();
   const userRole = session?.user?.role;
+  const userId = session?.user?.id;
+  const isAdminOrOwner = userRole === 'owner' || userRole === 'admin';
   const [userPlan, setUserPlan] = useState('free');
   const [workspaces, setWorkspaces] = useState([]);
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false);
   const [showNewWs, setShowNewWs] = useState(false);
   const [newWsName, setNewWsName] = useState('');
+  const [wsSearch, setWsSearch] = useState('');
   const wsDropdownRef = useRef(null);
+  const wsSearchRef = useRef(null);
 
   useEffect(() => {
     fetch('/api/billing/status')
@@ -61,17 +66,23 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
       .then(data => { if (data?.plan) setUserPlan(data.plan); })
       .catch(() => {});
     
-    // Check if admin is accessing another user's workspace
+    // Admin/owner fetches ALL workspaces; regular users fetch their own
     let wsUrl = '/api/workspaces';
-    try {
-      const adminCtx = localStorage.getItem('adminWorkspaceContext');
-      if (adminCtx) {
-        const parsed = JSON.parse(adminCtx);
-        if (parsed?.workspaceId && parsed?.fromAdmin) {
-          wsUrl = `/api/workspaces?include=${parsed.workspaceId}`;
+    
+    if (isAdminOrOwner) {
+      wsUrl = '/api/admin/workspaces';
+    } else {
+      // Check if admin is accessing another user's workspace (legacy support)
+      try {
+        const adminCtx = localStorage.getItem('adminWorkspaceContext');
+        if (adminCtx) {
+          const parsed = JSON.parse(adminCtx);
+          if (parsed?.workspaceId && parsed?.fromAdmin) {
+            wsUrl = `/api/workspaces?include=${parsed.workspaceId}`;
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
     fetch(wsUrl)
       .then(res => res.ok ? res.json() : [])
@@ -79,24 +90,65 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
         setWorkspaces(data);
         // If no active workspace yet, pick first
         if (!activeWorkspaceId && data.length > 0 && onWorkspaceChange) {
-          onWorkspaceChange(data[0].id);
+          // For admin, prefer own workspace first
+          if (isAdminOrOwner && userId) {
+            const ownWs = data.find(w => w.ownerId === userId);
+            onWorkspaceChange(ownWs ? ownWs.id : data[0].id);
+          } else {
+            onWorkspaceChange(data[0].id);
+          }
         }
       })
       .catch(() => {});
-  }, []);
+  }, [isAdminOrOwner, userId]);
 
   useEffect(() => {
     function handleClick(e) {
       if (wsDropdownRef.current && !wsDropdownRef.current.contains(e.target)) {
         setWsDropdownOpen(false);
         setShowNewWs(false);
+        setWsSearch('');
       }
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  // Focus search input when dropdown opens (admin only)
+  useEffect(() => {
+    if (wsDropdownOpen && isAdminOrOwner && wsSearchRef.current) {
+      setTimeout(() => wsSearchRef.current?.focus(), 50);
+    }
+  }, [wsDropdownOpen, isAdminOrOwner]);
+
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId) || workspaces[0];
+  const isViewingOtherWorkspace = isAdminOrOwner && activeWs && activeWs.ownerId !== userId;
+
+  // Split workspaces into "mine" and "others" for admin/owner
+  const { myWorkspaces, otherWorkspaces, filteredAll } = useMemo(() => {
+    if (!isAdminOrOwner) {
+      // Regular users: simple filter by search (client-side)
+      const filtered = wsSearch
+        ? workspaces.filter(w => w.name.toLowerCase().includes(wsSearch.toLowerCase()))
+        : workspaces;
+      return { myWorkspaces: filtered, otherWorkspaces: [], filteredAll: filtered };
+    }
+
+    const searchLower = wsSearch.toLowerCase();
+    const filtered = wsSearch
+      ? workspaces.filter(w => {
+          const nameMatch = w.name.toLowerCase().includes(searchLower);
+          const ownerNameMatch = w.owner?.name?.toLowerCase().includes(searchLower);
+          const ownerEmailMatch = w.owner?.email?.toLowerCase().includes(searchLower);
+          return nameMatch || ownerNameMatch || ownerEmailMatch;
+        })
+      : workspaces;
+
+    const mine = filtered.filter(w => w.ownerId === userId);
+    const others = filtered.filter(w => w.ownerId !== userId);
+
+    return { myWorkspaces: mine, otherWorkspaces: others, filteredAll: filtered };
+  }, [workspaces, wsSearch, isAdminOrOwner, userId]);
 
   const handleCreateWorkspace = async () => {
     if (!newWsName.trim()) return;
@@ -113,11 +165,55 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
         setNewWsName('');
         setShowNewWs(false);
         setWsDropdownOpen(false);
+        setWsSearch('');
       }
     } catch (err) {
       console.error('Failed to create workspace:', err);
     }
   };
+
+  const renderWorkspaceItem = (ws) => {
+    const isOther = isAdminOrOwner && ws.ownerId !== userId;
+    return (
+      <button
+        key={ws.id}
+        onClick={() => {
+          onWorkspaceChange?.(ws.id);
+          setWsDropdownOpen(false);
+          setWsSearch('');
+        }}
+        className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
+          ws.id === activeWorkspaceId
+            ? 'bg-accent/20 text-accent'
+            : 'text-gray-300 hover:bg-sidebar-hover hover:text-white'
+        }`}
+      >
+        <Building2 size={14} className="shrink-0" />
+        <div className="flex-1 min-w-0 text-left">
+          <span className="truncate block">
+            {ws.name}
+            {ws._adminAccess && (
+              <span className="ml-1 text-[9px] bg-indigo-500/30 text-indigo-300 px-1 py-0.5 rounded font-bold">
+                ADMIN
+              </span>
+            )}
+          </span>
+          {isOther && ws.owner && (
+            <span className="text-[10px] text-gray-500 truncate block">
+              Dono: {ws.owner.name || ws.owner.email}
+            </span>
+          )}
+        </div>
+        {ws.id === activeWorkspaceId && <Check size={14} className="shrink-0" />}
+      </button>
+    );
+  };
+
+  // Cap displayed workspaces for performance
+  const MAX_DISPLAY = 20;
+  const displayMyWorkspaces = myWorkspaces.slice(0, MAX_DISPLAY);
+  const displayOtherWorkspaces = otherWorkspaces.slice(0, MAX_DISPLAY);
+  const totalFiltered = filteredAll.length;
 
   return (
     <aside className="w-64 bg-sidebar min-h-screen flex flex-col">
@@ -131,47 +227,117 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
         </h1>
       </div>
 
+      {/* Admin Panel Link - FIXED AT TOP for owner/admin */}
+      {isAdminOrOwner && (
+        <div className="px-4 pt-3 pb-1">
+          <Link
+            href="/admin"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${
+              pathname.startsWith('/admin')
+                ? 'bg-indigo-500/30 text-indigo-300 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/30'
+                : 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300'
+            }`}
+          >
+            <Shield size={18} className="shrink-0" />
+            <span className="flex-1">Painel Administrativo</span>
+            {userRole === 'owner' && (
+              <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold tracking-wide">
+                OWNER
+              </span>
+            )}
+          </Link>
+        </div>
+      )}
+
       {/* Workspace Switcher */}
       {workspaces.length > 0 && (
-        <div className="px-4 pt-4 pb-1 relative" ref={wsDropdownRef} data-tour="workspace-switcher">
+        <div className="px-4 pt-3 pb-1 relative" ref={wsDropdownRef} data-tour="workspace-switcher">
           <button
             onClick={() => setWsDropdownOpen(!wsDropdownOpen)}
-            className="w-full flex items-center gap-2 px-3 py-2 bg-sidebar-hover rounded-lg text-white text-sm hover:bg-accent/20 transition-colors"
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+              isViewingOtherWorkspace
+                ? 'bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-500/30'
+                : 'bg-sidebar-hover text-white hover:bg-accent/20'
+            }`}
           >
-            <Building2 size={16} className="text-accent shrink-0" />
-            <span className="truncate flex-1 text-left">{activeWs?.name || 'Workspace'}</span>
+            <Building2 size={16} className={`shrink-0 ${isViewingOtherWorkspace ? 'text-indigo-400' : 'text-accent'}`} />
+            <span className="truncate flex-1 text-left">
+              {activeWs?.name || 'Workspace'}
+              {isViewingOtherWorkspace && (
+                <span className="ml-1 text-[10px] text-indigo-400 font-semibold">(Suporte)</span>
+              )}
+            </span>
             <ChevronDown size={14} className={`text-gray-400 transition-transform ${wsDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {wsDropdownOpen && (
             <div className="absolute left-4 right-4 top-full mt-1 bg-[#1e2340] border border-sidebar-hover rounded-lg shadow-xl z-50 overflow-hidden">
-              <div className="max-h-48 overflow-y-auto">
-                {workspaces.map(ws => (
-                  <button
-                    key={ws.id}
-                    onClick={() => {
-                      onWorkspaceChange?.(ws.id);
-                      setWsDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
-                      ws.id === activeWorkspaceId
-                        ? 'bg-accent/20 text-accent'
-                        : 'text-gray-300 hover:bg-sidebar-hover hover:text-white'
-                    }`}
-                  >
-                    <Building2 size={14} className="shrink-0" />
-                    <span className="truncate flex-1 text-left">
-                      {ws.name}
-                      {ws._adminAccess && (
-                        <span className="ml-1 text-[9px] bg-indigo-500/30 text-indigo-300 px-1 py-0.5 rounded font-bold">
-                          ADMIN
-                        </span>
-                      )}
-                    </span>
-                    {ws.id === activeWorkspaceId && <Check size={14} />}
-                  </button>
-                ))}
+              
+              {/* Search field (admin/owner) */}
+              {isAdminOrOwner && (
+                <div className="p-2 border-b border-sidebar-hover">
+                  <div className="relative">
+                    <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <input
+                      ref={wsSearchRef}
+                      type="text"
+                      value={wsSearch}
+                      onChange={(e) => setWsSearch(e.target.value)}
+                      placeholder="Buscar workspace ou usuário..."
+                      className="w-full bg-sidebar text-white text-xs pl-8 pr-3 py-2 rounded-md border border-sidebar-hover focus:border-indigo-500/50 outline-none placeholder:text-gray-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="max-h-64 overflow-y-auto">
+                {isAdminOrOwner ? (
+                  <>
+                    {/* My Workspaces */}
+                    {displayMyWorkspaces.length > 0 && (
+                      <>
+                        <div className="px-3 py-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                          Meus Workspaces
+                        </div>
+                        {displayMyWorkspaces.map(renderWorkspaceItem)}
+                      </>
+                    )}
+
+                    {/* Divider */}
+                    {displayMyWorkspaces.length > 0 && displayOtherWorkspaces.length > 0 && (
+                      <div className="border-t border-sidebar-hover my-1" />
+                    )}
+
+                    {/* All Other Workspaces */}
+                    {displayOtherWorkspaces.length > 0 && (
+                      <>
+                        <div className="px-3 py-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                          Todos os Workspaces
+                        </div>
+                        {displayOtherWorkspaces.map(renderWorkspaceItem)}
+                      </>
+                    )}
+
+                    {/* Truncation notice */}
+                    {totalFiltered > MAX_DISPLAY * 2 && (
+                      <div className="px-3 py-2 text-[10px] text-gray-500 text-center">
+                        Mostrando {Math.min(displayMyWorkspaces.length + displayOtherWorkspaces.length, MAX_DISPLAY * 2)} de {totalFiltered} — use a busca para filtrar
+                      </div>
+                    )}
+
+                    {/* No results */}
+                    {totalFiltered === 0 && wsSearch && (
+                      <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                        Nenhum workspace encontrado
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Regular user: simple list */
+                  workspaces.map(renderWorkspaceItem)
+                )}
               </div>
+
               <div className="border-t border-sidebar-hover">
                 {showNewWs ? (
                   <div className="p-2 flex gap-1">
@@ -257,28 +423,6 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
           );
         })}
       </nav>
-
-      {/* Admin Link - only for owner/admin */}
-      {(userRole === 'owner' || userRole === 'admin') && (
-        <div className="px-3 mb-2">
-          <Link
-            href="/admin"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              pathname.startsWith('/admin')
-                ? 'bg-indigo-500/20 text-indigo-400'
-                : 'text-gray-400 hover:bg-sidebar-hover hover:text-white'
-            }`}
-          >
-            <Shield size={20} />
-            <span className="font-medium">Admin</span>
-            {userRole === 'owner' && (
-              <span className="ml-auto text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">
-                OWNER
-              </span>
-            )}
-          </Link>
-        </div>
-      )}
 
       {/* Upgrade CTA for free users */}
       {userPlan === 'free' && (
