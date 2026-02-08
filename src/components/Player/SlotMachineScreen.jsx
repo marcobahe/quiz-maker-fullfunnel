@@ -20,7 +20,9 @@ export default function SlotMachineScreen({
   const [result, setResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [lastWin, setLastWin] = useState(null);
   const spinIntervals = useRef([]);
+
   const maxAttempts = element?.maxAttempts || 1;
 
   // Cleanup intervals on unmount
@@ -32,12 +34,14 @@ export default function SlotMachineScreen({
 
   const spin = () => {
     if (spinning) return;
-    if (attempts >= maxAttempts && showResult) return;
     
     setSpinning(true);
     setShowResult(false);
     setResult(null);
-    setAttempts(prev => prev + 1);
+    setLastWin(null);
+
+    const newAttemptCount = attempts + 1;
+    setAttempts(newAttemptCount);
 
     // Determine win/lose upfront based on winProbability
     const winProb = element.winProbability ?? 100;
@@ -107,41 +111,45 @@ export default function SlotMachineScreen({
           clearInterval(slotSoundInterval);
           setTimeout(() => {
             setSpinning(false);
-            checkResult();
+            // Check result based on pre-determined outcome
+            const isJackpot = finalSlots[0] === finalSlots[1] && finalSlots[1] === finalSlots[2];
+            const hasPair = finalSlots[0] === finalSlots[1] || 
+                            finalSlots[1] === finalSlots[2] || 
+                            finalSlots[0] === finalSlots[2];
+
+            if (isJackpot) {
+              setResult({ type: 'jackpot', message: '🎉 JACKPOT! 🎉' });
+              onSound?.('slotJackpot');
+            } else if (hasPair) {
+              setResult({ type: 'pair', message: '✨ Quase lá! ✨' });
+              onSound?.('slotStop');
+            } else {
+              setResult({ type: 'miss', message: 'Tente novamente!' });
+              onSound?.('slotLose');
+            }
+            setLastWin(isWin);
+            setShowResult(true);
           }, 100);
         }
       }, spinDurations[index]);
     });
   };
 
-  const checkResult = () => {
-    // Wait a tick for final slots state
-    setTimeout(() => {
-      setSlots(currentSlots => {
-        const isJackpot = currentSlots[0] === currentSlots[1] && currentSlots[1] === currentSlots[2];
-        const hasPair = currentSlots[0] === currentSlots[1] || 
-                        currentSlots[1] === currentSlots[2] || 
-                        currentSlots[0] === currentSlots[2];
-
-        if (isJackpot) {
-          setResult({ type: 'jackpot', message: '🎉 JACKPOT! 🎉' });
-          onSound?.('slotJackpot');
-        } else if (hasPair) {
-          setResult({ type: 'pair', message: '✨ Quase lá! ✨' });
-          onSound?.('slotStop');
-        } else {
-          setResult({ type: 'miss', message: 'Tente novamente!' });
-          onSound?.('slotLose');
-        }
-        setShowResult(true);
-        return currentSlots;
-      });
-    }, 50);
+  const handleRetry = () => {
+    setShowResult(false);
+    setResult(null);
+    setLastWin(null);
+    setSlots(['❓', '❓', '❓']);
   };
 
   const handleContinue = () => {
     onNext?.();
   };
+
+  // Can retry: lost and still has attempts remaining
+  const canRetry = showResult && !lastWin && attempts < maxAttempts;
+  // Must advance: won, or lost with no more attempts
+  const mustAdvance = showResult && (lastWin || attempts >= maxAttempts);
 
   return (
     <div 
@@ -157,13 +165,20 @@ export default function SlotMachineScreen({
         {title}
       </motion.h1>
 
+      {/* Attempts counter */}
+      {maxAttempts > 1 && (
+        <div className="text-sm text-white/60 mb-3 font-medium">
+          Tentativa {Math.min(attempts + (showResult ? 0 : 1), maxAttempts)} de {maxAttempts}
+        </div>
+      )}
+
       {/* Slot Machine - Compact */}
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2 }}
         className="relative w-full max-w-[280px] cursor-pointer"
-        onClick={!spinning ? spin : undefined}
+        onClick={!spinning && !showResult ? spin : undefined}
       >
         {/* Machine Frame - Compact */}
         <div className="bg-gradient-to-b from-yellow-500 via-yellow-600 to-yellow-700 p-3 rounded-2xl shadow-xl">
@@ -237,13 +252,6 @@ export default function SlotMachineScreen({
         )}
       </motion.div>
 
-      {/* Attempts counter */}
-      {maxAttempts > 1 && (
-        <p className="text-white/70 text-xs font-medium mt-2 text-center">
-          Tentativa {Math.min(attempts + (showResult ? 0 : 1), maxAttempts)} de {maxAttempts}
-        </p>
-      )}
-
       {/* Result - Compact */}
       <AnimatePresence>
         {showResult && result && (
@@ -279,20 +287,18 @@ export default function SlotMachineScreen({
 
         {showResult && (
           <>
-            {/* Retry: only if lost AND has attempts left */}
-            {result.type !== 'jackpot' && attempts < maxAttempts && (
+            {canRetry && (
               <motion.button
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={spin}
-                className="w-full py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all text-sm"
+                onClick={handleRetry}
+                className="w-full py-2.5 bg-white/20 text-white font-medium rounded-xl hover:bg-white/30 transition-all text-sm"
               >
-                🔄 Tentar novamente ({maxAttempts - attempts} restante{maxAttempts - attempts > 1 ? 's' : ''})
+                🔄 Tentar novamente ({maxAttempts - attempts} restante{maxAttempts - attempts !== 1 ? 's' : ''})
               </motion.button>
             )}
             
-            {/* Continue: always show if won OR no attempts left */}
-            {(result.type === 'jackpot' || attempts >= maxAttempts) && (
+            {mustAdvance && (
               <motion.button
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -301,19 +307,6 @@ export default function SlotMachineScreen({
                 className="w-full py-3 bg-white text-gray-900 font-bold text-base rounded-xl shadow-lg hover:bg-gray-100 transition-all"
               >
                 Continuar →
-              </motion.button>
-            )}
-
-            {/* Secondary continue when retry is available */}
-            {result.type !== 'jackpot' && attempts < maxAttempts && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                onClick={handleContinue}
-                className="w-full py-2.5 bg-white/20 text-white/80 font-medium rounded-xl hover:bg-white/30 transition-all text-xs"
-              >
-                Continuar mesmo assim →
               </motion.button>
             )}
           </>

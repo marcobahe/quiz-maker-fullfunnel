@@ -350,6 +350,24 @@ function MediaElementEditor({ element, nodeId }) {
           </div>
         </div>
       )}
+      {/* Delay for audio — start playback after X seconds */}
+      {mt === 'audio' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Delay (segundos)</label>
+          <p className="text-xs text-gray-400 mb-2">Tempo de espera antes do áudio começar. Útil para sequenciar múltiplos áudios no mesmo card.</p>
+          <input
+            type="number"
+            min="0"
+            max="300"
+            step="0.5"
+            value={element.delay || 0}
+            onChange={(e) => updateNodeElement(nodeId, element.id, { delay: Math.max(0, parseFloat(e.target.value) || 0) })}
+            className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+            placeholder="0"
+          />
+        </div>
+      )}
+
       {/* Autoplay toggle for video and audio */}
       {(mt === 'video' || mt === 'audio') && (
         <div className="flex items-center justify-between py-2">

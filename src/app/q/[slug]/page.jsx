@@ -142,6 +142,30 @@ function setAbCookie(quizId, variantSlug) {
 
 // ── Rating Player Components ─────────────────────────────────
 
+// Audio player with optional delay (seconds) before autoplay
+function DelayedAudio({ src, autoPlay, delay = 0 }) {
+  const audioRef = useRef(null);
+  
+  useEffect(() => {
+    if (!autoPlay || !delay || delay <= 0) return;
+    const timer = setTimeout(() => {
+      audioRef.current?.play?.().catch(() => {});
+    }, delay * 1000);
+    return () => clearTimeout(timer);
+  }, [autoPlay, delay]);
+  
+  return (
+    <audio
+      ref={audioRef}
+      src={src}
+      controls
+      autoPlay={autoPlay && (!delay || delay <= 0)}
+      className="w-full"
+      preload="metadata"
+    />
+  );
+}
+
 function StarsRatingPlayer({ element, theme, btnRadius, rv, onSubmit }) {
   const [hovered, setHovered] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -3408,12 +3432,10 @@ function QuizPlayer() {
                           {el.title && (
                             <p className="text-sm font-medium text-gray-700 mb-2 text-center">{el.title}</p>
                           )}
-                          <audio
+                          <DelayedAudio
                             src={el.url}
-                            controls
                             autoPlay={el.autoplay || false}
-                            className="w-full"
-                            preload="metadata"
+                            delay={el.delay || 0}
                           />
                         </div>
                       ) : (
