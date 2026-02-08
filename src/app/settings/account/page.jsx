@@ -163,7 +163,7 @@ export default function AccountPage() {
 
   if (status === 'unauthenticated') return null;
 
-  const planLabels = { free: 'Free', pro: 'Pro', business: 'Business', enterprise: 'Enterprise' };
+  const planLabels = { free: 'Free', pro: 'Pro', business: 'Business', advanced: 'Advanced', enterprise: 'Enterprise' };
   const memberSince = profile.createdAt
     ? new Date(profile.createdAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
     : '';

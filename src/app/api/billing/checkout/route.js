@@ -30,6 +30,8 @@ export async function POST(request) {
     const PRICE_IDS = {
       pro: { monthly: process.env.STRIPE_PRO_PRICE_ID, annual: process.env.STRIPE_PRO_ANNUAL_PRICE_ID },
       business: { monthly: process.env.STRIPE_BUSINESS_PRICE_ID, annual: process.env.STRIPE_BUSINESS_ANNUAL_PRICE_ID },
+      advanced: { monthly: process.env.STRIPE_ADVANCED_PRICE_ID, annual: process.env.STRIPE_ADVANCED_ANNUAL_PRICE_ID },
+      enterprise: { monthly: process.env.STRIPE_ENTERPRISE_PRICE_ID, annual: process.env.STRIPE_ENTERPRISE_ANNUAL_PRICE_ID },
     };
 
     const planPrices = PRICE_IDS[plan];

@@ -22,6 +22,8 @@ const PLAN_COLORS = {
   free: 'bg-gray-500/20 text-gray-400',
   pro: 'bg-indigo-500/20 text-indigo-400',
   business: 'bg-amber-500/20 text-amber-400',
+  advanced: 'bg-blue-500/20 text-blue-400',
+  enterprise: 'bg-purple-500/20 text-purple-400',
 };
 
 const ROLE_COLORS = {

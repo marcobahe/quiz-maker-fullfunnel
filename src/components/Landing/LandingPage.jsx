@@ -535,7 +535,7 @@ function PricingSection() {
         </Reveal>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {PLAN_ORDER.map((planId, i) => {
+          {['free', 'pro', 'business'].map((planId, i) => {
             const plan = PLANS[planId];
             return (
               <Reveal key={planId} delay={i * 100}>
@@ -588,13 +588,24 @@ function PricingSection() {
                         : 'bg-accent hover:bg-accent-hover text-white'
                     }`}
                   >
-                    {plan.price === 0 ? 'Começar Grátis' : 'Escolher Plano'}
+                    {plan.price === 0 ? 'Começar Grátis' : 'Assinar'}
                   </Link>
                 </div>
               </Reveal>
             );
           })}
         </div>
+
+        <Reveal delay={400}>
+          <div className="text-center mt-8">
+            <Link
+              href="/pricing"
+              className="text-accent hover:underline font-medium text-sm"
+            >
+              Ver todos os planos (Advanced & Enterprise) →
+            </Link>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

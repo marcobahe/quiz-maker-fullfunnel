@@ -180,5 +180,17 @@ export function getPlanFromPriceId(priceId) {
   ) {
     return 'business';
   }
+  if (
+    priceId === process.env.STRIPE_ADVANCED_PRICE_ID ||
+    priceId === process.env.STRIPE_ADVANCED_ANNUAL_PRICE_ID
+  ) {
+    return 'advanced';
+  }
+  if (
+    priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID ||
+    priceId === process.env.STRIPE_ENTERPRISE_ANNUAL_PRICE_ID
+  ) {
+    return 'enterprise';
+  }
   return 'free';
 }
