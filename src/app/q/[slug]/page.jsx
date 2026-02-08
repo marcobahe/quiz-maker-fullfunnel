@@ -7,22 +7,54 @@ import { replaceVariables, buildAnswersMap } from '@/lib/dynamicVariables';
 import { initTracking, trackEvent } from '@/lib/tracking';
 import { getPatternStyle } from '@/lib/patterns';
 import { extractYouTubeId, youtubeEmbedUrl } from '@/lib/youtube';
-import SpinWheel from '@/components/Player/SpinWheel';
-import ScratchCard from '@/components/Player/ScratchCard';
-import PhoneCallScreen from '@/components/Player/PhoneCallScreen';
-import MysteryBox from '@/components/Player/MysteryBox';
-import CardFlipScreen from '@/components/Player/CardFlipScreen';
-import SlotMachineScreen from '@/components/Player/SlotMachineScreen';
-import SwipeQuestion from '@/components/QuizPlayer/elements/SwipeQuestion';
+import dynamic from 'next/dynamic';
+
+// ── Lazy-loaded gamification screen components (only loaded when needed) ──
+const SpinWheel = dynamic(() => import('@/components/Player/SpinWheel'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200/60 rounded-2xl h-72 w-full" />,
+});
+const ScratchCard = dynamic(() => import('@/components/Player/ScratchCard'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200/60 rounded-2xl h-72 w-full" />,
+});
+const PhoneCallScreen = dynamic(() => import('@/components/Player/PhoneCallScreen'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200/60 rounded-2xl h-72 w-full" />,
+});
+const MysteryBox = dynamic(() => import('@/components/Player/MysteryBox'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200/60 rounded-2xl h-72 w-full" />,
+});
+const CardFlipScreen = dynamic(() => import('@/components/Player/CardFlipScreen'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200/60 rounded-2xl h-64 w-full" />,
+});
+const SlotMachineScreen = dynamic(() => import('@/components/Player/SlotMachineScreen'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200/60 rounded-2xl h-72 w-full" />,
+});
+const SwipeQuestion = dynamic(() => import('@/components/QuizPlayer/elements/SwipeQuestion'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200/60 rounded-2xl h-48 w-full" />,
+});
+const ConfettiEffect = dynamic(
+  () => import('@/components/Player/GamificationComponents').then((mod) => mod.ConfettiEffect),
+  { ssr: false }
+);
+const ShareChallengeButton = dynamic(
+  () => import('@/components/Player/GamificationComponents').then((mod) => mod.ShareChallengeButton),
+  { ssr: false }
+);
+
+// ── Eagerly loaded (used in quiz header/core UI immediately) ──
 import QuestionTimer from '@/components/Quiz/QuestionTimer';
 import {
   GamifiedProgressBar,
   StreakCounter,
   QuestionTimer as GamifiedTimer,
   LivesDisplay,
-  ConfettiEffect,
   SoundSystem,
-  ShareChallengeButton,
 } from '@/components/Player/GamificationComponents';
 
 // ── Default theme (matches store defaults) ───────────────────
@@ -2634,6 +2666,7 @@ function QuizPlayer() {
                       <img
                         src={matchedRange.image}
                         alt={matchedRange.title}
+                        loading="lazy"
                         className="w-full h-56 object-cover mb-8 relative z-10"
                         style={{ borderRadius: '1.5rem', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
                       />
@@ -3376,6 +3409,7 @@ function QuizPlayer() {
                         <img
                           src={el.url}
                           alt={el.title || ''}
+                          loading="lazy"
                           className="rounded-lg"
                           style={{
                             width: imgWidth || 'auto',
@@ -3525,6 +3559,7 @@ function QuizPlayer() {
                                   <img
                                     src={opt.image}
                                     alt={opt.text}
+                                    loading="lazy"
                                     className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl"
                                     style={{
                                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
@@ -4264,21 +4299,30 @@ export default function QuizPlayerPage() {
   return (
     <Suspense
       fallback={
-        <div 
-          className="min-h-screen flex items-center justify-center"
-          style={{ 
+        <div
+          className="min-h-screen flex flex-col items-center justify-center"
+          style={{
             background: 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 25%, #FFF1F2 50%, #F0FDF4 75%, #F0F9FF 100%)',
-            fontFamily: 'Outfit, system-ui, sans-serif',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         >
-          {/* Minimal loading spinner - real preload message comes after data loads */}
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 
-              className="animate-spin" 
-              size={40} 
-              style={{ color: '#6366f1' }}
-            />
-            <p className="text-slate-500 text-sm font-medium">Carregando...</p>
+          <div className="w-14 h-14 rounded-2xl bg-white/80 shadow-sm mb-6 animate-pulse" />
+          <div className="w-full max-w-lg mx-auto px-4">
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-6 space-y-5">
+              <div className="h-2 rounded-full bg-gray-200/80 overflow-hidden">
+                <div className="h-full rounded-full w-[30%] bg-gradient-to-r from-violet-300 via-indigo-400 to-violet-300 animate-pulse" />
+              </div>
+              <div className="space-y-2 pt-2">
+                <div className="h-5 bg-gray-200/70 rounded-lg w-4/5 animate-pulse" />
+                <div className="h-5 bg-gray-200/70 rounded-lg w-3/5 animate-pulse" />
+              </div>
+              <div className="space-y-3 pt-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-14 bg-gray-100/80 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+            </div>
+            <p className="text-center mt-6 text-sm font-medium text-slate-400">Carregando quiz…</p>
           </div>
         </div>
       }
