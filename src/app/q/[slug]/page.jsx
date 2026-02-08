@@ -1278,7 +1278,7 @@ function QuizPlayer() {
 
   // ── Gamification Helper Functions ───────────────────────────
   
-  const processGamificationAnswer = useCallback((optionScore, isCorrect = false) => {
+  const processGamificationAnswer = useCallback((optionScore, isCorrect = false, { neutralSound = false } = {}) => {
     const gc = gamificationConfigRef.current;
     if (!gc) return optionScore;
     
@@ -1303,17 +1303,17 @@ function QuizPlayer() {
           return newStreak;
         });
         
-        if (gc.sounds) {
+        if (gc.sounds && !neutralSound) {
           playSound('streak');
         }
-      } else if (gc.sounds) {
+      } else if (gc.sounds && !neutralSound) {
         playSound('correct');
       }
     } else {
-      // Wrong answer
-      setCurrentStreak(0);
+      // Wrong answer (only reset streak if not neutral)
+      if (!neutralSound) setCurrentStreak(0);
       
-      if (gc.sounds) {
+      if (gc.sounds && !neutralSound) {
         playSound('incorrect');
       }
       
@@ -2006,11 +2006,14 @@ function QuizPlayer() {
     const option = element.options?.[optionIndex];
     const optionScore = option?.score || 0;
 
+    // Types without right/wrong answers use neutral sound (no correct/incorrect)
+    const isNeutral = ['question-icons', 'question-swipe'].includes(element.type);
+    
     // Play pop sound on selection
     playSoundIfEnabled('pop');
 
     // Process gamification
-    const finalScore = processGamificationAnswer(optionScore, optionScore > 0);
+    const finalScore = processGamificationAnswer(optionScore, optionScore > 0, { neutralSound: isNeutral });
     
     if (finalScore > 0 && event) showPointsBalloon(finalScore, event);
 
