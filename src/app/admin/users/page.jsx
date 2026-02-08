@@ -162,6 +162,8 @@ export default function AdminUsersPage() {
             <option value="free">Free</option>
             <option value="pro">Pro</option>
             <option value="business">Business</option>
+            <option value="advanced">Advanced</option>
+            <option value="enterprise">Enterprise</option>
           </select>
 
           {/* Role Filter */}

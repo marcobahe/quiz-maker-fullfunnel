@@ -272,7 +272,7 @@ export default function AdminUserDetailPage() {
           {/* Edit Plan */}
           {editingPlan ? (
             <div className="flex items-center gap-2">
-              {['free', 'pro', 'business'].map(plan => (
+              {['free', 'pro', 'business', 'advanced', 'enterprise'].map(plan => (
                 <button
                   key={plan}
                   onClick={() => handlePlanChange(plan)}

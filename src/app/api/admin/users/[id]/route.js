@@ -92,7 +92,7 @@ export async function PATCH(request, { params }) {
     // Build update data - only allow specific fields
     const updateData = {};
 
-    if (body.plan && ['free', 'pro', 'business'].includes(body.plan)) {
+    if (body.plan && ['free', 'pro', 'business', 'advanced', 'enterprise'].includes(body.plan)) {
       updateData.plan = body.plan;
     }
 

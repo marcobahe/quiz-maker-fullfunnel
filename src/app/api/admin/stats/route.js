@@ -101,7 +101,7 @@ export async function GET() {
     ]);
 
     // Format users by plan
-    const planCounts = { free: 0, pro: 0, business: 0 };
+    const planCounts = { free: 0, pro: 0, business: 0, advanced: 0, enterprise: 0 };
     usersByPlan.forEach(({ plan, _count }) => {
       planCounts[plan] = _count.id;
     });

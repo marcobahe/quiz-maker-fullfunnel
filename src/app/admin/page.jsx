@@ -118,16 +118,16 @@ export default function AdminDashboard() {
         <StatCard
           icon={TrendingUp}
           label="MRR Estimado"
-          value={`R$ ${((stats?.planCounts?.pro || 0) * 49 + (stats?.planCounts?.business || 0) * 99).toLocaleString()}`}
-          sub={`${stats?.planCounts?.pro || 0} Pro, ${stats?.planCounts?.business || 0} Business`}
+          value={`R$ ${((stats?.planCounts?.pro || 0) * 97 + (stats?.planCounts?.business || 0) * 197 + (stats?.planCounts?.advanced || 0) * 297 + (stats?.planCounts?.enterprise || 0) * 497).toLocaleString()}`}
+          sub={`${stats?.planCounts?.pro || 0} Pro, ${stats?.planCounts?.business || 0} Business, ${stats?.planCounts?.advanced || 0} Advanced, ${stats?.planCounts?.enterprise || 0} Enterprise`}
           color="bg-amber-500"
           gradient="bg-[#151837]/60 backdrop-blur"
         />
       </div>
 
       {/* Plans Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-        {['free', 'pro', 'business'].map(plan => {
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        {['free', 'pro', 'business', 'advanced', 'enterprise'].map(plan => {
           const count = stats?.planCounts?.[plan] || 0;
           const total = stats?.totalUsers || 1;
           const pct = Math.round((count / total) * 100);
@@ -135,6 +135,8 @@ export default function AdminDashboard() {
             free: 'bg-gray-500',
             pro: 'bg-indigo-500',
             business: 'bg-amber-500',
+            advanced: 'bg-blue-500',
+            enterprise: 'bg-purple-500',
           };
           return (
             <div key={plan} className="bg-[#151837]/60 backdrop-blur border border-white/10 rounded-2xl p-5">
@@ -192,6 +194,8 @@ export default function AdminDashboard() {
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     user.plan === 'pro' ? 'bg-indigo-500/20 text-indigo-400' :
                     user.plan === 'business' ? 'bg-amber-500/20 text-amber-400' :
+                    user.plan === 'advanced' ? 'bg-blue-500/20 text-blue-400' :
+                    user.plan === 'enterprise' ? 'bg-purple-500/20 text-purple-400' :
                     'bg-gray-500/20 text-gray-400'
                   }`}>
                     {user.plan?.toUpperCase()}
