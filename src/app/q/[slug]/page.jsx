@@ -1963,6 +1963,9 @@ function QuizPlayer() {
     const option = currentNode.data.options?.[optionIndex];
     const optionScore = option?.score || 0;
 
+    // Play pop sound on selection
+    playSoundIfEnabled('pop');
+
     // Process gamification
     const finalScore = processGamificationAnswer(optionScore, optionScore > 0);
     
@@ -2002,6 +2005,9 @@ function QuizPlayer() {
 
     const option = element.options?.[optionIndex];
     const optionScore = option?.score || 0;
+
+    // Play pop sound on selection
+    playSoundIfEnabled('pop');
 
     // Process gamification
     const finalScore = processGamificationAnswer(optionScore, optionScore > 0);
@@ -3568,7 +3574,7 @@ function QuizPlayer() {
                       themeColors={{ text: theme.primaryColor }}
                       onAnswer={(result) => {
                         const elScore = result.score || 0;
-                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
+                        playSoundIfEnabled('submit');
                         if (elScore > 0) setScore((prev) => prev + elScore);
                         setAnswers((prev) => ({
                           ...prev,
@@ -3992,7 +3998,7 @@ function QuizPlayer() {
                       themeColors={{ text: theme.primaryColor }}
                       onAnswer={(result) => {
                         const elScore = result.score || 0;
-                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
+                        playSoundIfEnabled('submit');
                         if (elScore > 0) setScore((prev) => prev + elScore);
                         setAnswers((prev) => ({
                           ...prev,
