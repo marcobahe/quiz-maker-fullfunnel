@@ -25,6 +25,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
     const includeAnalytics = searchParams.get('includeAnalytics') === 'true';
+    const includeIntegrations = searchParams.get('includeIntegrations') === 'true';
 
     const where = {
       isVariant: false,
@@ -49,6 +50,13 @@ export async function GET(request) {
         select: { id: true, name: true, status: true },
       },
     };
+
+    // Include integrations data if requested
+    if (includeIntegrations) {
+      include.integrations = {
+        select: { id: true, type: true, name: true, active: true },
+      };
+    }
 
     // Include analytics data if requested
     if (includeAnalytics) {
