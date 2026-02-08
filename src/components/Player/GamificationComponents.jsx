@@ -732,6 +732,15 @@ function getSoundUrls(volume) {
       { frequency: 1568, startTime: 0.48, duration: 0.5, wave: 'sine', envelope: 'adsr' },
     ], v),
     
+    // submit — cheerful confirmation for open-ended/rating answers (no right/wrong)
+    submit: generateMultiToneDataUrl([
+      { frequency: 880, startTime: 0, duration: 0.08, wave: 'sine', envelope: 'percussive' },
+      { frequency: 1175, startTime: 0.06, duration: 0.12, wave: 'sine', envelope: 'percussive' },
+    ], v * 0.5),
+    
+    // navigate — soft "whoosh" for Continue/Next buttons
+    navigate: generateSweepDataUrl(400, 1200, 0.12, v * 0.3, 'sine'),
+    
     // Legacy aliases — keep backward compat with page.jsx calls
     spin: generateMultiToneDataUrl([
       { frequency: 400, startTime: 0, duration: 0.1, wave: 'sine', envelope: 'percussive' },

@@ -1280,7 +1280,6 @@ function QuizPlayer() {
   
   const processGamificationAnswer = useCallback((optionScore, isCorrect = false) => {
     const gc = gamificationConfigRef.current;
-    console.log('[SOUND DEBUG] processGamificationAnswer called', { optionScore, isCorrect, gc: JSON.stringify(gc) });
     if (!gc) return optionScore;
     
     let finalScore = optionScore;
@@ -1557,8 +1556,6 @@ function QuizPlayer() {
       }
 
       setQuiz(data);
-      console.log('[SOUND DEBUG] quiz loaded, data.settings exists:', !!data.settings, 'type:', typeof data.settings);
-
       // Load behavior settings from quiz object
       setShuffleQuestions(data.shuffleQuestions || false);
       setQuestionTimer(data.questionTimer || null);
@@ -1586,9 +1583,7 @@ function QuizPlayer() {
             if (settings.preloadMessage) setPreloadMessage((prev) => ({ ...prev, ...settings.preloadMessage }));
             if (settings.aiResultConfig) setAiConfig(settings.aiResultConfig);
             if (settings.tracking) setTrackingConfig(settings.tracking);
-            console.log('[SOUND DEBUG] settings.gamification =', JSON.stringify(settings.gamification), 'settings keys =', Object.keys(settings));
             if (settings.gamification) {
-              console.log('[SOUND DEBUG] calling setGamificationConfig with', JSON.stringify(settings.gamification));
               setGamificationConfig(settings.gamification);
               if (settings.gamification.lives && settings.gamification.livesCount) {
                 setLives(settings.gamification.livesCount);
@@ -3250,6 +3245,7 @@ function QuizPlayer() {
                   };
 
                   const handleButtonClick = () => {
+                    playSoundIfEnabled('navigate');
                     switch (el.action) {
                       case 'next-node':
                         advanceToNode(getNextNode(currentNodeId, null, el.id));
@@ -3547,7 +3543,7 @@ function QuizPlayer() {
                       rv={rv}
                       onSubmit={(result) => {
                         const elScore = result.score || 0;
-                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
+                        playSoundIfEnabled('submit');
                         if (elScore > 0) setScore((prev) => prev + elScore);
                         setAnswers((prev) => ({
                           ...prev,
@@ -3937,7 +3933,7 @@ function QuizPlayer() {
                       rv={rv}
                       onSubmit={(text) => {
                         const elScore = el.score || 0;
-                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
+                        playSoundIfEnabled('submit');
                         if (elScore > 0) setScore((prev) => prev + elScore);
                         setAnswers((prev) => ({
                           ...prev,
@@ -3966,7 +3962,7 @@ function QuizPlayer() {
                       onSubmit={(ratingValue) => {
                         const multiplier = el.scoreMultiplier || 1;
                         const elScore = Math.round(ratingValue * multiplier);
-                        playSoundIfEnabled(elScore > 0 ? 'correct' : 'incorrect');
+                        playSoundIfEnabled('submit');
                         if (elScore > 0) setScore((prev) => prev + elScore);
 
                         const ratingType = el.ratingType || 'number';
