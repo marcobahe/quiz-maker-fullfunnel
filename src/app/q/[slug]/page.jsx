@@ -1556,6 +1556,7 @@ function QuizPlayer() {
       }
 
       setQuiz(data);
+      console.log('[SOUND DEBUG] quiz loaded, data.settings exists:', !!data.settings, 'type:', typeof data.settings);
 
       // Load behavior settings from quiz object
       setShuffleQuestions(data.shuffleQuestions || false);
