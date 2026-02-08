@@ -88,7 +88,7 @@ export const authOptions = {
       }
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session: updateSession }) {
       if (user) {
         // For Google OAuth, fetch the DB user to get the correct id
         if (account?.provider === 'google') {
@@ -106,13 +106,40 @@ export const authOptions = {
           token.role = user.role || 'user';
         }
       }
+
+      // Handle session updates (e.g., impersonation)
+      if (trigger === 'update' && updateSession) {
+        if (updateSession.impersonatingAs) {
+          token.impersonatingAs = updateSession.impersonatingAs;
+          token.impersonatingName = updateSession.impersonatingName;
+          token.originalUserId = updateSession.originalUserId;
+          token.originalRole = updateSession.originalRole;
+        }
+        if (updateSession.stopImpersonating) {
+          delete token.impersonatingAs;
+          delete token.impersonatingName;
+          delete token.originalUserId;
+          delete token.originalRole;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
+        session.user.id = token.impersonatingAs || token.id;
         session.user.plan = token.plan || 'free';
         session.user.role = token.role || 'user';
+
+        // Impersonation info
+        if (token.impersonatingAs) {
+          session.user.impersonatingAs = token.impersonatingAs;
+          session.user.impersonatingName = token.impersonatingName;
+          session.user.originalUserId = token.originalUserId || token.id;
+          session.user.originalRole = token.originalRole || token.role;
+          // Keep original admin role for admin checks
+          session.user.role = token.originalRole || token.role;
+        }
       }
       return session;
     },
