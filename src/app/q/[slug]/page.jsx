@@ -1570,14 +1570,16 @@ function QuizPlayer() {
             : data.settings;
           if (settings && typeof settings === 'object') {
             if (settings.theme) {
-              // Garante gradiente vibrante como padrão se não houver configuração específica
-              const mergedTheme = { ...prev, ...settings.theme };
-              // Se não tiver backgroundType ou pageBackground definido, usar gradiente padrão
-              if (!settings.theme.backgroundType && !settings.theme.pageBackground) {
-                mergedTheme.backgroundType = 'gradient';
-                mergedTheme.backgroundGradient = 'from-violet-600 via-purple-600 to-indigo-700';
-              }
-              setTheme(mergedTheme);
+              setTheme(prev => {
+                // Garante gradiente vibrante como padrão se não houver configuração específica
+                const mergedTheme = { ...prev, ...settings.theme };
+                // Se não tiver backgroundType ou pageBackground definido, usar gradiente padrão
+                if (!settings.theme.backgroundType && !settings.theme.pageBackground) {
+                  mergedTheme.backgroundType = 'gradient';
+                  mergedTheme.backgroundGradient = 'from-violet-600 via-purple-600 to-indigo-700';
+                }
+                return mergedTheme;
+              });
             }
             if (settings.branding) setBranding((prev) => ({ ...prev, ...settings.branding }));
             if (settings.preloadMessage) setPreloadMessage((prev) => ({ ...prev, ...settings.preloadMessage }));
@@ -1598,7 +1600,7 @@ function QuizPlayer() {
               setQuestionTimer(settings.behavior.questionTimer || data.questionTimer || null);
             }
           }
-        } catch (_e) { /* ignore */ }
+        } catch (_e) { console.error('[SETTINGS] Error parsing settings:', _e); }
       }
 
       // Load score ranges
