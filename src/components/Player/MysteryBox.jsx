@@ -41,20 +41,20 @@ export default function MysteryBox({ element, theme, btnRadius, onComplete, onSo
   const handleClick = useCallback(() => {
     if (isRevealed || isOpening) return;
 
-    // Start shake animation
+    // Start shake animation with rattle sound
     setIsShaking(true);
-    onSound?.('spin');
+    onSound?.('boxShake');
     
     // After shake, start opening
     setTimeout(() => {
       setIsShaking(false);
       setIsOpening(true);
       
-      // Reveal after opening animation
+      // Reveal after opening animation with magical open sound
       setTimeout(() => {
         setIsRevealed(true);
         setIsOpening(false);
-        onSound?.('reveal');
+        onSound?.('boxOpen');
         
         // Auto-advance after reveal
         setTimeout(() => {

@@ -67,7 +67,12 @@ export default function CardFlipScreen({ element, theme, onComplete, onSound }) 
     if (!isFlipped) {
       setIsFlipped(true);
       setHasRevealed(true);
-      onSound?.('reveal');
+      // Play card flip "fwip" sound immediately
+      onSound?.('cardFlip');
+      // Play reveal chord after the flip animation completes
+      setTimeout(() => {
+        onSound?.('cardReveal');
+      }, 400);
       
       if (autoAdvance) {
         // Wait for flip animation + configurable reading time, then advance
@@ -77,7 +82,7 @@ export default function CardFlipScreen({ element, theme, onComplete, onSound }) 
         }, 500 + (delayBeforeAdvance * 1000));
       }
     }
-  }, [isFlipped, autoAdvance, onComplete, delayBeforeAdvance]);
+  }, [isFlipped, autoAdvance, onComplete, delayBeforeAdvance, onSound]);
 
   const handleContinue = useCallback(() => {
     onComplete?.();

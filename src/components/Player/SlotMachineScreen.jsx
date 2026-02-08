@@ -34,11 +34,16 @@ export default function SlotMachineScreen({
     setSpinning(true);
     setShowResult(false);
     setResult(null);
-    onSound?.('spin');
 
     // Clear any existing intervals
     spinIntervals.current.forEach(clearInterval);
     spinIntervals.current = [];
+
+    // Play slot spin sound at intervals while spinning
+    const slotSoundInterval = setInterval(() => {
+      onSound?.('slotSpin');
+    }, 200);
+    spinIntervals.current.push(slotSoundInterval);
 
     // Start spinning each slot with different speeds
     const spinDurations = [1500, 2000, 2500]; // Different stop times
@@ -60,6 +65,8 @@ export default function SlotMachineScreen({
       // Stop this slot after its duration
       setTimeout(() => {
         clearInterval(interval);
+        // Play stop "clunk" for each reel
+        onSound?.('slotStop');
         // Set final random emoji
         setSlots(prev => {
           const newSlots = [...prev];
@@ -69,6 +76,8 @@ export default function SlotMachineScreen({
 
         // If this is the last slot to stop
         if (index === 2) {
+          // Stop the slot spin sound loop
+          clearInterval(slotSoundInterval);
           setTimeout(() => {
             setSpinning(false);
             checkResult();
@@ -89,13 +98,13 @@ export default function SlotMachineScreen({
 
         if (isJackpot) {
           setResult({ type: 'jackpot', message: '🎉 JACKPOT! 🎉' });
-          onSound?.('win');
+          onSound?.('slotJackpot');
         } else if (hasPair) {
           setResult({ type: 'pair', message: '✨ Quase lá! ✨' });
-          onSound?.('reveal');
+          onSound?.('slotStop');
         } else {
           setResult({ type: 'miss', message: 'Tente novamente!' });
-          onSound?.('incorrect');
+          onSound?.('slotLose');
         }
         setShowResult(true);
         return currentSlots;

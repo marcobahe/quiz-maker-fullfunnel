@@ -251,7 +251,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
     return segments.length - 1;
   };
 
-  // Spin animation with smooth easing
+  // Spin animation with smooth easing and per-segment tick sounds
   const spin = () => {
     if (spinning || segments.length === 0) return;
     if (hasSpun && !allowRetry) return;
@@ -259,7 +259,7 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
     setSpinning(true);
     setResult(null);
     setHasSpun(true);
-    onSound?.('spin');
+    onSound?.('spinTick');
 
     const winIndex = pickSegment();
 
@@ -277,6 +277,9 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
     const duration = 4500 + Math.random() * 1000;
     const startTime = performance.now();
 
+    // Track which segment the pointer is on for tick sounds
+    let lastSegIndex = -1;
+
     // Smooth easing for dramatic effect
     const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
 
@@ -288,12 +291,30 @@ export default function SpinWheel({ element, theme, btnRadius, onComplete, onSou
       currentAngleRef.current = currentAngle;
       drawWheel(currentAngle);
 
+      // Determine which segment the pointer is over and play tick sound on segment change
+      const pointerAngle = ((-currentAngle - Math.PI / 2) % (Math.PI * 2) + Math.PI * 4) % (Math.PI * 2);
+      let cumAngle = 0;
+      let curSegIndex = 0;
+      for (let s = 0; s < segments.length; s++) {
+        cumAngle += ((segments[s].probability || 0) / totalProb) * Math.PI * 2;
+        if (pointerAngle <= cumAngle) { curSegIndex = s; break; }
+      }
+      if (curSegIndex !== lastSegIndex && lastSegIndex !== -1) {
+        // Play appropriate tick based on speed (progress)
+        if (progress < 0.7) {
+          onSound?.('spinTick');
+        } else {
+          onSound?.('spinSlow');
+        }
+      }
+      lastSegIndex = curSegIndex;
+
       if (progress < 1) {
         animFrameRef.current = requestAnimationFrame(animate);
       } else {
         setSpinning(false);
         setResult(segments[winIndex]);
-        onSound?.('win');
+        onSound?.('spinWin');
       }
     };
 

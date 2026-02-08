@@ -21,6 +21,7 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete, onS
   const totalPixelsRef = useRef(0);
   const revealTriggeredRef = useRef(false);
   const dprRef = useRef(1);
+  const lastScratchSoundRef = useRef(0);
 
   const coverColor = element.coverColor || '#6366f1';
   const coverPattern = element.coverPattern || 'dots';
@@ -173,6 +174,13 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete, onS
     ctx.globalCompositeOperation = 'source-over';
     lastPosRef.current = pos;
 
+    // Play scratch sound with debounce (~120ms between sounds)
+    const now = Date.now();
+    if (now - lastScratchSoundRef.current > 120) {
+      lastScratchSoundRef.current = now;
+      onSound?.('scratchLoop');
+    }
+
     // Track progress
     scratchedRef.current += brushSize * brushSize * 4;
     const progress = Math.min(100, (scratchedRef.current / totalPixelsRef.current) * 100);
@@ -181,13 +189,13 @@ export default function ScratchCard({ element, theme, btnRadius, onComplete, onS
     // Use configurable threshold (default 60%)
     if (progress > revealThreshold && !revealTriggeredRef.current) {
       revealTriggeredRef.current = true;
-      onSound?.('reveal');
+      onSound?.('scratchReveal');
       setTimeout(() => {
         setRevealed(true);
         setTimeout(() => setShowCelebration(true), 200);
       }, 300);
     }
-  }, [revealed, revealThreshold]);
+  }, [revealed, revealThreshold, onSound]);
 
   // Mouse events
   const onMouseDown = (e) => {
