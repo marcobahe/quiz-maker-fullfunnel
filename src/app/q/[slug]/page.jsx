@@ -4020,9 +4020,10 @@ function QuizPlayer() {
 
               {!compositeQuestionEl && !compositeHasLeadForm && !compositeHasGamification && (
                 <button
-                  onClick={() =>
-                    advanceToNode(getNextNode(currentNodeId))
-                  }
+                  onClick={() => {
+                    playSoundIfEnabled('navigate');
+                    advanceToNode(getNextNode(currentNodeId));
+                  }}
                   className="w-full text-white py-5 font-extrabold text-xl uppercase tracking-wider flex items-center justify-center gap-3 mt-4 transition-all active:translate-y-1"
                   style={{ 
                     background: theme.primaryColor, 
@@ -4066,9 +4067,10 @@ function QuizPlayer() {
                   'Conteúdo'}
               </p>
               <button
-                onClick={() =>
-                  advanceToNode(getNextNode(currentNodeId))
-                }
+                onClick={() => {
+                  playSoundIfEnabled('navigate');
+                  advanceToNode(getNextNode(currentNodeId));
+                }}
                 className="text-white px-12 py-5 font-extrabold text-xl uppercase tracking-wider transition-all active:translate-y-1 relative z-10"
                 style={{ 
                   background: theme.primaryColor,
@@ -4148,9 +4150,10 @@ function QuizPlayer() {
               
               {/* Start Button - 3D Tactile */}
               <button
-                onClick={() =>
-                  advanceToNode(getNextNode(currentNodeId))
-                }
+                onClick={() => {
+                  playSoundIfEnabled('navigate');
+                  advanceToNode(getNextNode(currentNodeId));
+                }}
                 className="text-white px-14 py-6 font-extrabold text-2xl uppercase tracking-wider flex items-center gap-4 mx-auto transition-all active:translate-y-1 relative z-10"
                 style={{ 
                   background: theme.primaryColor,
