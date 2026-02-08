@@ -22,8 +22,10 @@ import {
   Users,
   Sun,
   Moon,
+  Shield,
 } from 'lucide-react';
 import { useTheme } from '@/components/Layout/ThemeProvider';
+import { useSession } from 'next-auth/react';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Quizzes', path: '/' },
@@ -44,6 +46,8 @@ const PLAN_BADGES = {
 export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard, userName, activeWorkspaceId, onWorkspaceChange }) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
   const [userPlan, setUserPlan] = useState('free');
   const [workspaces, setWorkspaces] = useState([]);
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false);
@@ -234,6 +238,28 @@ export default function Sidebar({ onCreateQuiz, onOpenTemplates, onOpenAIWizard,
           );
         })}
       </nav>
+
+      {/* Admin Link - only for owner/admin */}
+      {(userRole === 'owner' || userRole === 'admin') && (
+        <div className="px-3 mb-2">
+          <Link
+            href="/admin"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              pathname.startsWith('/admin')
+                ? 'bg-indigo-500/20 text-indigo-400'
+                : 'text-gray-400 hover:bg-sidebar-hover hover:text-white'
+            }`}
+          >
+            <Shield size={20} />
+            <span className="font-medium">Admin</span>
+            {userRole === 'owner' && (
+              <span className="ml-auto text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">
+                OWNER
+              </span>
+            )}
+          </Link>
+        </div>
+      )}
 
       {/* Upgrade CTA for free users */}
       {userPlan === 'free' && (
