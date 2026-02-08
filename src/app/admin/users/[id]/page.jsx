@@ -420,7 +420,7 @@ export default function AdminUserDetailPage() {
                       m.role === 'editor' ? 'bg-green-500/20 text-green-400' :
                       'bg-gray-500/20 text-gray-400'
                     }`}>
-                      {m.role.toUpperCase()}
+                      {m.role === 'owner' ? 'DONO' : m.role === 'admin' ? 'ADMIN' : m.role === 'editor' ? 'EDITOR' : 'VIEWER'}
                     </span>
                     <button
                       onClick={() => handleAccessWorkspace(m.workspace.id, m.workspace.name, user.name || user.email)}
