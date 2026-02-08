@@ -1405,12 +1405,13 @@ function QuizPlayer() {
   const pageBgStyle = useMemo(() => {
     const pb = theme.pageBackground || {};
     
-    // Se não houver configuração de page background, usar gradiente vibrante como padrão
+    // Prioriza gradiente do backgroundType se disponível (sistema antigo tem prioridade)
+    if (theme.backgroundType === 'gradient' && GRADIENT_CSS[theme.backgroundGradient]) {
+      return { background: GRADIENT_CSS[theme.backgroundGradient] };
+    }
+    
+    // Se não houver configuração de page background, usar fallback
     if (!pb.type) {
-      // Prioriza gradiente se disponível
-      if (theme.backgroundType === 'gradient' && GRADIENT_CSS[theme.backgroundGradient]) {
-        return { background: GRADIENT_CSS[theme.backgroundGradient] };
-      }
       // Fallback: gradiente padrão (pastel rainbow do Stich)
       if (!theme.backgroundColor || theme.backgroundColor === '#EEF2FF') {
         return { background: GRADIENT_CSS['from-violet-600 via-purple-600 to-indigo-700'] };
@@ -2070,8 +2071,9 @@ function QuizPlayer() {
       }
     });
     
-    // Show animated points balloon when SELECTING (not deselecting)
-    if (!wasSelected) {
+    // Show animated points balloon and play pop sound when SELECTING (not deselecting)
+    if (!wasSelected && multipleSelections.length < maxSelect) {
+      playSoundIfEnabled('pop');
       const option = element.options?.[optionIndex];
       const optionScore = option?.score || 0;
       if (optionScore > 0 && event) {

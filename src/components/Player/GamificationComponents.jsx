@@ -454,6 +454,7 @@ function getSoundUrls(volume) {
       { frequency: 784, startTime: 0.24, duration: 0.3 },
       { frequency: 1047, startTime: 0.36, duration: 0.4 },
     ], volume),
+    pop: generateToneDataUrl(1400, 0.06, volume * 0.5),
   };
   return soundCache;
 }
