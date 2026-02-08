@@ -341,8 +341,6 @@ function FullFunnelSection({ quizId }) {
 
   // Form state
   const [privateToken, setPrivateToken] = useState('');
-  const [pipelineId, setPipelineId] = useState('');
-  const [stageId, setStageId] = useState('');
   const [tags, setTags] = useState('quiz-lead');
   const [active, setActive] = useState(true);
   const [showToken, setShowToken] = useState(false);
@@ -378,8 +376,7 @@ function FullFunnelSection({ quizId }) {
         const config = JSON.parse(existing.config || '{}');
         // Backward compat: use privateToken, fallback to apiKey
         setPrivateToken(config.privateToken || config.apiKey || '');
-        setPipelineId(config.pipelineId || '');
-        setStageId(config.stageId || '');
+        // pipelineId/stageId removed — users handle pipeline via automation with tags
         setTags((config.tags || ['quiz-lead']).join(', '));
         setCustomFieldMappings(config.customFieldMappings || {});
         setActive(existing.active);
@@ -416,8 +413,6 @@ function FullFunnelSection({ quizId }) {
 
     const config = {
       privateToken,
-      pipelineId: pipelineId || undefined,
-      stageId: stageId || undefined,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       customFieldMappings: Object.keys(customFieldMappings).length > 0 ? customFieldMappings : undefined,
     };
@@ -506,8 +501,6 @@ function FullFunnelSection({ quizId }) {
       await fetch(`/api/quizzes/${quizId}/integrations/${ghl.id}`, { method: 'DELETE' });
       setGhl(null);
       setPrivateToken('');
-      setPipelineId('');
-      setStageId('');
       setTags('quiz-lead');
       setCustomFieldMappings({});
       setActive(true);
@@ -611,7 +604,7 @@ function FullFunnelSection({ quizId }) {
                       <li className="flex items-center gap-1.5 text-gray-600">
                         <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
                         <code className="bg-orange-100 px-1.5 py-0.5 rounded text-xs font-mono">opportunities.write</code>
-                        <span className="text-xs text-gray-400 italic">(opcional, só se usar pipelines)</span>
+                        <span className="text-xs text-gray-400 italic">(opcional)</span>
                       </li>
                     </ul>
                   </div>
@@ -651,37 +644,16 @@ function FullFunnelSection({ quizId }) {
           <p className="text-xs text-gray-400 mt-1">O token já é vinculado à sua sub-account — não é necessário informar Location ID.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Pipeline ID <span className="text-gray-400">(opcional)</span></label>
-            <input
-              type="text"
-              value={pipelineId}
-              onChange={(e) => setPipelineId(e.target.value)}
-              placeholder="ID do pipeline"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Stage ID <span className="text-gray-400">(opcional)</span></label>
-            <input
-              type="text"
-              value={stageId}
-              onChange={(e) => setStageId(e.target.value)}
-              placeholder="ID do estágio"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tags <span className="text-gray-400">(separar por vírgula)</span></label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="quiz-lead, prospect"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
-            />
-          </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Tags <span className="text-gray-400">(separar por vírgula)</span></label>
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="quiz-lead, prospect"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+          />
+          <p className="text-xs text-gray-400 mt-1">Use as tags para acionar automações no Full Funnel (ex: adicionar ao pipeline automaticamente)</p>
         </div>
 
         {/* ── Custom Field Mappings Section ──────────────── */}
