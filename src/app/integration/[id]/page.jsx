@@ -10,6 +10,7 @@ import {
   Monitor, Smartphone, ExternalLink, Eye, EyeOff, Plus, Trash2, Zap,
   ToggleLeft, ToggleRight, Send, Loader2, AlertCircle, CheckCircle2, X,
 } from 'lucide-react';
+import { PLAYER_ORIGIN } from '@/lib/urls';
 
 // ── Copy button with feedback ────────────────────────────────
 function CopyButton({ text, label = 'Copiar' }) {
@@ -839,7 +840,7 @@ function EmbedSection({ quizId }) {
       .catch(() => {});
   }, [quizId]);
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://seudominio.com';
+  const origin = PLAYER_ORIGIN;
   const slug = quiz?.slug || quizId;
 
   const iframeCode = `<iframe\n  src="${origin}/q/${slug}?embed=true"\n  width="${width}"\n  height="${height}"\n  frameborder="0"\n  style="border:none;"\n  allow="autoplay; fullscreen"\n></iframe>`;

@@ -6,6 +6,7 @@ import { Check, Eye, Send, ChevronLeft, CheckCircle, Link2, MoreHorizontal } fro
 import useQuizStore from '@/store/quizStore';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PLAYER_ORIGIN } from '@/lib/urls';
 
 // Toast component
 function Toast({ message, show, onClose }) {
@@ -181,7 +182,7 @@ export default function TopBar({ quizId }) {
         setQuizSlug(quiz.slug);
         
         // Copiar link automaticamente para a área de transferência
-        const quizUrl = `${window.location.origin}/q/${quiz.slug}`;
+        const quizUrl = `${PLAYER_ORIGIN}/q/${quiz.slug}`;
         await navigator.clipboard.writeText(quizUrl);
         
         // Mostrar toast de sucesso
@@ -198,7 +199,7 @@ export default function TopBar({ quizId }) {
   }, [quizId, publishing]);
 
   const permanentQuizUrl = quizSlug
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/q/${quizSlug}`
+    ? `${PLAYER_ORIGIN}/q/${quizSlug}`
     : '';
 
   const copyPermanentLink = () => {

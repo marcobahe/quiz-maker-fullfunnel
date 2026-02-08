@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { PLAYER_ORIGIN } from '@/lib/urls';
 
 // Disable caching to always get fresh data
 export const dynamic = 'force-dynamic';
@@ -53,10 +54,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
     }
 
-    // Derive origin from request for embed URLs
-    const origin = new URL(request.url).origin;
+    // Use the public player origin for embed URLs
     const embedSlug = quiz.slug || quiz.id;
-    quiz.embedUrl = `${origin}/q/${embedSlug}?embed=true`;
+    quiz.embedUrl = `${PLAYER_ORIGIN}/q/${embedSlug}?embed=true`;
 
     // A/B Testing: include variant info for client-side split
     if (!quiz.isVariant && quiz.variants && quiz.variants.length > 0) {
