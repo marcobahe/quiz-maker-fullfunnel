@@ -70,7 +70,7 @@ export default function GamificationPage() {
                   ...defaultQuizSettings.notifications,
                   ...(settings.notifications || {}),
                 },
-                gamification: { ...(settings.gamification || {}) },
+                gamification: { ...defaultQuizSettings.gamification, ...(settings.gamification || {}) },
               };
               useQuizStore.setState({ quizSettings: merged });
             }
