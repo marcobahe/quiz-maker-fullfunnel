@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { publishToEdge, unpublishFromEdge, refreshEdgeCache } from '@/lib/cloudflare-kv';
+import { publishToEdge, unpublishFromEdge, refreshEdgeCache, publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
 
 function generateSlug(name) {
   return name
@@ -105,9 +105,33 @@ export async function PUT(request, { params }) {
         // Already published, content may have changed — refresh
         refreshEdgeCache(quiz.slug).catch(() => {});
       }
+
+      // Sync custom domain mappings: publish mapping for any verified custom domains
+      try {
+        const customDomains = await prisma.customDomain.findMany({
+          where: { quizId: id, verified: true },
+        });
+        for (const cd of customDomains) {
+          publishDomainMapping(cd.domain, quiz.slug, quiz.id).catch(() => {});
+        }
+      } catch (err) {
+        console.error('[CF-KV] Error syncing custom domain mappings:', err);
+      }
     } else if (quiz.status !== 'published' && existing.status === 'published' && existing.slug) {
       // Unpublished — remove from edge
       unpublishFromEdge(existing.slug).catch(() => {});
+
+      // Remove custom domain mappings for this quiz
+      try {
+        const customDomains = await prisma.customDomain.findMany({
+          where: { quizId: id, verified: true },
+        });
+        for (const cd of customDomains) {
+          removeDomainMapping(cd.domain).catch(() => {});
+        }
+      } catch (err) {
+        console.error('[CF-KV] Error removing custom domain mappings:', err);
+      }
     }
 
     return NextResponse.json(quiz);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
 
 // PUT /api/domains/[id] — update domain (e.g., associate quiz)
 export async function PUT(request, { params }) {
@@ -43,9 +44,18 @@ export async function PUT(request, { params }) {
       where: { id },
       data: updateData,
       include: {
-        quiz: { select: { id: true, name: true, slug: true } },
+        quiz: { select: { id: true, name: true, slug: true, status: true } },
       },
     });
+
+    // If domain is verified and now has a published quiz → publish mapping
+    if (updated.verified && updated.quiz?.slug && updated.quiz?.status === 'published') {
+      publishDomainMapping(updated.domain, updated.quiz.slug, updated.quiz.id).catch(() => {});
+    }
+    // If quiz was removed from domain → remove mapping
+    if (updated.verified && !updated.quizId) {
+      removeDomainMapping(updated.domain).catch(() => {});
+    }
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -70,6 +80,11 @@ export async function DELETE(request, { params }) {
     });
     if (!existing) {
       return NextResponse.json({ error: 'Domínio não encontrado' }, { status: 404 });
+    }
+
+    // Remove domain mapping from edge KV before deleting
+    if (existing.verified) {
+      removeDomainMapping(existing.domain).catch(() => {});
     }
 
     await prisma.customDomain.delete({ where: { id } });

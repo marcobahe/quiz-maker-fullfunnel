@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
 import dns from 'dns';
 
 const resolveCname = dns.promises.resolveCname;
@@ -57,9 +58,19 @@ export async function POST(request, { params }) {
       where: { id },
       data: { verified },
       include: {
-        quiz: { select: { id: true, name: true, slug: true } },
+        quiz: { select: { id: true, name: true, slug: true, status: true } },
       },
     });
+
+    // If verified and has a published quiz → publish domain mapping to edge
+    if (verified && updated.quiz?.slug && updated.quiz?.status === 'published') {
+      publishDomainMapping(updated.domain, updated.quiz.slug, updated.quiz.id).catch(() => {});
+    }
+
+    // If was verified before and now is not → remove mapping
+    if (!verified && domain.verified) {
+      removeDomainMapping(domain.domain).catch(() => {});
+    }
 
     return NextResponse.json({
       ...updated,

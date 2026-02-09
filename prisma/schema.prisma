@@ -137,7 +137,7 @@ model CustomDomain {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   verified    Boolean  @default(false)
-  cnameTarget String   @default("quiz.fullfunnel.com.br")
+  cnameTarget String   @default("play.quizmebaby.app")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

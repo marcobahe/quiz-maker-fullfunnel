@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 // In-memory cache for domain → slug mapping (per edge instance)
+// NOTE: Custom domains are primarily served by the Cloudflare Worker (play.quizmebaby.app)
+// via DOMAIN_MAP KV. This middleware serves as a fallback for domains that reach Vercel
+// directly (e.g., if client's DNS doesn't go through Cloudflare proxy).
 const domainCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
