@@ -49,19 +49,11 @@ function Dashboard({ session }) {
     return null;
   });
 
-  const handleWorkspaceChange = (wsId) => {
-    setActiveWorkspaceId(wsId);
-    localStorage.setItem('activeWorkspaceId', wsId);
-  };
-
-  useEffect(() => {
-    fetchQuizzes();
-  }, [activeWorkspaceId]);
-
-  const fetchQuizzes = async () => {
+  const fetchQuizzes = async (wsId) => {
+    const workspaceId = wsId !== undefined ? wsId : activeWorkspaceId;
     try {
-      const url = activeWorkspaceId
-        ? `/api/quizzes?workspaceId=${activeWorkspaceId}`
+      const url = workspaceId
+        ? `/api/quizzes?workspaceId=${workspaceId}`
         : '/api/quizzes';
       const res = await fetch(url);
       if (res.ok) {
@@ -74,6 +66,17 @@ function Dashboard({ session }) {
       setLoading(false);
     }
   };
+
+  const handleWorkspaceChange = (wsId) => {
+    setActiveWorkspaceId(wsId);
+    localStorage.setItem('activeWorkspaceId', wsId);
+    setLoading(true);
+    fetchQuizzes(wsId);
+  };
+
+  useEffect(() => {
+    fetchQuizzes(activeWorkspaceId);
+  }, [activeWorkspaceId]);
 
   const handleCreateQuiz = async () => {
     try {
