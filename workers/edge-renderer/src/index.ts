@@ -8,20 +8,22 @@ export interface Env {
   PRIMARY_HOST: string
 }
 
-// KV value shape — aligning with Backend-Dev (pending confirmation)
-// Expected: either plain HTML string OR JSON { html: string, meta?: { title?: string, updatedAt?: string } }
-type KvValue = string | { html: string; meta?: Record<string, string> }
+// QUIZ_HTML KV: key=slug, value=raw HTML string (confirmed with Backend-Dev)
+// DOMAIN_MAP KV: key=hostname, value=JSON { slug, quizId, updatedAt } (confirmed with Backend-Dev)
+interface DomainMapEntry {
+  slug: string
+  quizId?: string
+  updatedAt?: string
+}
 
-function extractHtml(raw: string): string {
+function parseDomainMapEntry(raw: string): string {
   try {
-    const parsed = JSON.parse(raw) as KvValue
-    if (typeof parsed === 'object' && parsed !== null && 'html' in parsed) {
-      return parsed.html
-    }
+    const parsed = JSON.parse(raw) as DomainMapEntry
+    return parsed.slug
   } catch {
-    // not JSON — treat as raw HTML
+    // fallback: legacy plain-slug value
+    return raw
   }
-  return raw
 }
 
 const app = new Hono<{ Bindings: Env }>()
@@ -45,12 +47,13 @@ app.get('/:slug', async (c) => {
 
   if (host !== primaryHost) {
     // Custom domain path: look up slug from DOMAIN_MAP
-    const mappedSlug = await env.DOMAIN_MAP.get(host)
-    if (!mappedSlug) {
+    // Value is JSON: { slug, quizId, updatedAt }
+    const rawEntry = await env.DOMAIN_MAP.get(host)
+    if (!rawEntry) {
       // Domain not mapped — fall through to Vercel
       return proxyToVercel(c.req.raw, env.VERCEL_ORIGIN)
     }
-    slug = mappedSlug
+    slug = parseDomainMapEntry(rawEntry)
   } else {
     // play.quizmebaby.app/[slug] — use path param
     slug = c.req.param('slug')
@@ -63,7 +66,7 @@ app.get('/:slug', async (c) => {
     return proxyToVercel(c.req.raw, env.VERCEL_ORIGIN)
   }
 
-  const html = extractHtml(rawValue)
+  const html = rawValue
 
   return new Response(html, {
     headers: {
