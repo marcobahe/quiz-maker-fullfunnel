@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { cache } from 'hono/cache'
 
 export interface Env {
   DOMAIN_MAP: KVNamespace
@@ -26,17 +25,13 @@ function parseDomainMapEntry(raw: string): string {
   }
 }
 
-const app = new Hono<{ Bindings: Env }>()
+// TTL=60s: matches KV eventual-consistency propagation window (~60s).
+// Invalidation strategy: accept up to 60s staleness on republish.
+// Rationale: simpler than versioned keys or explicit purge for MVP; revisit post-launch
+// if publish latency complaints arise.
+const CACHE_TTL = 60
 
-// Cache middleware for GET requests
-app.use(
-  '/*',
-  cache({
-    cacheName: 'quiz-edge-renderer',
-    cacheControl: 'public, max-age=60, s-maxage=300',
-    wait: false,
-  })
-)
+const app = new Hono<{ Bindings: Env }>()
 
 app.get('/:slug', async (c) => {
   const env = c.env
@@ -47,10 +42,9 @@ app.get('/:slug', async (c) => {
 
   if (host !== primaryHost) {
     // Custom domain path: look up slug from DOMAIN_MAP
-    // Value is JSON: { slug, quizId, updatedAt }
     const rawEntry = await env.DOMAIN_MAP.get(host)
     if (!rawEntry) {
-      // Domain not mapped — fall through to Vercel
+      console.log(`[edge] domain_miss host=${host} → proxy_vercel`)
       return proxyToVercel(c.req.raw, env.VERCEL_ORIGIN)
     }
     slug = parseDomainMapEntry(rawEntry)
@@ -59,30 +53,47 @@ app.get('/:slug', async (c) => {
     slug = c.req.param('slug')
   }
 
+  // Cache key includes host to prevent cross-tenant HTML serving.
+  // Using caches.default manually instead of hono/cache middleware because
+  // hono/cache's keyGenerator doesn't expose host reliably across all CF PoPs.
+  const edgeCache = caches.default
+  const cacheKey = new Request(`https://${host}/${slug}`, { method: 'GET' })
+
+  const cached = await edgeCache.match(cacheKey)
+  if (cached) {
+    console.log(`[edge] cache_hit host=${host} slug=${slug}`)
+    return cached
+  }
+
+  console.log(`[edge] cache_miss host=${host} slug=${slug}`)
+
   // Look up HTML from KV
   const rawValue = await env.QUIZ_HTML.get(slug)
   if (!rawValue) {
-    // KV miss — proxy to Vercel middleware
+    console.log(`[edge] kv_miss slug=${slug} → proxy_vercel`)
     return proxyToVercel(c.req.raw, env.VERCEL_ORIGIN)
   }
 
-  const html = rawValue
-
-  return new Response(html, {
+  const response = new Response(rawValue, {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=60, s-maxage=300',
+      'Cache-Control': `public, max-age=${CACHE_TTL}, s-maxage=${CACHE_TTL}`,
       'X-Served-By': 'quiz-edge-renderer',
     },
   })
+
+  // Populate edge cache after response is built — non-blocking
+  c.executionCtx.waitUntil(edgeCache.put(cacheKey, response.clone()))
+
+  return response
 })
 
-// Root path on primary host — also handle /[slug] variants without trailing param
+// Root path on primary host — proxy to Vercel app
 app.get('/', async (c) => {
   return proxyToVercel(c.req.raw, c.env.VERCEL_ORIGIN)
 })
 
-// Catch-all for anything else
+// Catch-all for anything else (assets, API routes, etc.)
 app.all('*', async (c) => {
   return proxyToVercel(c.req.raw, c.env.VERCEL_ORIGIN)
 })
@@ -91,6 +102,9 @@ async function proxyToVercel(request: Request, vercelOrigin: string): Promise<Re
   const url = new URL(request.url)
   const targetUrl = `${vercelOrigin}${url.pathname}${url.search}`
 
+  // Keep original headers including Host — Vercel middleware reads Host to route.
+  // play.quizmebaby.app is in PRODUCTION_DOMAINS (fix f63d702), custom domains
+  // fall through to /api/domains/resolve in the middleware.
   const upstreamReq = new Request(targetUrl, {
     method: request.method,
     headers: request.headers,
@@ -98,8 +112,7 @@ async function proxyToVercel(request: Request, vercelOrigin: string): Promise<Re
     redirect: 'follow',
   })
 
-  const response = await fetch(upstreamReq)
-  return response
+  return fetch(upstreamReq)
 }
 
 export default app
