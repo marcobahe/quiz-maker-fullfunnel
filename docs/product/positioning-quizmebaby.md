@@ -1,19 +1,22 @@
 # Positioning QuizMeBaby — Documento de Posicionamento
 
-> **Status:** Draft v0.1 — 22/04/2026
+> **Status:** Draft v0.2 — 22/04/2026
 > **Autor:** PM (ICO-155)
-> **Dependências:** Benchmark inLead ([ICO-153](/ICO/issues/ICO-153)) + Benchmark internacionais ([ICO-154](/ICO/issues/ICO-154)) — seções marcadas com `[BENCHMARK]` serão refinadas após outputs.
-> **Deadline:** 25/04/2026
+> **Inputs:** TheBoss (steer estratégico pós-ICO-153) · Claudinho (copy/benchmark) · Opus (validação infra + pricing)
+> **Deadline v0.2:** 24/04/2026 EOD
+> **Aguarda revisão:** Opus (pra promover a done)
 
 ---
 
 ## 1. Contexto e Premissa
 
-QuizMeBaby é um quiz builder visual com foco em captura e qualificação de leads — nasceu como feature do ecossistema Full Funnel (GHL + WhatsApp), mas tem potencial e produto suficiente para existir como SaaS standalone.
+QuizMeBaby é um quiz builder visual com foco em captura e qualificação de leads — nasceu como feature do ecossistema Full Funnel (GHL + WhatsApp), mas tem produto suficiente para existir como SaaS standalone.
 
-O posicionamento híbrido resolve dois públicos com um produto:
+**Posicionamento híbrido resolve dois públicos com um produto:**
 - **Mercado amplo:** Qualquer negócio que precisa de funis de quiz para geração de leads
 - **Mercado Full Funnel:** Clientes já no ecossistema GHL/WhatsApp que ganham integração nativa e zero atrito
+
+**Narrativa central (pós-benchmark inLead):** Não competir de frente com inLead ("primeira plataforma de funis interativos do Brasil" — posição já tomada). Atacar pelos flancos: **"Full Funnel nativo — GHL-ready + White-label real + AI"**.
 
 ---
 
@@ -23,38 +26,51 @@ O posicionamento híbrido resolve dois públicos com um produto:
 **"Crie quizzes que qualificam. Venda para quem já quer comprar."**
 
 ### Subtítulo / One-liner
-Construtor visual de quizzes com captura de leads integrada, resultados personalizados e conexão com WhatsApp, GHL e qualquer CRM — sem código, sem frescura.
+O único quiz builder BR com plano grátis, GHL nativo, white-label real e A/B testing — sem letra miúda, sem "Criado via" no rodapé do seu cliente.
 
-### Para quem é
+### ICP Prioritário
+**Agência digital que hoje paga R$197-297/mês na inLead** — dor real:
+- "Edição compartilhada" fraca, sem roles granulares (owner/admin/editor/viewer)
+- Sem white-label: "Criado via inlead.digital" no rodapé de *todos* os funis dos clientes deles, mesmo pagando R$497/mês
+- Sem A/B testing nativo
+- Sem GHL nativo (só webhook genérico)
+- Sem plano free para prospectar novos clientes
+
+### Segmentos Secundários
 | Segmento | Dor Principal | Como o QMB resolve |
 |---|---|---|
-| Infoprodutores | Leads frios, baixa qualificação | Quiz diagóstico segmenta o lead antes da oferta |
-| Agências digitais | Precisam de algo revendável para clientes | White label + workspace por cliente |
+| Infoprodutores | Leads frios, baixa qualificação | Quiz diagnóstico segmenta o lead antes da oferta |
 | Coaches e consultores | Agenda cheia de pessoas sem fit | Quiz de qualificação pré-call elimina não-qualificados |
 | E-commerce | Alta taxa de bounce, baixa conversão | Quiz de produto leva ao produto certo |
 | Equipes de marketing | Custo por lead alto | Quiz orgânico converte mais que formulário frio |
 
-### Por que não usar concorrentes?
-> ⚠️ **[BENCHMARK]** Esta seção será refinada com dados do ICO-153 (inLead) e ICO-154 (Typeform/Involve.me/Outgrow/ScoreApp/Jotform). Lacunas competitivas confirmadas inserir aqui.
+### Diferenciais vs. inLead (Benchmark ICO-153 confirmado)
 
-**Hipóteses de gap a validar:**
-- Typeform/Jotform: sem lógica de branching visual, sem integração nativa WhatsApp BR
-- Involve.me / Outgrow: caros em USD, sem foco no mercado BR, sem GHL nativo
-- inLead (BR): [a confirmar via ICO-153]
-- ScoreApp: bom produto mas sem PT-BR nativo, caro para o mercado BR
+**O que a inLead não tem — e nós temos ou teremos:**
 
-**Diferenciais já comprovados pelo produto:**
-- Builder visual canvas (drag & drop, não linear)
-- Integração nativa GHL (criar/atualizar contato com score, tags, respostas)
-- Disparo WhatsApp no resultado (via Fullzapp/Waha)
-- Player ultra-rápido com edge caching (Cloudflare)
-- Domínios customizados nativos
-- Preço em BRL, suporte BR
+| Diferencial | Status QMB | Narrativa |
+|---|---|---|
+| **Plano Free real** | ✅ Prod | "A inLead começa em R$97/mês. A gente começa de graça." |
+| **A/B testing nativo** | 🔨 Schema pronto | "A única plataforma de quiz do Brasil com split test — sem plugin, sem gambiarra." |
+| **GHL nativo** | ✅ Prod | "Se você usa GoHighLevel, a inLead não fala a sua língua. Nós fomos construídos pra isso." |
+| **White-label completo** | 🔨 Em dev | "Seu cliente paga R$297/mês pra ter 'Criado via inlead.digital' no rodapé. Aqui não." |
+| **Roles granulares** | 🔨 Roadmap | Supera "edição compartilhada" deles sem roles |
+| **AI Analysis de leads** | ⚠️ Pendente (timeout AUDIT) | Nenhum concorrente BR faz |
+| **Edge delivery CF KV** | ✅ Prod | "0.3s de carregamento global, mensurável" |
+
+**Inconsistência de comunicação da inLead (munição copy):**
+Página pública `/planos` lista webhook nos 3 tiers. Help center canônico coloca webhook apenas no PRO (R$197). **Gancho:** *"Webhook em todos os planos. Sem letra miúda, sem upgrade surpresa."*
+
+**O que inLead TEM e nós ainda não temos (honestidade estratégica):**
+- **10 gateways BR** (Hotmart, Kiwify, Kirvano, Eduzz, Ticto, Monetizze, PerfectPay, Braip, Lastlink, Green) — gap crítico pro ICP infoprodutor. Copy enquanto não fecharmos: *"integração via webhook com qualquer gateway — Hotmart nativo em roadmap"*
+- **Social proof BR consolidado** — precisamos de 3-5 cases publicados antes de escalar campanha
+- **Conteúdo orgânico** — inLead tem 3 anos de dianteira (blog/YouTube). Não bloqueia lançamento.
 
 ### Jobs to be Done (JTBD)
 1. **Qualificar leads antes de falar com eles** — "Quando recebo um lead novo, quero saber se ele tem fit antes de perder 30min numa call."
 2. **Automatizar a segmentação** — "Quando alguém responde meu quiz, quero que o CRM já saiba para qual funil mandar."
 3. **Criar sem depender de dev** — "Quando tenho uma ideia de quiz, quero publicar hoje, não em 2 semanas."
+4. **Vender quiz como serviço para clientes** (ICP agência) — "Quando entrego funis para meus clientes, quero que minha marca apareça, não a da plataforma."
 
 ---
 
@@ -64,9 +80,6 @@ Construtor visual de quizzes com captura de leads integrada, resultados personal
 **"Você já tem o funil. Agora qualifique antes de entrar nele."**
 
 ### O que muda para quem já é cliente Full Funnel
-Clientes Full Funnel já têm GHL configurado, automações rodando e WhatsApp integrado. O QuizMeBaby se encaixa no topo do funil deles como a **camada de qualificação** que faltava.
-
-### Proposta de Upgrade
 | Sem QuizMeBaby | Com QuizMeBaby |
 |---|---|
 | Lead entra frio no funil | Lead já segmentado entra com score e categoria |
@@ -77,64 +90,80 @@ Clientes Full Funnel já têm GHL configurado, automações rodando e WhatsApp i
 
 ### Gatilho de Upgrade
 Clientes Full Funnel são ativados com:
-1. **Caso de uso concreto** em seu nicho (ex: "Faça o quiz de diagnóstico de maturidade digital")
+1. **Caso de uso concreto** no nicho deles (ex: "Faça o quiz de diagnóstico de maturidade digital")
 2. **Integração zero-atrito** — GHL já conectado, só criar o quiz
 3. **Snapshot de quiz** incluído no onboarding Full Funnel (entrega imediata de valor)
+4. **30 dias de Pro gratuito** como parte do onboarding; oferta de migração pós-trial com desconto de fidelidade
 
 ### Framing da Oferta
 > "Você já comprou o motor. O QuizMeBaby é o filtro de combustível — sem ele, qualquer lead entra."
 
 ---
 
-## 4. Pricing Tiers Sugeridos
+## 4. Pricing Tiers
 
-> ⚠️ **[BENCHMARK]** Pricing final deve ser validado contra concorrentes após ICO-153 e ICO-154. Os preços abaixo são baseados no Stripe setup atual e nas referências de mercado BR.
+> **Validado por Opus (infra/custo) — 22/04/2026**
+> Pricing anterior (R$47/R$97) era subprecificado vs. teto BR. Novo pricing maximiza posição competitiva vs. inLead.
 
-### Estrutura de Planos
+### Tabela de Planos
 
-| | Free | Pro | Business |
-|---|---|---|---|
-| **Preço mensal** | R$ 0 | R$ 47 | R$ 97 |
-| **Preço anual** | — | R$ 397 (~R$ 33/mês) | R$ 897 (~R$ 75/mês) |
-| **Economia anual** | — | ~30% | ~23% |
-| **Quizzes** | 1 | Ilimitados | Ilimitados |
-| **Leads/mês** | 100 | 2.000 | Ilimitados |
-| **Integrações** | Webhook básico | GHL + WhatsApp + Webhook | Tudo + API |
-| **Domínio customizado** | ❌ | ✅ | ✅ |
-| **Analytics** | Básico | Completo | Completo + Export |
-| **White label** | ❌ | ❌ | ✅ |
-| **Workspaces** | 1 | 1 | Multi-workspace |
-| **Suporte** | Comunidade | Email | Prioritário |
+| | Free | Pro | Business | Agency |
+|---|---|---|---|---|
+| **Preço mensal** | R$ 0 | R$ 97 | R$ 247 | R$ 497 |
+| **Quizzes** | 1 | 5 | 25 | Ilimitados (fair use) |
+| **Leads/mês** | 100 | 10.000 | 50.000 | Ilimitados (fair use >500k → escalar) |
+| **Marca d'água** | Sim | Não | Não | Não |
+| **Custom domains** | ❌ | 3 | 25 | Ilimitados |
+| **Webhook** | ✅ | ✅ | ✅ | ✅ |
+| **A/B testing** | ❌ | ✅ | ✅ | ✅ |
+| **GHL nativo** | ❌ | ✅ | ✅ | ✅ |
+| **White-label** | ❌ | ❌ | Parcial | **Completo** |
+| **Teams + roles** | ❌ | ❌ | ✅ | ✅ |
+| **AI Analysis** | ❌ | 500/mês | 5.000/mês | 25.000/mês + overage R$0,015 |
+| **API** | ❌ | ❌ | ❌ | ✅ |
+| **Storage** | 100MB | 1GB | 10GB | 100GB |
+| **Suporte** | Comunidade | Email | Prioritário | Dedicado |
+
+### Guardrails Obrigatórios (pré-requisito para pricing fechar)
+1. **AI Analysis com quota por tier** — sem isso, 1 heavy user Agency pode queimar R$500+/mês
+2. **WhatsApp = BYO-token (default)** — cliente traz Z-API/Evolution/Meta. A gente orquestra. Margin negativa se viramos provider.
+3. **Custom domains com cap** conforme tabela acima
+4. **Storage cap** para evitar abuso de assets em R2/S3
+5. **Fair-use clause Agency** — ilimitado com throttle acima de 500k leads/mês OR escalonamento comercial
 
 ### Racional de Pricing
 
-**Free** — Funil de aquisição. Uma quiz, 100 leads é suficiente pra validar o produto sem custo. Conversão esperada: 15-20% para Pro.
+**Free** — Funil de aquisição. 1 quiz, 100 leads para validar produto sem custo. Conversão esperada: 15-20% → Pro. inLead não tem free, isso é nosso diferencial de aquisição #1.
 
-**Pro (R$47/mês)** — Ponto de entrada para negócios reais. Abaixo de R$50, percepção de "não é SaaS caro". Equivale a ~1 lead qualificado convertido. Comparable: Hotmart (comissão de 1 venda pequena).
+**Pro (R$97/mês)** — Underprices o PRO deles (R$197) entregando features superiores (A/B, GHL, 10k leads). "O que a inLead cobra R$297, a gente entrega free + custom domain."
 
-**Business (R$97/mês)** — Para agências e times. Dobro do Pro justificado por white label + multi-workspace. Payback em 1 cliente revendido.
+**Business (R$247/mês)** — Para agências. White-label parcial + teams com roles supera "edição compartilhada" da inLead ELITE (R$497).
 
-### Estratégia de Upgrade Full Funnel
-Clientes Full Funnel recebem **30 dias de Pro gratuito** como parte do onboarding. Após 30 dias, oferta de migração para Pro com desconto de fidelidade (R$37/mês no primeiro ano).
+**Agency (R$497/mês)** — Para agências que revendem em escala. White-label completo, API, GHL. Payback em 1-2 clientes revendidos.
 
-### Pricing vs. Concorrentes (Hipóteses a Confirmar)
-> ⚠️ **[BENCHMARK]** Preencher após ICO-153 e ICO-154.
+### Sustentabilidade Financeira (validação Opus)
+- **Custo fixo mensal baseline:** ~R$300-350 (VPS Hetzner + Postgres + CF Workers)
+- **Breakeven:** 4 contas Pro (R$388 MRR) já cobrem fixo
+- **Cenário 100 contas mix** (10F+70P+15B+5A): ~R$13.680 MRR vs R$1.500-2.000 custo → **~85% margem bruta**
+- **Custo marginal por lead:** negligível; AI Analysis: R$0,008-0,05/análise (com quotas, controlado)
 
+### Pricing vs. Concorrentes
 | Ferramenta | Preço entrada | Notas |
 |---|---|---|
-| Typeform | ~USD 29/mês | Em dólar, sem GHL nativo |
-| Involve.me | ~USD 29/mês | Em dólar |
-| Outgrow | ~USD 22/mês | Em dólar, complexo |
-| ScoreApp | ~USD 49/mês | Premium, sem PT-BR |
-| inLead (BR) | [a confirmar] | BR, concorrente direto |
-| **QuizMeBaby Pro** | **R$47/mês** | BR, GHL + WhatsApp nativo |
+| inLead (BR) | R$97/mês (sem free) | Sem A/B, sem GHL nativo, sem white-label real |
+| Typeform | ~USD 29/mês | Em dólar, sem GHL nativo, sem PT-BR focus |
+| Involve.me | ~USD 29/mês | Em dólar, complexo |
+| Outgrow | ~USD 22/mês | Em dólar |
+| ScoreApp | ~USD 49/mês | Premium, sem PT-BR nativo |
+| **QuizMeBaby Free** | **R$ 0** | **Único BR com free tier real** |
+| **QuizMeBaby Pro** | **R$ 97** | **GHL + A/B + 10k leads — supera inLead PRO em features** |
 
 ---
 
 ## 5. Tom de Voz da Marca
 
 ### Personalidade
-QuizMeBaby é **direto, jovem e confiante** — sem jargão corporativo, sem promessa vazia. Fala como um especialista que também sabe contar uma piada.
+QuizMeBaby é **direto, confiante e sem enrolação** — fala como um especialista que também sabe fazer piada. Brasileiro sem ser provinciano. Agressivo no benefício, gentil na abordagem.
 
 ### Os Quatro Pilares de Tom
 
@@ -148,14 +177,14 @@ Sempre começa pela **transformação**, não pela feature.
 ✅ "Seus leads já chegam tagueados no GHL — sem copiar e colar"
 
 #### 3. Brasileiro, não provinciano
-Fala PT-BR fluente, usa referências locais (GHL, WhatsApp, PIX) mas aspira ao mercado internacional. Não força gírias forçadas.
+Fala PT-BR fluente, usa referências locais (GHL, WhatsApp, Hotmart) mas aspira ao mercado internacional.
 ❌ "Arrasa demais, mano!"
 ✅ "Funciona. E funciona bem."
 
 #### 4. Confiante sem arrogância
-Sabe que o produto é bom. Não precisa diminuir concorrente para se vender.
-❌ "Melhor que o Typeform e mais barato que tudo"
-✅ "Feito para o mercado BR, com as integrações que você já usa"
+Sabe que o produto é bom. Não precisa atacar o concorrente pelo nome — deixa o dado falar.
+❌ "A inLead é uma bosta, migra aqui"
+✅ "Webhook em todos os planos. Sem letra miúda, sem upgrade surpresa."
 
 ### Vocabulário da Marca
 | Usar | Evitar |
@@ -167,32 +196,77 @@ Sabe que o produto é bom. Não precisa diminuir concorrente para se vender.
 | Integra com | Se conecta a |
 | Publicar | Deploy / lançar |
 | Workspace | Organização / tenant |
+| White-label real | Personalização de marca |
 
-### Exemplos de Copy por Canal
+### Copy Hooks por Canal (Claudinho — draft)
 
-**Hero da landing page:**
+**Hero landing standalone:**
 > Pare de falar com lead frio. Crie um quiz, qualifique, venda.
 
-**Email de onboarding (dia 1):**
-> Seu primeiro quiz já pode estar no ar. Leva 10 minutos. Segue o passo a passo.
+**Hero landing ICP agência:**
+> Seu cliente paga R$297/mês pra ter o logo de outra empresa no rodapé. Não aqui.
 
-**Push de upgrade (Free → Pro):**
-> Você capturou 87 leads esse mês. No Pro, sem limite — e com GHL direto.
+**Free tier:**
+> A inLead começa em R$97/mês. A gente começa de graça.
+
+**GHL:**
+> Se você usa GoHighLevel, a inLead não fala a sua língua. Nós fomos construídos pra isso.
+
+**A/B:**
+> A única plataforma de quiz do Brasil com split test nativo — sem plugin, sem gambiarra.
+
+**Webhook:**
+> Webhook em todos os planos. Sem letra miúda, sem upgrade surpresa.
+
+**Email onboarding (dia 1):**
+> Seu primeiro quiz já pode estar no ar. Leva 10 minutos. Segue o passo a passo.
 
 **WhatsApp (resultado do quiz):**
 > Oi [nome]! Seu resultado chegou: você é um [categoria]. Aqui está o que isso significa pra você: [link]
 
+**Push upgrade (Free → Pro):**
+> Você capturou 87 leads esse mês. No Pro, sem limite — e com GHL direto.
+
 ---
 
-## 6. Próximos Passos e Dependências
+## 6. Gaps a Fechar Antes de Escalar (Não Levar Tiro)
 
-| Item | Status | Bloqueador |
+| Gap | Criticidade | Ação necessária |
 |---|---|---|
-| Seção 2 — Gap competitivo | 🟡 Rascunho | Aguarda ICO-153 (inLead) + ICO-154 (internacionais) |
-| Seção 4 — Pricing vs. concorrentes | 🟡 Hipóteses | Aguarda ICO-153 + ICO-154 |
-| Validação com Marco | ⬜ Pendente | Após benchmarks prontos |
-| Versão final doc | ⬜ Pendente | Após validação |
+| **Gateways BR** (Hotmart/Kiwify/Kirvano/Eduzz) | 🔴 Alta pro ICP infoprodutor | Copy honesta enquanto não tiver: "webhook com qualquer gateway — Hotmart nativo em roadmap" |
+| **Social proof BR** | 🔴 Alta antes de campanha agressiva | 3-5 cases publicados com resultado mensurável |
+| **8 itens críticos do AUDIT** | 🔴 Alta antes de escalar | Resolver antes de qualquer campanha paga |
+| **AI Analysis (timeout)** | 🟡 Média | Pendência técnica — não promover no copy até fechar |
+| **A/B testing UI** | 🟡 Média | Schema pronto, UI pendente |
+| **Roles granulares** | 🟡 Média | Diferencial vs. inLead ELITE |
+| **Conteúdo orgânico** | 🟢 Baixa urgência | inLead tem 3 anos de dianteira. Não bloqueia lançamento. |
 
 ---
 
-*Draft v0.1 — PM / QuizMeBaby D23 — ICO-155*
+## 7. Pilares Diferenciadores (Ranqueados por Impacto)
+
+1. **Plano Free** — inLead não tem. Remove barreira de entrada. Diferencial de aquisição #1.
+2. **A/B testing nativo** — nenhum concorrente BR tem. Posição exclusiva.
+3. **GHL nativo** — gap real da inLead. ICP agência adora.
+4. **White-label completo** — inLead cobra R$497 e ainda mostra "Criado via inlead.digital". Faca na mão.
+5. **Multi-workspace com roles granulares** — supera "edição compartilhada" da inLead.
+6. **AI Analysis de leads** — ninguém no BR faz (quando corrigido o timeout).
+7. **Edge delivery Cloudflare KV** — performance mensurável, marketável.
+
+---
+
+## 8. Próximos Passos
+
+| Item | Status | Responsável |
+|---|---|---|
+| Draft v0.2 incorporar benchmark ICO-153 + infra | ✅ Feito | PM |
+| Benchmark internacionais ([ICO-154](/ICO/issues/ICO-154)) ingerido | ⬜ Pendente | Analyzer |
+| Revisão e aprovação | ⬜ Aguardando | Opus |
+| Copy página de captura (ICP agência) | ⬜ Pós-done ICO-155 | Claudinho |
+| Copy página de vendas (standalone) | ⬜ Pós-done ICO-155 | Claudinho |
+| Sequência emails lançamento (5 PLF) | ⬜ Pós-done ICO-155 | Claudinho |
+
+---
+
+*Draft v0.2 — PM / QuizMeBaby D23 — ICO-155 — 22/04/2026*
+*Inputs: TheBoss (steer estratégico) · Claudinho (copy/benchmark inLead) · Opus (validação infra+pricing)*
