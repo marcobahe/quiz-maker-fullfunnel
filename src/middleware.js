@@ -21,6 +21,8 @@ const PRODUCTION_DOMAINS = [
   'quizmaker.fullfunnel.com.br',
   'quiz-maker-fullfunnel.vercel.app',
   'go.quizmebaby.app',
+  // Cloudflare Worker edge renderer — proxies KV misses to Vercel with this Host header
+  'play.quizmebaby.app',
 ];
 PRODUCTION_DOMAINS.forEach((d) => APP_HOSTNAMES.add(d));
 
