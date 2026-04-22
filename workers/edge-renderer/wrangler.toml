@@ -7,7 +7,6 @@ account_id = "160ea79933a744b19af54d9d16521ea8"
 # zone_id confirmed active: 79d982ba32071fe8e6ab6268d18d7361 (ICO-156)
 [[routes]]
 pattern = "play.quizmebaby.app/*"
-zone_name = "quizmebaby.app"
 zone_id = "79d982ba32071fe8e6ab6268d18d7361"
 
 # KV Namespaces

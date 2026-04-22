@@ -102,12 +102,17 @@ async function proxyToVercel(request: Request, vercelOrigin: string): Promise<Re
   const url = new URL(request.url)
   const targetUrl = `${vercelOrigin}${url.pathname}${url.search}`
 
-  // Keep original headers including Host — Vercel middleware reads Host to route.
-  // play.quizmebaby.app is in PRODUCTION_DOMAINS (fix f63d702), custom domains
-  // fall through to /api/domains/resolve in the middleware.
+  // CF Workers runtime rewrites Host to match the target URL on fetch().
+  // Set X-Forwarded-Host so the Vercel middleware can recover the original host
+  // for custom domain resolution via /api/domains/resolve (KV miss fallback).
+  // play.quizmebaby.app is in PRODUCTION_DOMAINS (fix f63d702) — always works.
+  const originalHost = new URL(request.url).hostname
+  const headers = new Headers(request.headers)
+  headers.set('X-Forwarded-Host', originalHost)
+
   const upstreamReq = new Request(targetUrl, {
     method: request.method,
-    headers: request.headers,
+    headers,
     body: request.body,
     redirect: 'follow',
   })
