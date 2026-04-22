@@ -747,7 +747,7 @@ function Footer() {
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg font-extrabold font-display text-white">
-                Quiz<span className="text-[#6366f1]">Me</span>Baby
+                Quiz<span className="text-primary">Me</span>Baby
               </span>
             </div>
             <p className="text-sm leading-relaxed mb-1 text-gray-400">
