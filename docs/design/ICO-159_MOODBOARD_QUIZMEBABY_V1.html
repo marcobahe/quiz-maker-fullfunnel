@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizMeBaby — Mood Tests v1.0 | ICO-159</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --indigo: #6366f1;
+    --indigo-dark: #4f46e5;
+    --violet: #8b5cf6;
+    --rose: #EC4899;
+    --accent: #F43F5E;
+    --gold: #F59E0B;
+    --teal: #14B8A6;
+    --bg-dark: #0a0c1b;
+    --surface-dark: #1e293b;
+    --bg-light: #f0f4ff;
+    --white: #ffffff;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #080a14;
+    color: #e2e8f0;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .doc-header {
+    background: linear-gradient(135deg, #0d0f1e 0%, #1a1040 100%);
+    border-bottom: 1px solid rgba(99,102,241,0.3);
+    padding: 48px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .doc-header .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.4);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #a5b4fc;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .doc-header h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .doc-header p {
+    font-size: 16px;
+    color: #94a3b8;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+  .doc-meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 28px;
+  }
+  .doc-meta span {
+    font-size: 12px;
+    color: #64748b;
+  }
+  .doc-meta strong {
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  /* ── SECTION LABELS ── */
+  .section-header {
+    padding: 48px 64px 24px;
+  }
+  .style-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .style-pill {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+  }
+  .pill-A { background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.4); }
+  .pill-B { background: rgba(236,72,153,0.15); color: #f9a8d4; border: 1px solid rgba(236,72,153,0.3); }
+  .pill-C { background: rgba(20,184,166,0.15); color: #5eead4; border: 1px solid rgba(20,184,166,0.3); }
+  .pill-D { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+
+  .section-header h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+  }
+  .section-header p {
+    font-size: 14px;
+    color: #64748b;
+    max-width: 700px;
+  }
+  .ai-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-left: 12px;
+  }
+  .ai-gpt { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+  .ai-nb2 { background: rgba(139,92,246,0.15); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); }
+
+  /* ── GRID ── */
+  .mood-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    padding: 0 64px 64px;
+  }
+
+  /* ── MOOD CARD WRAPPER ── */
+  .mood-card {
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .mood-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  /* ── VARIATION NUMBER ── */
+  .var-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 100px;
+    backdrop-filter: blur(8px);
+  }
+
+  /* ── VISUAL AREA (the mood itself) ── */
+  .mood-visual {
+    width: 100%;
+    aspect-ratio: 16/9;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── INFO PANEL ── */
+  .mood-info {
+    background: #0f1120;
+    padding: 20px 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .mood-info h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+  }
+  .mood-info p {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .prompt-block {
+    background: #080a14;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    color: #7dd3fc;
+    line-height: 1.6;
+  }
+  .prompt-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  /* ══════════════════════════════════════════
+     STYLE A — DARK COSMIC
+  ══════════════════════════════════════════ */
+
+  /* A1 — Pure Blob */
+  .a1-bg {
+    background: #0a0c1b;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    position: relative;
+  }
+  .a1-blob {
+    position: absolute;
+    width: 360px; height: 360px;
+    background: radial-gradient(ellipse at center, rgba(99,102,241,0.5) 0%, rgba(139,92,246,0.3) 40%, transparent 70%);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -60%);
+    filter: blur(40px);
+  }
+  .a1-blob2 {
+    position: absolute;
+    width: 200px; height: 200px;
+    background: radial-gradient(ellipse, rgba(236,72,153,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    bottom: 10%; right: 15%;
+    filter: blur(30px);
+  }
+  .a1-wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -1px;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 0 60px rgba(99,102,241,0.6);
+  }
+  .a1-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: rgba(165,180,252,0.7);
+    margin-top: 8px;
+    position: relative;
+    z-index: 2;
+    letter-spacing: 0.05em;
+  }
+  .a1-card {
+    position: absolute;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 14px 20px;
+    width: 280px;
+    z-index: 3;
+  }
+  .a1-card-q { font-size: 11px; color: #c7d2fe; font-weight: 600; margin-bottom: 8px; }
+  .a1-card-opt {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; color: rgba(255,255,255,0.6);
+    padding: 5px 8px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .a1-card-opt.active { background: rgba(99,102,241,0.3); color: #a5b4fc; }
+  .a1-opt-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(99,102,241,0.5); flex-shrink: 0; }
+  .a1-opt-dot.active { background: #6366f1; }
+
+  /* A2 — Stars + Nebula */
+  .a2-bg {
+    background: #070818;
+    width: 100%; height: 100%;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  .a2-stars {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 45%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 80%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(2px 2px at 20% 85%, rgba(165,180,252,0.9) 0%, transparent 100%),
+      radial-gradient(2px 2px at 70% 30%, rgba(196,181,253,0.8) 0%, transparent 100%);
+  }
+  .a2-nebula {
+    position: absolute;
+    width: 500px; height: 300px;
+    background: conic-gradient(from 180deg at 50% 50%, #0a0c1b, rgba(99,102,241,0.25), rgba(139,92,246,0.2), rgba(236,72,153,0.1), #0a0c1b);
+    border-radius: 50%;
+    filter: blur(50px);
+    opacity: 0.7;
+  }
+  .a2-wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    position: relative; z-index: 2;
+    background: linear-gradient(135deg, #fff 40%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .a2-tag {
+    font-size: 11px; color: rgba(148,163,184,0.6); position: relative; z-index: 2; margin-top: 6px; letter-spacing: 0.08em;
+  }
+
+  /* A3 — UI Mockup focus */
+  .a3-bg {
+    background: linear-gradient(180deg, #0a0c1b 0%, #0e1029 100%);
+    width: 100%; height: 100%;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .a3-glow {
+    position: absolute;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 400px; height: 250px;
+    background: radial-gradient(ellipse, rgba(99,102,241,0.3) 0%, transparent 70%);
+    filter: blur(30px);
+  }
+  .a3-mockup {
+    width: 340px;
+    background: rgba(30,41,59,0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative; z-index: 2;
+    box-shadow: 0 0 60px rgba(99,102,241,0.15), 0 40px 80px rgba(0,0,0,0.6);
+  }
+  .a3-mock-header {
+    background: rgba(99,102,241,0.1);
+    border-bottom: 1px solid rgba(99,102,241,0.15);
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .a3-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .a3-logo-sm { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 800; color: #a5b4fc; margin-left: auto; }
+  .a3-mock-body { padding: 20px 16px; }
+  .a3-question { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: #f1f5f9; margin-bottom: 14px; }
+  .a3-progress { height: 3px; background: rgba(99,102,241,0.2); border-radius: 100px; margin-bottom: 16px; }
+  .a3-progress-bar { height: 100%; width: 45%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 100px; }
+  .a3-option {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .a3-option.sel { border-color: rgba(99,102,241,0.5); background: rgba(99,102,241,0.1); color: #a5b4fc; }
+
+  /* A4 — Split layout */
+  .a4-bg {
+    background: #0a0c1b;
+    width: 100%; height: 100%;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+  }
+  .a4-left {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 32px 28px;
+    position: relative;
+    z-index: 2;
+  }
+  .a4-right {
+    width: 55%;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .a4-mesh {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(99,102,241,0.25) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 30%, rgba(139,92,246,0.15) 0%, transparent 50%);
+    filter: blur(20px);
+  }
+  .a4-wordmark { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .a4-tagline { font-size: 11px; color: rgba(148,163,184,0.7); line-height: 1.5; margin-bottom: 20px; }
+  .a4-cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 9px 18px;
+    border-radius: 100px;
+    width: fit-content;
+  }
+  .a4-phone {
+    width: 130px;
+    background: rgba(30,41,59,0.9);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 20px;
+    padding: 16px 12px;
+    position: relative; z-index: 2;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(99,102,241,0.1);
+  }
+  .a4-phone-q { font-size: 9px; font-weight: 700; color: #e2e8f0; margin-bottom: 10px; font-family: 'Outfit', sans-serif; }
+  .a4-phone-opt {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 8px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 5px;
+  }
+  .a4-phone-opt.s { border-color: rgba(99,102,241,0.5); background: rgba(99,102,241,0.12); color: #a5b4fc; }
+
+  /* ══════════════════════════════════════════
+     STYLE B — LIGHT PLAYFUL
+  ══════════════════════════════════════════ */
+
+  /* B1 — Confetti burst */
+  .b1-bg {
+    background: #f0f4ff;
+    width: 100%; height: 100%;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .b1-confetti {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 15% 25%, rgba(99,102,241,0.12) 0%, transparent 30%),
+      radial-gradient(circle at 85% 15%, rgba(236,72,153,0.1) 0%, transparent 25%),
+      radial-gradient(circle at 70% 75%, rgba(139,92,246,0.1) 0%, transparent 30%),
+      radial-gradient(circle at 20% 70%, rgba(20,184,166,0.08) 0%, transparent 25%);
+  }
+  .b1-dots {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(4px 4px at 12% 18%, #6366f1 0%, transparent 100%),
+      radial-gradient(3px 3px at 88% 22%, #EC4899 0%, transparent 100%),
+      radial-gradient(5px 5px at 25% 78%, #F59E0B 0%, transparent 100%),
+      radial-gradient(4px 4px at 75% 82%, #14B8A6 0%, transparent 100%),
+      radial-gradient(3px 3px at 60% 12%, #8b5cf6 0%, transparent 100%),
+      radial-gradient(6px 6px at 40% 88%, #F43F5E 0%, transparent 100%);
+  }
+  .b1-wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #EC4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative; z-index: 2;
+    margin-bottom: 8px;
+  }
+  .b1-tagline { font-size: 13px; color: #64748b; position: relative; z-index: 2; margin-bottom: 20px; }
+  .b1-cta {
+    background: #6366f1;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px 24px;
+    border-radius: 100px;
+    position: relative; z-index: 2;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+  }
+
+  /* B2 — Cards grid */
+  .b2-bg {
+    background: linear-gradient(145deg, #f0f4ff 0%, #faf5ff 50%, #fff1f8 100%);
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    position: relative;
+  }
+  .b2-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px 16px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(99,102,241,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    flex: 1;
+    max-width: 140px;
+    border: 1px solid rgba(99,102,241,0.1);
+  }
+  .b2-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    margin: 0 auto 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .b2-icon.ind { background: rgba(99,102,241,0.1); }
+  .b2-icon.rose { background: rgba(236,72,153,0.1); }
+  .b2-icon.teal { background: rgba(20,184,166,0.1); }
+  .b2-card-label { font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px; }
+  .b2-card-val { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; }
+  .b2-card-val.ind { color: #6366f1; }
+  .b2-card-val.rose { color: #EC4899; }
+  .b2-card-val.teal { color: #14B8A6; }
+  .b2-title {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800;
+    background: linear-gradient(135deg, #6366f1, #EC4899);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    white-space: nowrap;
+  }
+
+  /* B3 — Quiz in action */
+  .b3-bg {
+    background: #f8faff;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    position: relative;
+  }
+  .b3-blob {
+    position: absolute; top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(236,72,153,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .b3-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px 24px;
+    width: 100%; max-width: 340px;
+    box-shadow: 0 20px 60px rgba(99,102,241,0.1), 0 4px 16px rgba(0,0,0,0.05);
+    border: 1px solid rgba(99,102,241,0.08);
+    position: relative; z-index: 2;
+  }
+  .b3-logo { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .b3-step { font-size: 11px; color: #94a3b8; margin-bottom: 8px; }
+  .b3-question { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 18px; line-height: 1.3; }
+  .b3-opt {
+    border: 2px solid rgba(99,102,241,0.15);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .b3-opt.sel { border-color: #6366f1; background: rgba(99,102,241,0.05); color: #6366f1; }
+
+  /* B4 — Duolingo-inspired */
+  .b4-bg {
+    background: linear-gradient(160deg, #eef2ff 0%, #fdf2ff 100%);
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    position: relative;
+    padding: 24px;
+  }
+  .b4-mascot-area {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.3);
+    font-size: 36px;
+  }
+  .b4-wordmark { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
+  .b4-sub { font-size: 12px; color: #64748b; margin-bottom: 20px; }
+  .b4-streak {
+    display: flex; gap: 8px;
+  }
+  .b4-flame {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    background: rgba(245,158,11,0.1);
+    border: 2px solid rgba(245,158,11,0.3);
+  }
+  .b4-flame.on { background: rgba(245,158,11,0.2); border-color: #F59E0B; }
+
+  /* ══════════════════════════════════════════
+     STYLE C — PREMIUM MINIMAL
+  ══════════════════════════════════════════ */
+
+  /* C1 — Pure white minimal */
+  .c1-bg {
+    background: #ffffff;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    position: relative;
+  }
+  .c1-line {
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 2px; height: 60px;
+    background: #6366f1;
+  }
+  .c1-wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .c1-wordmark span { color: #6366f1; }
+  .c1-tagline {
+    font-size: 13px;
+    color: #94a3b8;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .c1-divider {
+    width: 40px; height: 2px;
+    background: #6366f1;
+    margin-bottom: 24px;
+  }
+  .c1-stats {
+    display: flex; gap: 40px;
+  }
+  .c1-stat { text-align: center; }
+  .c1-stat-val { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800; color: #0f172a; }
+  .c1-stat-label { font-size: 10px; color: #94a3b8; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+
+  /* C2 — Linear-inspired */
+  .c2-bg {
+    background: #fafafa;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px;
+    position: relative;
+  }
+  .c2-border { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #6366f1; }
+  .c2-content { width: 100%; max-width: 440px; }
+  .c2-overline { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #6366f1; margin-bottom: 16px; }
+  .c2-headline { font-family: 'Outfit', sans-serif; font-size: 34px; font-weight: 800; color: #0f172a; line-height: 1.1; margin-bottom: 16px; }
+  .c2-headline em { font-style: normal; color: #6366f1; }
+  .c2-body { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 24px; }
+  .c2-cta {
+    display: inline-block;
+    background: #0f172a;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  /* C3 — Stripe-inspired */
+  .c3-bg {
+    background: #fff;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .c3-top-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #EC4899);
+  }
+  .c3-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+  .c3-logo-mark {
+    width: 36px; height: 36px;
+    background: #6366f1;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 800; color: #fff;
+  }
+  .c3-logo-text { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800; color: #0f172a; }
+  .c3-feature-row { display: flex; gap: 16px; width: 100%; max-width: 420px; }
+  .c3-feature {
+    flex: 1;
+    padding: 16px;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+  }
+  .c3-feature-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: rgba(99,102,241,0.1);
+    margin-bottom: 8px;
+  }
+  .c3-feature-title { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+  .c3-feature-desc { font-size: 10px; color: #94a3b8; line-height: 1.4; }
+
+  /* C4 — Typography-first */
+  .c4-bg {
+    background: #fff;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: flex-start;
+    padding: 40px;
+    position: relative;
+  }
+  .c4-big-q {
+    position: absolute;
+    right: 24px; top: 50%; transform: translateY(-50%);
+    font-family: 'Outfit', sans-serif;
+    font-size: 220px;
+    font-weight: 800;
+    color: rgba(99,102,241,0.06);
+    line-height: 1;
+    user-select: none;
+  }
+  .c4-content { position: relative; z-index: 2; }
+  .c4-kicker { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #6366f1; margin-bottom: 12px; }
+  .c4-headline { font-family: 'Outfit', sans-serif; font-size: 36px; font-weight: 800; color: #0f172a; line-height: 1.1; margin-bottom: 12px; }
+  .c4-sub { font-size: 13px; color: #64748b; line-height: 1.6; max-width: 280px; }
+
+  /* ══════════════════════════════════════════
+     STYLE D — GRADIENT HERO
+  ══════════════════════════════════════════ */
+
+  /* D1 — Full bleed centered */
+  .d1-bg {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #EC4899 100%);
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .d1-noise {
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.15;
+  }
+  .d1-glow-orb {
+    position: absolute;
+    width: 300px; height: 300px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 50%;
+    filter: blur(60px);
+    top: -50px; right: -50px;
+  }
+  .d1-wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-size: 52px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -1.5px;
+    position: relative; z-index: 2;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    margin-bottom: 8px;
+  }
+  .d1-tagline {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    position: relative; z-index: 2;
+    letter-spacing: 0.04em;
+    margin-bottom: 24px;
+  }
+  .d1-cta {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px 26px;
+    border-radius: 100px;
+    position: relative; z-index: 2;
+  }
+
+  /* D2 — Glass mockup floating */
+  .d2-bg {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 40%, #be185d 100%);
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    gap: 24px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .d2-orb1 {
+    position: absolute; top: -60px; left: -60px;
+    width: 240px; height: 240px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%; filter: blur(40px);
+  }
+  .d2-orb2 {
+    position: absolute; bottom: -40px; right: -40px;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%; filter: blur(30px);
+  }
+  .d2-left { position: relative; z-index: 2; }
+  .d2-wordmark { font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .d2-tag { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
+  .d2-stat { margin-bottom: 12px; }
+  .d2-stat-val { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: #fff; }
+  .d2-stat-label { font-size: 10px; color: rgba(255,255,255,0.5); }
+  .d2-card {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 20px 16px;
+    width: 200px;
+    position: relative; z-index: 2;
+  }
+  .d2-card-q { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 12px; font-family: 'Outfit', sans-serif; }
+  .d2-card-opt {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+  }
+  .d2-card-opt.sel {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.4);
+    color: #fff;
+  }
+
+  /* D3 — Split gradient */
+  .d3-bg {
+    background: linear-gradient(115deg, #6366f1 0%, #8b5cf6 35%, #a855f7 55%, #EC4899 100%);
+    width: 100%; height: 100%;
+    display: flex; align-items: stretch;
+    position: relative; overflow: hidden;
+  }
+  .d3-left {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    padding: 32px;
+    position: relative; z-index: 2;
+  }
+  .d3-right {
+    flex: 0 0 220px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.15);
+    display: flex; flex-direction: column;
+    padding: 24px 20px;
+    position: relative; z-index: 2;
+  }
+  .d3-wordmark { font-family: 'Outfit', sans-serif; font-size: 36px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .d3-tag { font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 24px; }
+  .d3-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 100px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .d3-panel-title { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 14px; }
+  .d3-metric { margin-bottom: 14px; }
+  .d3-metric-val { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; color: #fff; }
+  .d3-metric-label { font-size: 10px; color: rgba(255,255,255,0.5); }
+  .d3-bar { height: 4px; background: rgba(255,255,255,0.15); border-radius: 100px; margin-top: 4px; }
+  .d3-bar-fill { height: 100%; border-radius: 100px; background: rgba(255,255,255,0.6); }
+
+  /* D4 — Glassmorphism overlay */
+  .d4-bg {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #EC4899 100%);
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+    padding: 28px;
+  }
+  .d4-circle1 {
+    position: absolute; top: -80px; left: -80px;
+    width: 280px; height: 280px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50%;
+  }
+  .d4-circle2 {
+    position: absolute; top: -40px; left: -40px;
+    width: 180px; height: 180px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .d4-circle3 {
+    position: absolute; bottom: -80px; right: -80px;
+    width: 300px; height: 300px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  .d4-glass {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 28px;
+    padding: 32px 36px;
+    text-align: center;
+    position: relative; z-index: 2;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.2);
+    max-width: 340px;
+  }
+  .d4-wordmark { font-family: 'Outfit', sans-serif; font-size: 38px; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: -1px; }
+  .d4-tagline { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+  .d4-cta-row { display: flex; gap: 10px; justify-content: center; }
+  .d4-cta-primary {
+    background: #fff;
+    color: #6366f1;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 10px 20px;
+    border-radius: 100px;
+  }
+  .d4-cta-sec {
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 100px;
+  }
+
+  /* ── SEPARATOR ── */
+  .section-sep {
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    margin: 8px 64px 0;
+  }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    padding: 32px 64px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 32px;
+  }
+  .doc-footer p { font-size: 12px; color: #334155; }
+  .doc-footer .status-pills { display: flex; gap: 10px; }
+  .status-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 100px;
+  }
+  .pill-pending { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+  .pill-gpt { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
+  .pill-nb2 { background: rgba(139,92,246,0.12); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.25); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="doc-header">
+  <div class="badge">ICO-159 · Mood Tests · QuizMeBaby</div>
+  <h1>16 Variações Visuais<br>de Conceito de Marca</h1>
+  <p>Mood tests para validação estética. 4 estilos × 4 variações. Cada card é uma direção criativa completa com prompt pronto para GPT Image 2 ou NB2.</p>
+  <div class="doc-meta">
+    <span><strong>Versão:</strong> V1.0</span>
+    <span><strong>Data:</strong> 2026-04-22</span>
+    <span><strong>Autor:</strong> Picasso (ICO-159)</span>
+    <span><strong>Status:</strong> Aguardando validação · @UI-UX-Designer</span>
+    <span><strong>Parent:</strong> ICO-157 Brand Brief</span>
+  </div>
+</div>
+
+<!-- ══ STYLE A ══ -->
+<div class="section-header">
+  <div class="style-label">
+    <div class="style-pill pill-A">Estilo A</div>
+    <span class="ai-tag ai-gpt">GPT Image 2</span>
+  </div>
+  <h2>Dark Cosmic</h2>
+  <p>Fundo navy profundo #0a0c1b, blobs de luz índigo e violeta, glassmorphism. Transmite: tech premium, mistério, imersão. Referência: Vercel dark + Spline 3D.</p>
+</div>
+<div class="mood-grid">
+
+  <!-- A1 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;">A1 · Blob Centralizado</div>
+    <div class="mood-visual">
+      <div class="a1-bg">
+        <div class="a1-blob"></div>
+        <div class="a1-blob2"></div>
+        <div class="a1-wordmark">QuizMeBaby</div>
+        <div class="a1-tag">Transforme perguntas em pipeline</div>
+        <div class="a1-card">
+          <div class="a1-card-q">Qual seu principal objetivo com quizzes?</div>
+          <div class="a1-card-opt active"><div class="a1-opt-dot active"></div>Qualificar leads automaticamente</div>
+          <div class="a1-card-opt"><div class="a1-opt-dot"></div>Segmentar minha audiência</div>
+          <div class="a1-card-opt"><div class="a1-opt-dot"></div>Aumentar engajamento</div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>A1 — Blob Centralizado + UI Preview</h3>
+      <p>Composição clássica dark hero com blob de luz índigo no centro. Card flutuante de quiz em glassmorphism. Hierarquia: wordmark → tagline → UI preview.</p>
+      <span class="prompt-label">Prompt GPT Image 2</span>
+      <div class="prompt-block">Dark background deep navy #0a0c1b, single large glowing indigo violet gradient blob centered radiating light, quiz app hero section, clean white bold wordmark "QuizMeBaby" in Outfit font 800 weight centered, tagline below in muted lavender, glass card floating at bottom with quiz question UI preview, glassmorphism card with blur and subtle border, hyper-realistic UI mockup style, 16:9, 1920×1080, cinematic lighting, ultra sharp</div>
+    </div>
+  </div>
+
+  <!-- A2 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;">A2 · Nebulosa Estelar</div>
+    <div class="mood-visual">
+      <div class="a2-bg">
+        <div class="a2-stars"></div>
+        <div class="a2-nebula"></div>
+        <div class="a2-wordmark">QuizMeBaby</div>
+        <div class="a2-tag">QUIZ · LEAD · CONVERSÃO</div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>A2 — Nebulosa Estelar</h3>
+      <p>Fundo cósmico com partículas-estrela e nebulosa em conic gradient. Wordmark em gradiente branco-índigo. Mais atmosférico, menos corporativo.</p>
+      <span class="prompt-label">Prompt GPT Image 2</span>
+      <div class="prompt-block">Deep space background #070818 with scattered white star particles glowing, nebula conic gradient indigo violet pink in center fading to dark edges, white gradient wordmark "QuizMeBaby" Outfit font bold centered, letter-spacing tight, small capsule label "QUIZ · LEAD · CONVERSÃO" in muted lavender below, cosmic atmosphere, photorealistic render, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- A3 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;">A3 · UI Mockup Focus</div>
+    <div class="mood-visual">
+      <div class="a3-bg">
+        <div class="a3-glow"></div>
+        <div class="a3-mockup">
+          <div class="a3-mock-header">
+            <div class="a3-dot" style="background:#ef4444;"></div>
+            <div class="a3-dot" style="background:#f59e0b;margin-left:4px;"></div>
+            <div class="a3-dot" style="background:#22c55e;margin-left:4px;"></div>
+            <div class="a3-logo-sm">QuizMeBaby</div>
+          </div>
+          <div class="a3-mock-body">
+            <div class="a3-progress"><div class="a3-progress-bar"></div></div>
+            <div class="a3-question">Qual canal traz mais leads pro seu negócio?</div>
+            <div class="a3-option sel">Instagram & Reels</div>
+            <div class="a3-option">WhatsApp & grupos</div>
+            <div class="a3-option">Email marketing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>A3 — UI Mockup em Destaque</h3>
+      <p>Produto como herói. Mockup dark elevado com glow índigo sutil. Composição focada no UX do quiz builder. Referência: Vercel Dashboard screenshots.</p>
+      <span class="prompt-label">Prompt GPT Image 2</span>
+      <div class="prompt-block">Dark navy #0a0c1b background, floating browser window mockup showing quiz builder UI dark theme, indigo glow emanating from below the window, glass morphism card with quiz question "Qual canal traz mais leads?" with three answer options one selected highlighted indigo, chrome window header with traffic lights, "QuizMeBaby" in top right header small, hyper-realistic product screenshot style, 16:9, product hunt screenshot aesthetic, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- A4 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;">A4 · Split + Mobile</div>
+    <div class="mood-visual">
+      <div class="a4-bg">
+        <div class="a4-mesh"></div>
+        <div class="a4-left">
+          <div class="a4-wordmark">QuizMeBaby</div>
+          <div class="a4-tagline">Quiz interativo que captura leads e segmenta sua audiência automaticamente.</div>
+          <div class="a4-cta">Criar meu quiz agora</div>
+        </div>
+        <div class="a4-right">
+          <div class="a4-phone">
+            <div class="a4-phone-q">Você é: creator ou empresa?</div>
+            <div class="a4-phone-opt s">Creator / Infoprodutor</div>
+            <div class="a4-phone-opt">Empresa / SaaS</div>
+            <div class="a4-phone-opt">Agência</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>A4 — Split Layout + Phone Mockup</h3>
+      <p>Composição assimétrica: copy à esquerda, phone mockup à direita. Layout orientado a landing page hero section. Versão mais "ad-ready".</p>
+      <span class="prompt-label">Prompt GPT Image 2</span>
+      <div class="prompt-block">Dark navy #0a0c1b split composition, left half: bold white wordmark "QuizMeBaby" Outfit 800 weight, tagline text muted lavender, indigo CTA button rounded-full "Criar meu quiz agora", right half: floating iPhone mockup dark UI showing quiz screen with three answer options, subtle indigo radial glow behind phone, asymmetric layout, 16:9, 1920×1080, product marketing hero style</div>
+    </div>
+  </div>
+
+</div>
+<div class="section-sep"></div>
+
+<!-- ══ STYLE B ══ -->
+<div class="section-header">
+  <div class="style-label">
+    <div class="style-pill pill-B">Estilo B</div>
+    <span class="ai-tag ai-nb2">NB2 / DALL-E 3</span>
+  </div>
+  <h2>Light Playful</h2>
+  <p>Fundo lavanda claro #f0f4ff, confetti gradiente colorido, estética Typeform meets Duolingo. Transmite: acessibilidade, diversão estratégica, SaaS BR amigável.</p>
+</div>
+<div class="mood-grid">
+
+  <!-- B1 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.3);color:#f9a8d4;">B1 · Confetti Hero</div>
+    <div class="mood-visual">
+      <div class="b1-bg">
+        <div class="b1-confetti"></div>
+        <div class="b1-dots"></div>
+        <div class="b1-wordmark">QuizMeBaby</div>
+        <div class="b1-tagline">Transforme perguntas em leads qualificados</div>
+        <div class="b1-cta">Criar meu quiz agora</div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>B1 — Confetti Hero Centralizado</h3>
+      <p>Fundo lavanda com explosão de pontos coloridos espalhados. Wordmark em gradiente vibrante. CTA bold indigo com sombra. Tom Lemon Squeezy.</p>
+      <span class="prompt-label">Prompt NB2 / DALL-E 3</span>
+      <div class="prompt-block">Light lavender background #f0f4ff, colorful confetti dots and gradient blobs scattered around edges indigo pink teal amber, center: bold gradient wordmark "QuizMeBaby" Outfit font 800 indigo-to-pink gradient, tagline below in medium gray, large rounded CTA button indigo "Criar meu quiz agora", playful SaaS landing page hero, Typeform meets Duolingo aesthetic, Brazilian quiz tool, bright airy feel, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- B2 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.3);color:#f9a8d4;">B2 · Dashboard Cards</div>
+    <div class="mood-visual">
+      <div class="b2-bg">
+        <div class="b2-title">QuizMeBaby</div>
+        <div class="b2-card">
+          <div class="b2-icon ind">📊</div>
+          <div class="b2-card-label">Total Leads</div>
+          <div class="b2-card-val ind">2.847</div>
+        </div>
+        <div class="b2-card">
+          <div class="b2-icon rose">💜</div>
+          <div class="b2-card-label">Conversão</div>
+          <div class="b2-card-val rose">68%</div>
+        </div>
+        <div class="b2-card">
+          <div class="b2-icon teal">⚡</div>
+          <div class="b2-card-label">Quizzes ativos</div>
+          <div class="b2-card-val teal">12</div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>B2 — Dashboard em Cards Coloridos</h3>
+      <p>Light mode com três cards de métricas em branco. Resultado-focused: mostra conversão e leads. Tom de sucesso, confiança, dados reais.</p>
+      <span class="prompt-label">Prompt NB2 / DALL-E 3</span>
+      <div class="prompt-block">Soft gradient background lavender to soft purple to blush pink, three floating white rounded cards showing quiz metrics: "2.847 leads", "68% conversão", "12 quizzes ativos", each card with small colored icon, subtle drop shadows, "QuizMeBaby" wordmark top center in indigo-pink gradient, clean SaaS dashboard aesthetic, friendly and professional, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- B3 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.3);color:#f9a8d4;">B3 · Quiz em Ação</div>
+    <div class="mood-visual">
+      <div class="b3-bg">
+        <div class="b3-blob"></div>
+        <div class="b3-card">
+          <div class="b3-logo">QuizMeBaby</div>
+          <div class="b3-step">Pergunta 2 de 5</div>
+          <div class="b3-question">Qual é seu maior desafio com geração de leads hoje?</div>
+          <div class="b3-opt sel">Volume insuficiente de leads</div>
+          <div class="b3-opt">Leads não qualificados</div>
+          <div class="b3-opt">Custo por lead alto</div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>B3 — Player do Quiz em Ação</h3>
+      <p>Foco no produto em uso. Card branco elevado com quiz real. Simula o que o lead enxerga. Referência: Typeform player. Converte por autenticidade.</p>
+      <span class="prompt-label">Prompt NB2 / DALL-E 3</span>
+      <div class="prompt-block">Light soft background #f8faff with subtle pink blob top right, centered large white rounded card quiz player UI: "QuizMeBaby" logo top, step indicator "Pergunta 2 de 5", bold question text "Qual é seu maior desafio?", three answer options with rounded borders one selected in indigo highlight, clean modern quiz interface, Typeform aesthetic, Brazilian SaaS, bright and friendly, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- B4 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.3);color:#f9a8d4;">B4 · Gamificação</div>
+    <div class="mood-visual">
+      <div class="b4-bg">
+        <div class="b4-mascot-area">🎯</div>
+        <div class="b4-wordmark">QuizMeBaby</div>
+        <div class="b4-sub">Parece brincadeira. Converte pra valer.</div>
+        <div class="b4-streak">
+          <div class="b4-flame on">🔥</div>
+          <div class="b4-flame on">🔥</div>
+          <div class="b4-flame on">🔥</div>
+          <div class="b4-flame">🔥</div>
+          <div class="b4-flame">🔥</div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>B4 — Gamificação Duolingo-inspired</h3>
+      <p>App icon grande no topo, wordmark bold, streak de progresso. Máximo de personalidade e energia. Tom: "isso é sério mas é gostoso de usar".</p>
+      <span class="prompt-label">Prompt NB2 / DALL-E 3</span>
+      <div class="prompt-block">Soft lavender-to-purple gradient background, large indigo rounded square app icon with target dart emoji centered top, bold "QuizMeBaby" wordmark below in dark charcoal Outfit font, subtitle "Parece brincadeira. Converte pra valer." in medium gray, row of 5 flame emoji streak indicators below 3 lit amber 2 dimmed, Duolingo gamification aesthetic meets SaaS professionalism, bright playful, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+</div>
+<div class="section-sep"></div>
+
+<!-- ══ STYLE C ══ -->
+<div class="section-header">
+  <div class="style-label">
+    <div class="style-pill pill-C">Estilo C</div>
+    <span class="ai-tag ai-nb2">NB2 / DALL-E 3</span>
+  </div>
+  <h2>Premium Minimal</h2>
+  <p>Fundo branco stark, linha de acento índigo, tipografia dominante, zero ruído. Transmite: sofisticação, confiança, ferramenta séria. Referência: Stripe meets Linear.</p>
+</div>
+<div class="mood-grid">
+
+  <!-- C1 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.3);color:#5eead4;">C1 · Typography Pura</div>
+    <div class="mood-visual">
+      <div class="c1-bg">
+        <div class="c1-line"></div>
+        <div class="c1-wordmark">Quiz<span>Me</span>Baby</div>
+        <div class="c1-tagline">Quiz full-funnel para marketeiros BR</div>
+        <div class="c1-divider"></div>
+        <div class="c1-stats">
+          <div class="c1-stat">
+            <div class="c1-stat-val">2.8k</div>
+            <div class="c1-stat-label">Leads / dia</div>
+          </div>
+          <div class="c1-stat">
+            <div class="c1-stat-val">68%</div>
+            <div class="c1-stat-label">Conversão</div>
+          </div>
+          <div class="c1-stat">
+            <div class="c1-stat-val">12s</div>
+            <div class="c1-stat-label">Setup</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>C1 — Tipografia + Linha de Acento</h3>
+      <p>Máximo minimalismo. Linha vertical índigo no topo, wordmark com acento cromático em "Me", estatísticas abaixo. Stripe landing page energy.</p>
+      <span class="prompt-label">Prompt NB2 / DALL-E 3</span>
+      <div class="prompt-block">Pure white background, single vertical indigo line top center 60px tall, bold dark wordmark "QuizMeBaby" Outfit font 800 center with "Me" in indigo #6366f1, small capsule tagline below in light gray uppercase tracking, thin indigo horizontal divider, three statistics below "2.8k leads" "68% conversão" "12s setup" in bold dark numbers with light gray labels, extreme minimalism, Stripe meets Linear aesthetic, negative space dominant, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- C2 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.3);color:#5eead4;">C2 · Editorial Assimétrico</div>
+    <div class="mood-visual">
+      <div class="c2-bg">
+        <div class="c2-border"></div>
+        <div class="c2-content">
+          <div class="c2-overline">Quiz Full-Funnel · SaaS BR</div>
+          <div class="c2-headline">Seu quiz captura leads.<br><em>De verdade.</em></div>
+          <div class="c2-body">Qualifique, segmente e converta sua audiência com quizzes interativos. Sem código, sem complicação.</div>
+          <div class="c2-cta">Criar meu quiz →</div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>C2 — Editorial com Borda Lateral</h3>
+      <p>Layout editorial assimétrico com borda índigo à esquerda. Headline com ênfase em itálico. CTA em dark button. Tom Linear / Raycast.</p>
+      <span class="prompt-label">Prompt NB2 / DALL-E 3</span>
+      <div class="prompt-block">Off-white background #fafafa, thick 3px vertical indigo bar left edge, editorial layout: small indigo uppercase label "Quiz Full-Funnel · SaaS BR", large bold dark headline "Seu quiz captura leads. De verdade." Outfit 800 with "De verdade" in indigo italic, body text paragraph in medium gray, dark rounded-lg button "Criar meu quiz →", extreme left-aligned asymmetric editorial design, Linear app aesthetic, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- C3 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.3);color:#5eead4;">C3 · Feature Grid</div>
+    <div class="mood-visual">
+      <div class="c3-bg">
+        <div class="c3-top-accent"></div>
+        <div class="c3-logo-row">
+          <div class="c3-logo-mark">Q</div>
+          <div class="c3-logo-text">QuizMeBaby</div>
+        </div>
+        <div class="c3-feature-row">
+          <div class="c3-feature">
+            <div class="c3-feature-icon"></div>
+            <div class="c3-feature-title">Quiz Builder</div>
+            <div class="c3-feature-desc">Crie em minutos, sem código</div>
+          </div>
+          <div class="c3-feature">
+            <div class="c3-feature-icon" style="background:rgba(236,72,153,0.1);"></div>
+            <div class="c3-feature-title">Lead Capture</div>
+            <div class="c3-feature-desc">Qualifique automaticamente</div>
+          </div>
+          <div class="c3-feature">
+            <div class="c3-feature-icon" style="background:rgba(20,184,166,0.1);"></div>
+            <div class="c3-feature-title">Analytics</div>
+            <div class="c3-feature-desc">Resultados em tempo real</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>C3 — Stripe Feature Grid</h3>
+      <p>Acento gradiente no topo, logo com símbolo, três feature cards em grid. Clean, credível, enterprise-adjacent. Stripe Checkout energy.</p>
+      <span class="prompt-label">Prompt NB2 / DALL-E 3</span>
+      <div class="prompt-block">Pure white background, thin top border gradient indigo violet pink, "Q" monogram mark in indigo square rounded logo + "QuizMeBaby" wordmark in dark charcoal Inter font, below: three equally sized white bordered rounded cards in a row each with small colored icon square and feature title "Quiz Builder" "Lead Capture" "Analytics" with brief descriptions, Stripe product page aesthetic, trustworthy professional minimal, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- C4 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.3);color:#5eead4;">C4 · Letra Gigante</div>
+    <div class="mood-visual">
+      <div class="c4-bg">
+        <div class="c4-big-q">?</div>
+        <div class="c4-content">
+          <div class="c4-kicker">Quiz Full-Funnel · QuizMeBaby</div>
+          <div class="c4-headline">Cada<br>pergunta<br>é uma<br>venda.</div>
+          <div class="c4-sub">Quiz interativo que captura, segmenta e converte. Para marketeiros e criadores BR.</div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>C4 — Tipografia Gigante + Big Q</h3>
+      <p>Interrogação "?" gigante como elemento decorativo em índigo transparente. Copy minimalista à esquerda com ritmo vertical. Bold typographic editorial.</p>
+      <span class="prompt-label">Prompt NB2 / DALL-E 3</span>
+      <div class="prompt-block">Pure white background, massive semi-transparent "?" question mark right side in very light indigo #6366f1 at 6% opacity filling the frame, left-aligned: small indigo kicker text "Quiz Full-Funnel · QuizMeBaby", enormous bold dark headline "Cada pergunta é uma venda." Outfit 800 stacked one word per line, small body text below in gray, no other elements, extreme typographic minimalism, award-winning poster design aesthetic, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+</div>
+<div class="section-sep"></div>
+
+<!-- ══ STYLE D ══ -->
+<div class="section-header">
+  <div class="style-label">
+    <div class="style-pill pill-D">Estilo D</div>
+    <span class="ai-tag ai-gpt">GPT Image 2</span>
+  </div>
+  <h2>Gradient Hero</h2>
+  <p>Gradiente full bleed índigo→violeta→rose a 135°. Branco sobre cor saturada. Glassmorphism overlay. Transmite: energia, movimento, lançamento premium. Referência: Product Hunt badges + SaaS hero moderno.</p>
+</div>
+<div class="mood-grid">
+
+  <!-- D1 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fcd34d;">D1 · Pure Gradient Hero</div>
+    <div class="mood-visual">
+      <div class="d1-bg">
+        <div class="d1-noise"></div>
+        <div class="d1-glow-orb"></div>
+        <div class="d1-wordmark">QuizMeBaby</div>
+        <div class="d1-tagline">Transforme perguntas em pipeline de leads</div>
+        <div class="d1-cta">Criar meu quiz gratuitamente</div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>D1 — Full Bleed Gradient Centrado</h3>
+      <p>Gradiente full bleed sem outros elementos visuais. Wordmark branco bold centralizado, tagline em branco translúcido, glass CTA. Máxima saturação de cor. Hero puro.</p>
+      <span class="prompt-label">Prompt GPT Image 2</span>
+      <div class="prompt-block">Full bleed gradient background 135deg from indigo #6366f1 left to violet #8b5cf6 center to rose #EC4899 right, subtle noise grain texture overlay 4% opacity, white orb glow top right, centered bold white wordmark "QuizMeBaby" Outfit 800 weight 52px letter-spacing -1.5px, white translucent tagline below, glassmorphism pill button "Criar meu quiz gratuitamente" frosted glass border, premium SaaS hero feel, 16:9, 1920×1080, highly realistic render</div>
+    </div>
+  </div>
+
+  <!-- D2 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fcd34d;">D2 · Split + Glass Card</div>
+    <div class="mood-visual">
+      <div class="d2-bg">
+        <div class="d2-orb1"></div>
+        <div class="d2-orb2"></div>
+        <div class="d2-left">
+          <div class="d2-wordmark">QuizMeBaby</div>
+          <div class="d2-tag">Quiz full-funnel para o mercado BR</div>
+          <div class="d2-stat">
+            <div class="d2-stat-val">2.847</div>
+            <div class="d2-stat-label">leads capturados hoje</div>
+          </div>
+          <div class="d2-stat">
+            <div class="d2-stat-val">68%</div>
+            <div class="d2-stat-label">taxa de conversão média</div>
+          </div>
+        </div>
+        <div class="d2-card">
+          <div class="d2-card-q">Você vende: produto físico ou digital?</div>
+          <div class="d2-card-opt sel">Digital (curso, mentoria, SaaS)</div>
+          <div class="d2-card-opt">Físico (e-commerce, loja)</div>
+          <div class="d2-card-opt">Serviços / agência</div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>D2 — Split Gradient + Glass Card</h3>
+      <p>Composição assimétrica: métricas à esquerda, quiz card em glass à direita. Prova social + produto simultâneos. Ideal para ads de performance.</p>
+      <span class="prompt-label">Prompt GPT Image 2</span>
+      <div class="prompt-block">Deep indigo to violet to magenta gradient background 135deg, two white soft orb glows corners, left side: white wordmark "QuizMeBaby" Outfit 800, subtitle, large numbers "2.847 leads" and "68% conversão" in white bold stacked, right side: frosted glass card rgba white 12% backdrop blur quiz question "Você vende: produto físico ou digital?" with three options first selected, asymmetric split layout, premium gradient SaaS hero, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- D3 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fcd34d;">D3 · Gradient + Painel</div>
+    <div class="mood-visual">
+      <div class="d3-bg">
+        <div class="d3-left">
+          <div class="d3-wordmark">QuizMeBaby</div>
+          <div class="d3-tag">Quiz full-funnel · Lançamento 2026</div>
+          <div class="d3-badge">Beta aberto</div>
+        </div>
+        <div class="d3-right">
+          <div class="d3-panel-title">Resultados hoje</div>
+          <div class="d3-metric">
+            <div class="d3-metric-val">2.847</div>
+            <div class="d3-metric-label">Leads capturados</div>
+            <div class="d3-bar"><div class="d3-bar-fill" style="width:82%;"></div></div>
+          </div>
+          <div class="d3-metric">
+            <div class="d3-metric-val">68%</div>
+            <div class="d3-metric-label">Taxa de conversão</div>
+            <div class="d3-bar"><div class="d3-bar-fill" style="width:68%;"></div></div>
+          </div>
+          <div class="d3-metric">
+            <div class="d3-metric-val">12</div>
+            <div class="d3-metric-label">Quizzes ativos</div>
+            <div class="d3-bar"><div class="d3-bar-fill" style="width:45%;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>D3 — Gradient + Painel de Métricas</h3>
+      <p>Gradient full bleed com painel lateral em glass mostrando métricas reais. Direita: progress bars. Composição data-driven no estilo Vercel analytics.</p>
+      <span class="prompt-label">Prompt GPT Image 2</span>
+      <div class="prompt-block">Full bleed indigo violet rose gradient, left section: white "QuizMeBaby" wordmark Outfit 800, subtitle, "Beta aberto" capsule badge glass style, right panel: frosted glass sidebar "Resultados hoje" with three metrics each showing bold white number label and thin white progress bar: "2.847 Leads" 82% fill, "68% Conversão" 68% fill, "12 Quizzes" 45% fill, clean data visualization within gradient, 16:9, 1920×1080</div>
+    </div>
+  </div>
+
+  <!-- D4 -->
+  <div class="mood-card">
+    <div class="var-badge" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fcd34d;">D4 · Glass Card Central</div>
+    <div class="mood-visual">
+      <div class="d4-bg">
+        <div class="d4-circle1"></div>
+        <div class="d4-circle2"></div>
+        <div class="d4-circle3"></div>
+        <div class="d4-glass">
+          <div class="d4-wordmark">QuizMeBaby</div>
+          <div class="d4-tagline">Seu quiz de alta conversão em menos de 5 minutos</div>
+          <div class="d4-cta-row">
+            <div class="d4-cta-primary">Começar grátis</div>
+            <div class="d4-cta-sec">Ver demo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mood-info">
+      <h3>D4 — Glass Card sobre Gradient</h3>
+      <p>Glassmorphism card centralizado sobre gradiente vibrante com círculos decorativos. Dois CTAs: primário (branco sólido) + secundário (glass). Máximo impacto de lançamento.</p>
+      <span class="prompt-label">Prompt GPT Image 2</span>
+      <div class="prompt-block">Full bleed indigo to violet to rose gradient 135deg, decorative concentric circle outlines white 10% opacity top-left corner and bottom-right corner, centered: large frosted glass card white 15% backdrop-blur-xl border white 25%, inside: bold white "QuizMeBaby" Outfit 800 38px, white translucent tagline, two buttons side by side: solid white button "Começar grátis" indigo text, glass outline button "Ver demo" white text, drop shadow on glass card, 16:9, 1920×1080, premium launch aesthetic</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="doc-footer">
+  <div>
+    <p style="color:#475569;margin-bottom:4px;font-size:13px;font-weight:600;">QuizMeBaby Mood Tests V1.0</p>
+    <p>ICO-159 · Parent: ICO-157 · Picasso · 2026-04-22</p>
+  </div>
+  <div class="status-pills">
+    <span class="status-pill pill-pending">Aguardando Validação</span>
+    <span class="status-pill pill-gpt">Estilos A + D → GPT Image 2</span>
+    <span class="status-pill pill-nb2">Estilos B + C → NB2</span>
+  </div>
+</div>
+
+</body>
+</html>
