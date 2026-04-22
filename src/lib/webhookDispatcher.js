@@ -199,12 +199,15 @@ async function sendToGHL(integration, payload) {
       }
     }
 
-    const contactRes = await fetch('https://services.leadconnectorhq.com/contacts/', {
-      method: 'POST',
-      headers: ghlHeaders,
-      body: JSON.stringify(contactBody),
-      signal: AbortSignal.timeout(15000),
-    });
+    const contactRes = await fetchWithRetry(
+      'https://services.leadconnectorhq.com/contacts/',
+      {
+        method: 'POST',
+        headers: ghlHeaders,
+        body: JSON.stringify(contactBody),
+        signal: AbortSignal.timeout(15000),
+      }
+    );
 
     const contactData = await contactRes.json();
     console.log(`[FullFunnel] Contact created/updated: ${contactRes.status}`, contactData?.contact?.id || '');
@@ -220,18 +223,52 @@ async function sendToGHL(integration, payload) {
         source: `Quiz: ${payload.quiz.name}`,
       };
 
-      const oppRes = await fetch('https://services.leadconnectorhq.com/opportunities/', {
-        method: 'POST',
-        headers: ghlHeaders,
-        body: JSON.stringify(oppBody),
-        signal: AbortSignal.timeout(15000),
-      });
+      const oppRes = await fetchWithRetry(
+        'https://services.leadconnectorhq.com/opportunities/',
+        {
+          method: 'POST',
+          headers: ghlHeaders,
+          body: JSON.stringify(oppBody),
+          signal: AbortSignal.timeout(15000),
+        }
+      );
 
       console.log(`[FullFunnel] Opportunity created: ${oppRes.status}`);
     }
   } catch (err) {
     console.error(`[FullFunnel] ${integration.name} failed:`, err.message);
   }
+}
+
+// ── Retry helper ─────────────────────────────────────────────
+
+/**
+ * Retry a fetch call up to `maxAttempts` times on network errors or 5xx responses.
+ * Waits `baseDelayMs * 2^attempt` ms between tries (exponential backoff).
+ * Does NOT retry on 4xx — those are client errors (bad token, wrong IDs).
+ */
+async function fetchWithRetry(url, options, { maxAttempts = 3, baseDelayMs = 1000 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
+    }
+    try {
+      const res = await fetch(url, options);
+      // Retry on server errors; bail immediately on client errors
+      if (res.status >= 500) {
+        lastErr = new Error(`HTTP ${res.status}`);
+        console.warn(`[FullFunnel] Attempt ${attempt + 1}/${maxAttempts} failed (${res.status}), retrying…`);
+        continue;
+      }
+      return res;
+    } catch (err) {
+      // Network / timeout errors — retry
+      lastErr = err;
+      console.warn(`[FullFunnel] Attempt ${attempt + 1}/${maxAttempts} network error: ${err.message}`);
+    }
+  }
+  throw lastErr;
 }
 
 // ── Test functions (used by test endpoint) ───────────────────
