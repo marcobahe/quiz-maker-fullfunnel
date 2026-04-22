@@ -1,0 +1,23 @@
+name = "quiz-edge-renderer"
+main = "src/index.ts"
+compatibility_date = "2024-04-01"
+account_id = "160ea79933a744b19af54d9d16521ea8"
+
+# Routes: primary play subdomain
+[[routes]]
+pattern = "play.quizmebaby.app/*"
+zone_name = "quizmebaby.app"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "DOMAIN_MAP"
+id = "d74ab364d6264846a749b6da9a579c1a"
+
+[[kv_namespaces]]
+binding = "QUIZ_HTML"
+id = "07070b407cf94db4a1419e7a1a87c447"
+
+[vars]
+# Vercel origin — fallback when KV miss
+VERCEL_ORIGIN = "https://quiz-maker-fullfunnel.vercel.app"
+PRIMARY_HOST = "play.quizmebaby.app"
