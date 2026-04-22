@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { checkLimit } from '@/lib/planLimits';
 import { checkWorkspaceAccess } from '@/lib/admin';
 import { handleApiError } from '@/lib/apiError';
+import { createQuizSchema } from '@/lib/schemas/quiz.schema';
 
 function generateSlug(name) {
   return name
@@ -136,8 +137,15 @@ export async function POST(request) {
       );
     }
 
-    const body = await request.json();
-    const { name, description, canvasData, scoreRanges, settings, workspaceId } = body;
+    const rawBody = await request.json();
+    const parsed = createQuizSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { name, description, canvasData, scoreRanges, settings, workspaceId } = parsed.data;
     const quizName = name || 'Meu Novo Quiz';
     
     const slug = generateSlug(quizName);

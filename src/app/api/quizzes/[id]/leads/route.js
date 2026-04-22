@@ -6,6 +6,7 @@ import { dispatchIntegrations } from '@/lib/webhookDispatcher';
 import { checkLimit } from '@/lib/planLimits';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { handleApiError } from '@/lib/apiError';
+import { createLeadSchema } from '@/lib/schemas/lead.schema';
 
 export async function GET(request, { params }) {
   try {
@@ -84,7 +85,15 @@ export async function POST(request, { params }) {
       );
     }
 
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = createLeadSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
 
     // Verify quiz exists
     const quiz = await prisma.quiz.findUnique({

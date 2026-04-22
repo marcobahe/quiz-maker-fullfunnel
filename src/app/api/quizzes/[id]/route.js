@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { publishToEdge, unpublishFromEdge, refreshEdgeCache, publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
 import { handleApiError } from '@/lib/apiError';
+import { updateQuizSchema } from '@/lib/schemas/quiz.schema';
 
 function generateSlug(name) {
   return name
@@ -54,7 +55,15 @@ export async function PUT(request, { params }) {
     }
 
     const { id } = await params;
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = updateQuizSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
 
     // Verify ownership
     const existing = await prisma.quiz.findFirst({
@@ -63,6 +72,18 @@ export async function PUT(request, { params }) {
 
     if (!existing) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
+    }
+
+    // C6 — Optimistic write lock: reject stale writes
+    if (body.clientUpdatedAt !== undefined) {
+      const clientTs = new Date(body.clientUpdatedAt).getTime();
+      const serverTs = new Date(existing.updatedAt).getTime();
+      if (clientTs < serverTs) {
+        return NextResponse.json(
+          { error: 'VERSION_CONFLICT', serverUpdatedAt: existing.updatedAt },
+          { status: 409 }
+        );
+      }
     }
 
     const updateData = {};
