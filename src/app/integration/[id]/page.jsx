@@ -346,6 +346,13 @@ function FullFunnelSection({ quizId }) {
   const [active, setActive] = useState(true);
   const [showToken, setShowToken] = useState(false);
 
+  // Pipeline configuration
+  const [pipelineId, setPipelineId] = useState('');
+  const [stageId, setStageId] = useState('');
+  const [pipelines, setPipelines] = useState([]);
+  const [loadingPipelines, setLoadingPipelines] = useState(false);
+  const [pipelineError, setPipelineError] = useState(null);
+
   // Custom field mappings
   const [customFieldMappings, setCustomFieldMappings] = useState({});
   const [questions, setQuestions] = useState([]);
@@ -377,7 +384,8 @@ function FullFunnelSection({ quizId }) {
         const config = JSON.parse(existing.config || '{}');
         // Backward compat: use privateToken, fallback to apiKey
         setPrivateToken(config.privateToken || config.apiKey || '');
-        // pipelineId/stageId removed — users handle pipeline via automation with tags
+        setPipelineId(config.pipelineId || '');
+        setStageId(config.stageId || '');
         setTags((config.tags || ['quiz-lead']).join(', '));
         setCustomFieldMappings(config.customFieldMappings || {});
         setActive(existing.active);
@@ -395,6 +403,37 @@ function FullFunnelSection({ quizId }) {
       fetchQuizQuestions();
     }
   }, [quizId, fetchIntegration, fetchQuizQuestions]);
+
+  const handleLoadPipelines = async () => {
+    if (!privateToken.trim()) {
+      setPipelineError('Informe o token antes de carregar os pipelines.');
+      return;
+    }
+    setLoadingPipelines(true);
+    setPipelineError(null);
+    try {
+      const res = await fetch('/api/ghl/pipelines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: privateToken.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPipelineError(data.error || 'Erro ao carregar pipelines.');
+        return;
+      }
+      setPipelines(data.pipelines || []);
+      if (data.pipelines?.length === 0) {
+        setPipelineError('Nenhum pipeline encontrado nesta conta.');
+      }
+    } catch (err) {
+      setPipelineError(err.message || 'Erro ao carregar pipelines.');
+    } finally {
+      setLoadingPipelines(false);
+    }
+  };
+
+  const selectedPipeline = pipelines.find((p) => p.id === pipelineId) || null;
 
   const handleMappingChange = (key, value) => {
     setCustomFieldMappings((prev) => {
@@ -415,6 +454,8 @@ function FullFunnelSection({ quizId }) {
     const config = {
       privateToken,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+      pipelineId: pipelineId || undefined,
+      stageId: stageId || undefined,
       customFieldMappings: Object.keys(customFieldMappings).length > 0 ? customFieldMappings : undefined,
     };
 
@@ -503,6 +544,9 @@ function FullFunnelSection({ quizId }) {
       setGhl(null);
       setPrivateToken('');
       setTags('quiz-lead');
+      setPipelineId('');
+      setStageId('');
+      setPipelines([]);
       setCustomFieldMappings({});
       setActive(true);
       setTestResult(null);
@@ -654,7 +698,71 @@ function FullFunnelSection({ quizId }) {
             placeholder="quiz-lead, prospect"
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
           />
-          <p className="text-xs text-gray-400 mt-1">Use as tags para acionar automações no Full Funnel (ex: adicionar ao pipeline automaticamente)</p>
+          <p className="text-xs text-gray-400 mt-1">Use as tags para acionar automações no Full Funnel</p>
+        </div>
+
+        {/* ── Pipeline / Stage Section ────────────────────── */}
+        <div className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h4 className="text-sm font-medium text-gray-700">Pipeline e Estágio <span className="text-gray-400 font-normal">(opcional)</span></h4>
+              <p className="text-xs text-gray-400 mt-0.5">Crie uma oportunidade automaticamente no pipeline ao receber um lead.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleLoadPipelines}
+              disabled={loadingPipelines || !privateToken.trim()}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              {loadingPipelines ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} />}
+              {loadingPipelines ? 'Carregando…' : 'Carregar Pipelines'}
+            </button>
+          </div>
+
+          {pipelineError && (
+            <p className="text-xs text-red-500 mb-3 flex items-center gap-1">
+              <AlertCircle size={12} /> {pipelineError}
+            </p>
+          )}
+
+          {pipelines.length > 0 ? (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Pipeline</label>
+                <select
+                  value={pipelineId}
+                  onChange={(e) => { setPipelineId(e.target.value); setStageId(''); }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none bg-white"
+                >
+                  <option value="">— Nenhum (não criar oportunidade) —</option>
+                  {pipelines.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              {pipelineId && selectedPipeline && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Estágio inicial</label>
+                  <select
+                    value={stageId}
+                    onChange={(e) => setStageId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none bg-white"
+                  >
+                    <option value="">— Primeiro estágio —</option>
+                    {selectedPipeline.stages.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400">
+              {pipelineId
+                ? `Pipeline configurado: ID ${pipelineId}${stageId ? ` / Estágio: ${stageId}` : ''}. Clique em "Carregar Pipelines" para ver as opções.`
+                : 'Clique em "Carregar Pipelines" para escolher onde criar as oportunidades.'}
+            </p>
+          )}
         </div>
 
         {/* ── Custom Field Mappings Section ──────────────── */}
