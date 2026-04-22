@@ -2,10 +2,12 @@
 
 > **Para uso externo.** Enviar ao cliente por email/WhatsApp para coletar o depoimento.
 > Adaptar o tom conforme o relacionamento (formal/informal).
+>
+> ⚠️ **Não disparar antes de:** (1) termo PDF separado aprovado pelo jurídico/Marco, (2) marca "QuizMeBaby" confirmada como definitiva.
 
 ---
 
-**Assunto sugerido:** "Oi [Nome], queremos contar sua história 🚀"
+**Assunto sugerido:** "Oi [Nome], queremos entender sua experiência 💬"
 
 ---
 
@@ -15,13 +17,13 @@ Tudo bem?
 
 Aqui é [Seu Nome], da equipe do QuizMeBaby.
 
-Adoramos ver os resultados que você está tendo com a plataforma — e gostaríamos muito de **contar sua história** para outras empresas que estão passando pelo mesmo desafio que você passou.
+Sabemos que você vem usando o QuizMeBaby há [X meses] e gostaríamos de entender sua experiência — pode ter sido boa ou ter tido fricção, queremos ouvir de verdade.
 
-São apenas **5 perguntinhas rápidas** (5-10 min) + uma foto de perfil. Se topar, seria incrível!
+São apenas **7 perguntinhas rápidas** (5-10 min) + uma foto de perfil. Se topar, seria incrível!
 
 ---
 
-## 5 Perguntas
+## 7 Perguntas
 
 **1. Qual era o maior desafio que você tinha na captação de leads antes de usar o QuizMeBaby?**
 
@@ -29,9 +31,9 @@ São apenas **5 perguntinhas rápidas** (5-10 min) + uma foto de perfil. Se topa
 
 ---
 
-**2. Depois que começou a usar, qual resultado te surpreendeu mais?**
+**2. Depois que começou a usar, qual resultado te surpreendeu mais? Se possível, com números antes/depois (CPL, leads/mês, faturamento, conversão...).**
 
-*(Ex: "Nosso CPL caiu de R$ 12 para R$ 4", "Passamos de 200 para 800 leads/mês"...)*
+*(Ex: "Nosso CPL caiu de R$ 12 para R$ 4", "Passamos de 200 para 800 leads/mês". Sem número preciso? Um intervalo ou estimativa já ajuda muito.)*
 
 ---
 
@@ -52,9 +54,23 @@ São apenas **5 perguntinhas rápidas** (5-10 min) + uma foto de perfil. Se topa
 
 ---
 
+**6. Podemos usar publicamente os números que você compartilhou (em anúncios, posts, site)?**
+
+`( ) Sim, com nome da empresa` `( ) Sim, anonimizado` `( ) Não`
+
+---
+
+**7. Topa que a gente use o logo da [Empresa] junto do depoimento e marque vocês quando publicarmos?**
+
+`( ) Sim, pode usar logo e marcar` `( ) Prefiro sem logo/tag` `( ) Sem preferência`
+
+---
+
 ## Autorização de uso
 
-Ao responder este formulário, você autoriza o QuizMeBaby a usar suas respostas, nome, cargo e foto para fins de marketing digital (redes sociais, site, anúncios). Você pode revogar essa autorização a qualquer momento.
+> ⚠️ **Nota interna:** esta seção é temporária. Substituir pelo **termo PDF separado** (aprovação pendente com Marco/jurídico) antes de qualquer disparo. O texto abaixo é apenas rascunho de referência.
+
+Ao responder este formulário, você autoriza o QuizMeBaby a usar suas respostas, nome, cargo e foto para fins de marketing digital (redes sociais, site, anúncios). Você pode revogar essa autorização a qualquer momento mediante solicitação formal por escrito.
 
 **Confirma a autorização?** `( ) Sim` `( ) Não`
 
