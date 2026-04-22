@@ -28,6 +28,7 @@ export default function BuilderPage() {
   const setEdges = useQuizStore((s) => s.setEdges);
   const setQuizStatus = useQuizStore((s) => s.setQuizStatus);
   const setScoreRanges = useQuizStore((s) => s.setScoreRanges);
+  const setServerUpdatedAt = useQuizStore((s) => s.setServerUpdatedAt);
 
   const [loading, setLoading] = useState(true);
   const autoSaveTimer = useRef(null);
@@ -57,7 +58,9 @@ export default function BuilderPage() {
         }),
       });
       if (res.ok) {
+        const saved = await res.json();
         useQuizStore.getState().saveQuiz();
+        useQuizStore.getState().setServerUpdatedAt(saved.updatedAt || null);
       }
     } catch (err) {
       console.error('Auto-save failed:', err);
@@ -84,6 +87,28 @@ export default function BuilderPage() {
       loadQuiz(params.id);
     }
   }, [status, params.id]);
+
+  // Detect stale local state when the tab regains focus.
+  // Only reloads when there are no pending local changes (isSaved=true) and the
+  // server has a newer version — handles the "two tabs" concurrent-edit scenario.
+  useEffect(() => {
+    if (!params.id) return;
+    const handleVisibility = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const { isSaved: saved, serverUpdatedAt: localTs } = useQuizStore.getState();
+      if (!saved) return; // unsaved local changes take priority
+      try {
+        const res = await fetch(`/api/quizzes/${params.id}`);
+        if (!res.ok) return;
+        const quiz = await res.json();
+        if (localTs && quiz.updatedAt && new Date(quiz.updatedAt) > new Date(localTs)) {
+          loadQuiz(params.id);
+        }
+      } catch (_e) { /* ignore network errors */ }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [params.id]);
 
   // Auto-open panel when a node is selected (store already does this in selectNode)
   // but if panel was manually closed and user clicks a node, it re-opens via selectNode
@@ -242,6 +267,7 @@ export default function BuilderPage() {
             setEdges(migratedEdges);
           }
         }
+        setServerUpdatedAt(quiz.updatedAt || null);
       } else {
         router.push('/');
       }

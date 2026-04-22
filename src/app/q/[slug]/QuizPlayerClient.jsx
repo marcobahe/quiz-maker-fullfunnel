@@ -1319,6 +1319,9 @@ function QuizPlayer({ quizData }) {
   }, [nodes, currentNodeId, selectedOption]);
 
   // ── Embed: auto-resize via postMessage ───────────────────────
+  // Only depend on isEmbed — the ResizeObserver fires send() on every DOM
+  // height change, so re-creating it on currentNodeId/showResult changes
+  // was causing one leaked observer per question navigation.
   useEffect(() => {
     if (!isEmbed) return;
     const send = () => {
@@ -1329,7 +1332,7 @@ function QuizPlayer({ quizData }) {
     const obs = new ResizeObserver(send);
     obs.observe(document.body);
     return () => obs.disconnect();
-  }, [isEmbed, currentNodeId, showResult, showLeadForm]);
+  }, [isEmbed]);
 
   // ── Gamification Helper Functions ───────────────────────────
   

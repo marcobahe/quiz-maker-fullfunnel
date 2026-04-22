@@ -117,6 +117,9 @@ const useQuizStore = create((set, get) => ({
   quizName: 'Meu Novo Quiz',
   quizStatus: 'Rascunho',
   isSaved: true,
+  // ISO timestamp of the last version synced from the server.
+  // Used by the builder to detect stale local state (e.g. another tab saved).
+  serverUpdatedAt: null,
 
   // Nodes and edges for canvas
   nodes: initialNodes,
@@ -143,6 +146,7 @@ const useQuizStore = create((set, get) => ({
   setQuizId: (id) => set({ quizId: id }),
   setQuizName: (name) => set({ quizName: name, isSaved: false }),
   setQuizStatus: (status) => set({ quizStatus: status }),
+  setServerUpdatedAt: (ts) => set({ serverUpdatedAt: ts }),
 
   // ── Score Ranges actions ───────────────────────────────────
 
@@ -430,6 +434,7 @@ const useQuizStore = create((set, get) => ({
       quizName: 'Meu Novo Quiz',
       quizStatus: 'Rascunho',
       isSaved: true,
+      serverUpdatedAt: null,
       nodes: initialNodes,
       edges: [],
       selectedNodeId: null,
