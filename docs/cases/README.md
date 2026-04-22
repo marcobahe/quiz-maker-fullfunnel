@@ -42,10 +42,21 @@ docs/cases/
 
 ## Termo de uso de imagem
 
-Modelo de termo deve ser aprovado pelo jurídico/responsável antes do envio.
-Mínimo necessário:
-- Nome completo + documento
-- Autorização de uso de imagem, voz e depoimento para fins de marketing
-- Alcance: digital (redes sociais, site, anúncios pagos)
-- Prazo: indeterminado (ou definido)
-- Revogação: mediante solicitação formal
+Rascunho em `docs/cases/termo-autorizacao-imagem-voz.md` (v0.1 — aguardando aprovação jurídica em [ICO-163](/ICO/issues/ICO-163)).
+
+**Conteúdo coberto:**
+- Identificação completa (nome + CPF) do autorizante e do controlador
+- Finalidades granulares: orgânico (site, redes, newsletter) vs. mídia paga (Meta, Google, TikTok, LinkedIn)
+- Uso de logo/marca da empresa representada + uso de métricas (nominal vs. anonimizado)
+- Prazo (indeterminado ou determinado) + abrangência nacional/internacional
+- Canal e prazos de revogação (confirmação em 5 dias úteis, remoção orgânica em 15 dias úteis, pausa em mídia paga em 5 dias úteis)
+- Base legal LGPD: consentimento (Art. 7º, I) + demais direitos do titular (Art. 18)
+- Assinatura aceita: física, eletrônica (DocuSign/Clicksign/ZapSign/D4Sign) ou ICP-Brasil
+
+**Fluxo após aprovação:**
+1. Preencher campos do controlador (razão social, CNPJ, endereço, e-mail do DPO)
+2. Exportar `termo-autorizacao-imagem-voz.md` → `termo-autorizacao-imagem-voz-v1.pdf`
+3. Enviar ao cliente **junto com** `formulario-cliente.md`, antes do disparo
+4. Arquivar termo assinado em `docs/cases/raw/[slug-cliente]/termo-autorizado.pdf`
+
+**Não disparar formulário sem:** (1) termo aprovado pelo jurídico, (2) campos do controlador preenchidos, (3) versão PDF final assinada pelo representante legal do QuizMeBaby.
