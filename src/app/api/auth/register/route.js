@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { ensurePersonalWorkspace } from '@/lib/workspace';
+import { handleApiError } from '@/lib/apiError';
 
 export async function POST(request) {
   try {
@@ -50,10 +51,6 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Registration error:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return handleApiError(error, { route: '/api/auth/register', method: 'POST', userId: null });
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 // GET /api/domains/resolve?domain=xxx — resolve a custom domain to quiz slug
 // Called by middleware — secured via internal secret header
@@ -36,7 +37,6 @@ export async function GET(request) {
 
     return NextResponse.json({ slug: customDomain.quiz.slug });
   } catch (error) {
-    console.error('Domain resolve error:', error);
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+    return handleApiError(error, { route: '/api/domains/resolve', method: 'GET', userId: null });
   }
 }

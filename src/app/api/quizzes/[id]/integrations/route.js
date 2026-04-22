@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 // GET /api/quizzes/[id]/integrations — list integrations for a quiz
 export async function GET(request, { params }) {
@@ -13,8 +14,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(integrations);
   } catch (error) {
-    console.error('Error listing integrations:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'GET', userId: null });
   }
 }
 
@@ -48,7 +48,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(integration, { status: 201 });
   } catch (error) {
-    console.error('Error creating integration:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'POST', userId: null });
   }
 }

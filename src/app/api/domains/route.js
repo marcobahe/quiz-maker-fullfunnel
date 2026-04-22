@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { publishDomainMapping } from '@/lib/cloudflare-kv';
+import { handleApiError } from '@/lib/apiError';
 
 // GET /api/domains — list user's domains
 export async function GET() {
@@ -22,8 +23,7 @@ export async function GET() {
 
     return NextResponse.json(domains);
   } catch (error) {
-    console.error('Error fetching domains:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/domains', method: 'GET', userId: session?.user?.id });
   }
 }
 
@@ -87,7 +87,6 @@ export async function POST(request) {
 
     return NextResponse.json(customDomain, { status: 201 });
   } catch (error) {
-    console.error('Error creating domain:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/domains', method: 'POST', userId: session?.user?.id });
   }
 }

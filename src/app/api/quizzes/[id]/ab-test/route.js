@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 // GET: Get A/B test info for a quiz (original + variants + comparative analytics)
 export async function GET(request, { params }) {
@@ -73,8 +74,7 @@ export async function GET(request, { params }) {
       hasActiveTest: variants.some(v => v.status === 'published'),
     });
   } catch (error) {
-    console.error('Error fetching A/B test:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/ab-test', method: 'GET', userId: session?.user?.id });
   }
 }
 
@@ -153,7 +153,6 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ error: 'Nenhuma ação especificada' }, { status: 400 });
   } catch (error) {
-    console.error('Error updating A/B test:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/ab-test', method: 'PUT', userId: session?.user?.id });
   }
 }

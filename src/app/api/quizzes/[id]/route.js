@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { publishToEdge, unpublishFromEdge, refreshEdgeCache, publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
+import { handleApiError } from '@/lib/apiError';
 
 function generateSlug(name) {
   return name
@@ -41,8 +42,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(quiz);
   } catch (error) {
-    console.error('Error fetching quiz:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]', method: 'GET', userId: session?.user?.id });
   }
 }
 
@@ -136,8 +136,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(quiz);
   } catch (error) {
-    console.error('Error updating quiz:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]', method: 'PUT', userId: session?.user?.id });
   }
 }
 
@@ -175,7 +174,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting quiz:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]', method: 'DELETE', userId: session?.user?.id });
   }
 }

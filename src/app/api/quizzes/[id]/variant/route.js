@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 function generateSlug(name) {
   return name
@@ -79,7 +80,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(variant, { status: 201 });
   } catch (error) {
-    console.error('Error creating variant:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/variant', method: 'POST', userId: session?.user?.id });
   }
 }

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { ensurePersonalWorkspace, getUserWorkspaces } from '@/lib/workspace';
 import { isAdmin } from '@/lib/admin';
+import { handleApiError } from '@/lib/apiError';
 
 export async function GET(request) {
   try {
@@ -44,8 +45,7 @@ export async function GET(request) {
 
     return NextResponse.json(workspaces);
   } catch (error) {
-    console.error('Error fetching workspaces:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/workspaces', method: 'GET', userId: session?.user?.id });
   }
 }
 
@@ -89,7 +89,6 @@ export async function POST(request) {
 
     return NextResponse.json({ ...workspace, role: 'owner' }, { status: 201 });
   } catch (error) {
-    console.error('Error creating workspace:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/workspaces', method: 'POST', userId: session?.user?.id });
   }
 }

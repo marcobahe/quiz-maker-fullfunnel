@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import { syncContactToGHL, getPlanFromPriceId } from '@/lib/ghl-sync';
+import { handleApiError } from '@/lib/apiError';
 
 export async function POST(request) {
   if (!isStripeConfigured()) {
@@ -223,8 +224,7 @@ export async function POST(request) {
         break;
     }
   } catch (error) {
-    console.error('Webhook processing error:', error);
-    return NextResponse.json({ error: 'Erro ao processar webhook' }, { status: 500 });
+    return handleApiError(error, { route: '/api/billing/webhook', method: 'POST', userId: null });
   }
 
   return NextResponse.json({ received: true });

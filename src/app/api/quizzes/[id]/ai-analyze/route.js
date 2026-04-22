@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 // Simple in-memory rate limiter: max 10 requests per minute per quiz
 const rateLimitMap = new Map();
@@ -182,10 +183,6 @@ export async function POST(request, { params }) {
       throw fetchError;
     }
   } catch (error) {
-    console.error('Error in AI analyze:', error);
-    return NextResponse.json(
-      { error: 'Erro interno ao processar análise.' },
-      { status: 500 }
-    );
+    return handleApiError(error, { route: '/api/quizzes/[id]/ai-analyze', method: 'POST', userId: null });
   }
 }

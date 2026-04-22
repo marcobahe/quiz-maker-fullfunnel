@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { testWebhook, testGHL } from '@/lib/webhookDispatcher';
+import { handleApiError } from '@/lib/apiError';
 
 // POST /api/quizzes/[id]/integrations/[integrationId]/test — test an integration
 export async function POST(request, { params }) {
@@ -27,10 +28,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
-    console.error('Error testing integration:', error);
-    return NextResponse.json(
-      { success: false, error: error.message || 'Erro ao testar integração' },
-      { status: 400 }
-    );
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]/test', method: 'POST', userId: null });
   }
 }

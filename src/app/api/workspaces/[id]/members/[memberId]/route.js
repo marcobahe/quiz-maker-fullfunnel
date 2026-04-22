@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkWorkspaceAccess } from '@/lib/admin';
+import { handleApiError } from '@/lib/apiError';
 
 // Update member role
 export async function PUT(request, { params }) {
@@ -40,8 +41,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error updating member:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/workspaces/[id]/members/[memberId]', method: 'PUT', userId: session?.user?.id });
   }
 }
 
@@ -71,7 +71,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error removing member:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/workspaces/[id]/members/[memberId]', method: 'DELETE', userId: session?.user?.id });
   }
 }

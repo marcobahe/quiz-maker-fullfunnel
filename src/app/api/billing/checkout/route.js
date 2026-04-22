@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import { PLANS } from '@/lib/plans';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 export async function POST(request) {
   try {
@@ -78,7 +79,6 @@ export async function POST(request) {
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
-    console.error('Checkout error:', error);
-    return NextResponse.json({ error: 'Erro ao criar sessão de checkout' }, { status: 500 });
+    return handleApiError(error, { route: '/api/billing/checkout', method: 'POST', userId: session?.user?.id });
   }
 }

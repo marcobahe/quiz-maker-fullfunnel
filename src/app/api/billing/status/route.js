@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { getUsageStats } from '@/lib/planLimits';
 import { getPlan } from '@/lib/plans';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,6 @@ export async function GET() {
       limits: planDetails.limits,
     });
   } catch (error) {
-    console.error('Billing status error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/billing/status', method: 'GET', userId: session?.user?.id });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 export async function GET() {
   try {
@@ -17,8 +18,7 @@ export async function GET() {
 
     return NextResponse.json({ onboardingDone: user?.onboardingDone || false });
   } catch (error) {
-    console.error('Error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/user/onboarding', method: 'GET', userId: session?.user?.id });
   }
 }
 
@@ -36,7 +36,6 @@ export async function POST() {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/user/onboarding', method: 'POST', userId: session?.user?.id });
   }
 }

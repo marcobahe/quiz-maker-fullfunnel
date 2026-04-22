@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
+import { handleApiError } from '@/lib/apiError';
 
 // GET /api/user/profile — retorna dados do perfil do usuário
 export async function GET() {
@@ -42,8 +43,7 @@ export async function GET() {
       hasPassword: !!user.password,
     });
   } catch (error) {
-    console.error('Error fetching profile:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/user/profile', method: 'GET', userId: session?.user?.id });
   }
 }
 
@@ -134,8 +134,7 @@ export async function PUT(request) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error updating profile:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/user/profile', method: 'PUT', userId: session?.user?.id });
   }
 }
 
@@ -157,7 +156,6 @@ export async function DELETE() {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting account:', error);
-    return NextResponse.json({ error: 'Erro ao excluir conta' }, { status: 500 });
+    return handleApiError(error, { route: '/api/user/profile', method: 'DELETE', userId: session?.user?.id });
   }
 }

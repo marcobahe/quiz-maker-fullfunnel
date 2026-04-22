@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 // PUT /api/quizzes/[id]/integrations/[integrationId] — update
 export async function PUT(request, { params }) {
@@ -28,8 +29,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error updating integration:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'PUT', userId: null });
   }
 }
 
@@ -50,7 +50,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting integration:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'DELETE', userId: null });
   }
 }

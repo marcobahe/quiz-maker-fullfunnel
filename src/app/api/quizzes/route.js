@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkLimit } from '@/lib/planLimits';
 import { checkWorkspaceAccess } from '@/lib/admin';
+import { handleApiError } from '@/lib/apiError';
 
 function generateSlug(name) {
   return name
@@ -110,8 +111,7 @@ export async function GET(request) {
 
     return NextResponse.json(quizzes);
   } catch (error) {
-    console.error('Error fetching quizzes:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes', method: 'GET', userId: session?.user?.id });
   }
 }
 
@@ -181,7 +181,6 @@ export async function POST(request) {
 
     return NextResponse.json(quiz, { status: 201 });
   } catch (error) {
-    console.error('Error creating quiz:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes', method: 'POST', userId: session?.user?.id });
   }
 }

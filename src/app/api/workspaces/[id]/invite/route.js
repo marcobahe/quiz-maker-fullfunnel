@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkWorkspaceAccess } from '@/lib/admin';
+import { handleApiError } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
   try {
@@ -55,7 +56,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(member, { status: 201 });
   } catch (error) {
-    console.error('Error inviting member:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/workspaces/[id]/invite', method: 'POST', userId: session?.user?.id });
   }
 }

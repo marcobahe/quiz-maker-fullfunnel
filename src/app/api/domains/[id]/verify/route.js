@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
 import dns from 'dns';
+import { handleApiError } from '@/lib/apiError';
 
 const resolveCname = dns.promises.resolveCname;
 
@@ -78,7 +79,6 @@ export async function POST(request, { params }) {
       errorMessage: verified ? null : errorMessage,
     });
   } catch (error) {
-    console.error('Error verifying domain:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/domains/[id]/verify', method: 'POST', userId: session?.user?.id });
   }
 }

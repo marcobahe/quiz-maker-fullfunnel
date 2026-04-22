@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 // ── POST: Save analytics event ──────────────────────────────
 export async function POST(request, { params }) {
@@ -33,8 +34,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
-    console.error('Error saving analytics:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/analytics', method: 'POST', userId: null });
   }
 }
 
@@ -206,7 +206,6 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ overview, funnel, daily, results });
   } catch (error) {
-    console.error('Error fetching analytics:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/analytics', method: 'GET', userId: null });
   }
 }

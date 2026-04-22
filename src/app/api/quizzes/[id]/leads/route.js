@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { dispatchIntegrations } from '@/lib/webhookDispatcher';
 import { checkLimit } from '@/lib/planLimits';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { handleApiError } from '@/lib/apiError';
 
 export async function GET(request, { params }) {
   try {
@@ -59,8 +60,7 @@ export async function GET(request, { params }) {
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error('Error fetching leads:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/leads', method: 'GET', userId: session?.user?.id });
   }
 }
 
@@ -140,7 +140,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(lead, { status: 201 });
   } catch (error) {
-    console.error('Error saving lead:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/leads', method: 'POST', userId: null });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import * as cheerio from 'cheerio';
+import { handleApiError } from '@/lib/apiError';
 
 // ── URL Scraping ────────────────────────────────────────────────
 async function scrapeUrl(url, maxChars = 5000) {
@@ -453,7 +454,6 @@ Responda APENAS com JSON válido no seguinte formato exato:
 
     return NextResponse.json(quizData);
   } catch (error) {
-    console.error('Error in AI quiz generation:', error);
-    return NextResponse.json({ error: 'Erro interno ao gerar quiz.' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/ai-generate', method: 'POST', userId: session?.user?.id });
   }
 }

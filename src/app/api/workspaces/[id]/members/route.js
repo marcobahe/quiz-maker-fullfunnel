@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkWorkspaceAccess } from '@/lib/admin';
+import { handleApiError } from '@/lib/apiError';
 
 export async function GET(request, { params }) {
   try {
@@ -27,7 +28,6 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(members);
   } catch (error) {
-    console.error('Error fetching members:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/workspaces/[id]/members', method: 'GET', userId: session?.user?.id });
   }
 }

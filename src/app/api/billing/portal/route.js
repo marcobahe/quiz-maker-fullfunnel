@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 export async function POST() {
   try {
@@ -37,7 +38,6 @@ export async function POST() {
 
     return NextResponse.json({ url: portalSession.url });
   } catch (error) {
-    console.error('Portal error:', error);
-    return NextResponse.json({ error: 'Erro ao criar sessão do portal' }, { status: 500 });
+    return handleApiError(error, { route: '/api/billing/portal', method: 'POST', userId: session?.user?.id });
   }
 }

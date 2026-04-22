@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
+import { handleApiError } from '@/lib/apiError';
 
 // PUT /api/domains/[id] — update domain (e.g., associate quiz)
 export async function PUT(request, { params }) {
@@ -59,8 +60,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error updating domain:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/domains/[id]', method: 'PUT', userId: session?.user?.id });
   }
 }
 
@@ -91,7 +91,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting domain:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/domains/[id]', method: 'DELETE', userId: session?.user?.id });
   }
 }

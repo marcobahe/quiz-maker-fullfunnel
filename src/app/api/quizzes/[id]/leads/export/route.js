@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 function escapeCsvField(value) {
   if (value === null || value === undefined) return '';
@@ -148,7 +149,6 @@ export async function GET(request, { params }) {
       },
     });
   } catch (error) {
-    console.error('Error exporting leads:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/leads/export', method: 'GET', userId: session?.user?.id });
   }
 }

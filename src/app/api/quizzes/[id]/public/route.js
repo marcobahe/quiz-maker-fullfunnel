@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { PLAYER_ORIGIN } from '@/lib/urls';
+import { handleApiError } from '@/lib/apiError';
 
 // Disable caching to always get fresh data
 export const dynamic = 'force-dynamic';
@@ -116,7 +117,6 @@ export async function GET(request, { params }) {
       },
     });
   } catch (error) {
-    console.error('Error fetching public quiz:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/quizzes/[id]/public', method: 'GET', userId: null });
   }
 }
