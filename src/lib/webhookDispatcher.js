@@ -57,6 +57,8 @@ async function _dispatch({ quiz, lead, answers, score, resultCategory, scoreRang
         return sendWebhook(integration, payload);
       } else if (integration.type === 'gohighlevel') {
         return sendToGHL(integration, payload);
+      } else if (integration.type === 'evolution') {
+        return sendToEvolution(integration, payload);
       }
       return Promise.resolve();
     });
@@ -298,6 +300,115 @@ export async function testWebhook(integration) {
   });
 
   return { status: res.status, statusText: res.statusText };
+}
+
+// ── Evolution API (WhatsApp) ──────────────────────────────────
+
+/** Regex for E.164 phone format: +[country code][number], 8–15 digits total */
+const E164_RE = /^\+[1-9]\d{7,14}$/;
+
+/**
+ * Replace template variables in a message string.
+ * Supported: {{name}}, {{result}}, {{score}}
+ */
+function renderTemplate(template, { name, result, score }) {
+  return template
+    .replace(/\{\{name\}\}/g, name || '')
+    .replace(/\{\{result\}\}/g, result || '')
+    .replace(/\{\{score\}\}/g, score != null ? String(score) : '');
+}
+
+/**
+ * Send a WhatsApp text message via Evolution API on quiz completion.
+ *
+ * Expected integration config JSON:
+ * {
+ *   "apiUrl":          "https://your-evolution-api.com",
+ *   "apiKey":          "<api-key>",
+ *   "instance":        "<instance-name>",
+ *   "messageTemplate": "Olá {{name}}, seu resultado foi {{result}} (score: {{score}}). ..."
+ * }
+ */
+async function sendToEvolution(integration, payload) {
+  try {
+    const config = JSON.parse(integration.config);
+    const { apiUrl, apiKey, instance, messageTemplate } = config;
+
+    if (!apiUrl || !apiKey || !instance) {
+      console.error('[Evolution] Missing required config fields (apiUrl, apiKey, instance)');
+      return;
+    }
+
+    const phone = payload.lead.phone;
+    if (!phone) {
+      console.warn('[Evolution] Lead has no phone — skipping WhatsApp message');
+      return;
+    }
+
+    if (!E164_RE.test(phone)) {
+      console.warn(`[Evolution] Phone "${phone}" is not in E.164 format — skipping`);
+      return;
+    }
+
+    const template = messageTemplate || 'Olá {{name}}, seu resultado no quiz foi: {{result}}.';
+    const text = renderTemplate(template, {
+      name: payload.lead.name,
+      result: payload.result?.title || '',
+      score: payload.score,
+    });
+
+    const url = `${apiUrl.replace(/\/$/, '')}/message/sendText/${encodeURIComponent(instance)}`;
+
+    const res = await fetchWithRetry(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': apiKey,
+      },
+      body: JSON.stringify({
+        number: phone,
+        text,
+        delay: 1200,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const body = await res.json().catch(() => ({}));
+    console.log(`[Evolution] ${integration.name} → ${res.status}`, body?.key?.id || '');
+  } catch (err) {
+    console.error(`[Evolution] ${integration.name} failed:`, err.message);
+  }
+}
+
+export async function testEvolution(integration) {
+  const config = JSON.parse(integration.config);
+  const { apiUrl, apiKey, instance } = config;
+
+  if (!apiUrl || !apiKey || !instance) {
+    throw new Error('Campos apiUrl, apiKey e instance são obrigatórios');
+  }
+
+  // Probe the instance status endpoint to verify credentials
+  const url = `${apiUrl.replace(/\/$/, '')}/instance/fetchInstances`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { 'apikey': apiKey },
+    signal: AbortSignal.timeout(10000),
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('apiKey inválida ou sem permissão.');
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Evolution API retornou ${res.status}: ${text}`);
+  }
+
+  const data = await res.json();
+  const found = Array.isArray(data) ? data.find((i) => i.instance?.instanceName === instance) : null;
+  const state = found?.instance?.state || 'unknown';
+  return { status: res.status, instance, state };
 }
 
 export async function testGHL(integration) {
