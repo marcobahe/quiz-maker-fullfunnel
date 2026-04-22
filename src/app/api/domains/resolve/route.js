@@ -26,16 +26,16 @@ export async function GET(request) {
       },
     });
 
-    if (!customDomain || !customDomain.verified || !customDomain.quiz) {
-      return NextResponse.json({ slug: null });
+    if (!customDomain || !customDomain.verified || !customDomain.active || !customDomain.quiz) {
+      return NextResponse.json({ slug: null, active: false });
     }
 
     // Only serve published quizzes
     if (customDomain.quiz.status !== 'published') {
-      return NextResponse.json({ slug: null });
+      return NextResponse.json({ slug: null, active: false });
     }
 
-    return NextResponse.json({ slug: customDomain.quiz.slug });
+    return NextResponse.json({ slug: customDomain.quiz.slug, active: true });
   } catch (error) {
     return handleApiError(error, { route: '/api/domains/resolve', method: 'GET', userId: null });
   }

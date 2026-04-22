@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { domainCache, CACHE_TTL } from '@/lib/domain-cache';
 
 // In-memory cache for domain → slug mapping (per edge instance)
 // NOTE: Custom domains are primarily served by the Cloudflare Worker (play.quizmebaby.app)
 // via DOMAIN_MAP KV. This middleware serves as a fallback for domains that reach Vercel
 // directly (e.g., if client's DNS doesn't go through Cloudflare proxy).
-const domainCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Cache entry shape: { slug, active, timestamp } — TTL is 2 minutes.
 
 // Known app hostnames — requests from these are handled normally
 const APP_HOSTNAMES = new Set([
@@ -69,37 +69,36 @@ export async function middleware(request) {
     // Check cache first
     const cached = domainCache.get(hostname);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      if (cached.slug) {
-        const url = request.nextUrl.clone();
-        url.pathname = `/q/${cached.slug}`;
-        return NextResponse.rewrite(url);
-      } else {
-        // Domain was checked but no quiz found
+      // Deactivated domains are cached with active: false — always 404
+      if (!cached.active || !cached.slug) {
         return new NextResponse('Domínio não configurado', { status: 404 });
       }
+      const url = request.nextUrl.clone();
+      url.pathname = `/q/${cached.slug}`;
+      return NextResponse.rewrite(url);
     }
 
     // Resolve domain via internal API
     try {
       const resolveUrl = new URL('/api/domains/resolve', request.nextUrl.origin);
       resolveUrl.searchParams.set('domain', hostname);
-      
+
       const res = await fetch(resolveUrl.toString(), {
         headers: { 'x-middleware-secret': process.env.NEXTAUTH_SECRET || '' },
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (data.slug) {
-          domainCache.set(hostname, { slug: data.slug, timestamp: Date.now() });
+        if (data.slug && data.active !== false) {
+          domainCache.set(hostname, { slug: data.slug, active: true, timestamp: Date.now() });
           const url = request.nextUrl.clone();
           url.pathname = `/q/${data.slug}`;
           return NextResponse.rewrite(url);
         }
       }
 
-      // Cache negative result too
-      domainCache.set(hostname, { slug: null, timestamp: Date.now() });
+      // Cache negative result — domain not found or inactive
+      domainCache.set(hostname, { slug: null, active: false, timestamp: Date.now() });
       return new NextResponse('Domínio não configurado', { status: 404 });
     } catch (err) {
       console.error('Custom domain resolution error:', err);
