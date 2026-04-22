@@ -90,13 +90,12 @@ function PublicHeader() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
-              <span className="text-white text-lg font-bold">Q</span>
-            </div>
-            <span className={`text-lg font-bold transition-colors ${scrolled ? 'text-gray-900' : 'text-white'}`}>
-              QuizMeBaby
+          {/* Logo — wordmark tipográfico sem símbolo Q quadrado */}
+          <div className="flex items-center">
+            <span className={`text-xl font-extrabold tracking-tight transition-colors font-display ${
+              scrolled ? 'text-gray-900' : 'text-white'
+            }`}>
+              Quiz<span className="text-primary">Me</span>Baby
             </span>
           </div>
 
@@ -190,11 +189,16 @@ function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4c1d95]" />
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-accent/30 rounded-full blur-[128px]" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[128px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[128px]" />
+      <div className="absolute inset-0" style={{
+        background: 'linear-gradient(135deg, #0a0c1b 0%, #1e1040 50%, #2d1b69 100%)'
+      }} />
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute top-20 left-10 w-80 h-80 rounded-full blur-[120px]"
+          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.45) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full blur-[120px]"
+          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%)' }} />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 rounded-full blur-[100px]"
+          style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%)' }} />
       </div>
 
       {/* Grid pattern */}
@@ -209,24 +213,28 @@ function HeroSection() {
           <div>
             <Reveal>
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white/90 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-white/10">
-                <Sparkles size={16} className="text-yellow-400" />
-                Builder visual drag & drop
+                <Sparkles size={16} className="text-[#F59E0B]" />
+                Quiz full-funnel para marketeiros BR
               </div>
             </Reveal>
 
             <Reveal delay={100}>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-                Crie Quizzes que{' '}
-                <span className="bg-gradient-to-r from-purple-300 via-pink-300 to-yellow-200 bg-clip-text text-transparent">
-                  Convertem
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4 font-display tracking-tight">
+                Parece brincadeira.{' '}
+                <span style={{
+                  background: 'linear-gradient(135deg, #a5b4fc 0%, #c084fc 50%, #f9a8d4 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>
+                  Converte pra valer.
                 </span>
               </h1>
             </Reveal>
 
             <Reveal delay={200}>
-              <p className="text-lg sm:text-xl text-purple-200/80 mb-8 leading-relaxed max-w-lg">
-                Transforme visitantes em leads qualificados com quizzes interativos. 
-                Builder visual, gamificação, analytics e integrações — tudo em uma plataforma.
+              <p className="text-lg sm:text-xl mb-8 leading-relaxed max-w-lg" style={{ color: 'rgba(165,180,252,0.8)' }}>
+                Crie quizzes que qualificam leads, segmentam audiência e guiam cada pessoa pro produto certo — sem código.
               </p>
             </Reveal>
 
@@ -234,9 +242,9 @@ function HeroSection() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   href="/login"
-                  className="bg-accent hover:bg-accent-hover text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all hover:shadow-xl hover:shadow-accent/30 flex items-center justify-center gap-2 group"
+                  className="bg-accent hover:bg-accent-hover text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:shadow-xl hover:shadow-accent/30 flex items-center justify-center gap-2 group font-display"
                 >
-                  Criar Quiz Grátis
+                  Criar meu quiz agora
                   <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <button
@@ -249,12 +257,15 @@ function HeroSection() {
             </Reveal>
 
             <Reveal delay={400}>
-              <div className="flex items-center gap-6 mt-8 text-purple-200/60 text-sm">
+              <div className="flex flex-wrap items-center gap-6 mt-8 text-sm" style={{ color: 'rgba(165,180,252,0.6)' }}>
                 <span className="flex items-center gap-1.5">
                   <Check size={16} className="text-green-400" /> Grátis para começar
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Check size={16} className="text-green-400" /> Sem cartão de crédito
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Check size={16} className="text-[#F59E0B]" /> Média de 68% de conversão
                 </span>
               </div>
             </Reveal>
@@ -274,7 +285,7 @@ function HeroSection() {
                   </div>
                   <div className="flex-1 mx-4">
                     <div className="bg-white/10 rounded-lg px-3 py-1 text-xs text-white/50 text-center">
-                      quizmaker.com.br/builder
+                      quizmebaby.com/builder
                     </div>
                   </div>
                 </div>
@@ -524,17 +535,47 @@ function PricingSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="text-center mb-16">
-            <span className="text-accent font-semibold text-sm uppercase tracking-wider">Preços</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-3 mb-4">
-              Planos para cada fase do seu negócio
+            <span className="text-[#6366f1] font-semibold text-sm uppercase tracking-wider">Preços</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-3 mb-4 font-display">
+              Do quiz isolado ao funil completo
             </h2>
             <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-              Comece grátis e escale conforme cresce. Sem surpresas.
+              Comece grátis, cresça no seu ritmo. Ou pule direto pro Full Funnel.
             </p>
           </div>
         </Reveal>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        {/* Upgrade Banner — Full Funnel */}
+        <Reveal>
+          <div className="mb-12 rounded-2xl overflow-hidden max-w-5xl mx-auto"
+            style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #EC4899 100%)' }}>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 md:p-8">
+              <div className="text-white">
+                <div className="flex items-center gap-2 mb-1">
+                  <Zap size={18} className="text-[#F59E0B]" />
+                  <span className="text-sm font-bold uppercase tracking-wider text-white/70">Full Funnel</span>
+                </div>
+                <h3 className="text-xl md:text-2xl font-extrabold font-display mb-1">
+                  Já tem o QuizMeBaby? Migre pro Full Funnel.
+                </h3>
+                <p className="text-white/70 text-sm max-w-md">
+                  Integração automática dos seus quizzes com GHL, e-mail marketing e WhatsApp. Seu funil completo em uma stack.
+                </p>
+              </div>
+              <div className="shrink-0">
+                <Link
+                  href="/upgrade-full-funnel"
+                  className="inline-flex items-center gap-2 bg-white text-[#6366f1] font-bold px-6 py-3 rounded-xl text-sm transition-all hover:shadow-xl hover:shadow-white/20 group"
+                >
+                  Ver upgrade com desconto
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {['free', 'pro', 'business'].map((planId, i) => {
             const plan = PLANS[planId];
             return (
@@ -594,6 +635,62 @@ function PricingSection() {
               </Reveal>
             );
           })}
+
+          {/* Full Funnel — card especial */}
+          <Reveal delay={300}>
+            <div className="relative rounded-2xl overflow-hidden border-0 shadow-2xl"
+              style={{ background: 'linear-gradient(160deg, #0a0c1b 0%, #1e1040 50%, #2d1b69 100%)' }}>
+
+              {/* Stripe gradiente topo */}
+              <div className="absolute top-0 left-0 right-0 h-1"
+                style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #EC4899)' }} />
+
+              <div className="p-8">
+                <div className="flex items-center gap-2 mb-1">
+                  <Zap size={16} className="text-[#F59E0B]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#F59E0B]">Recomendado</span>
+                </div>
+
+                <h3 className="text-xl font-extrabold text-white font-display mb-1">Full Funnel</h3>
+                <p className="text-sm text-white/50 mb-6">Stack completo: Quiz + GHL + WhatsApp + IA</p>
+
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-white font-display">R$497</span>
+                    <span className="text-sm text-white/50">/mês</span>
+                  </div>
+                  <div className="text-xs text-[#F59E0B] mt-1 flex items-center gap-1">
+                    <Check size={12} />
+                    Clientes QuizMeBaby ganham 20% off
+                  </div>
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {[
+                    'Tudo do Business',
+                    'Integração GHL nativa',
+                    'Automação WhatsApp (leads → contato)',
+                    'Qualificação por IA',
+                    'Funnels pré-configurados',
+                    'Onboarding 1:1 incluso',
+                  ].map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-sm text-white/80">
+                      <Check size={16} className="mt-0.5 shrink-0 text-[#6366f1]" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="/upgrade-full-funnel"
+                  className="w-full block text-center py-3 rounded-xl font-bold text-sm transition-all font-display"
+                  style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff' }}
+                >
+                  Conhecer Full Funnel →
+                </Link>
+              </div>
+            </div>
+          </Reveal>
         </div>
 
         <Reveal delay={400}>
@@ -617,11 +714,12 @@ function CTASection() {
     <section className="py-20 lg:py-28 bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <Reveal>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            Pronto para criar quizzes que convertem?
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4 font-display">
+            Parece brincadeira.<br />
+            <span className="text-[#6366f1]">Converte pra valer.</span>
           </h2>
           <p className="text-lg text-gray-500 mb-8 max-w-2xl mx-auto">
-            Junte-se a milhares de profissionais que já estão usando QuizMeBaby para capturar leads qualificados.
+            Junte-se a marketeiros e criadores BR que já qualificam leads com QuizMeBaby.
           </p>
           <Link
             href="/login"
@@ -647,14 +745,16 @@ function Footer() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-                <span className="text-white text-sm font-bold">Q</span>
-              </div>
-              <span className="text-white font-bold">QuizMeBaby</span>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg font-extrabold font-display text-white">
+                Quiz<span className="text-[#6366f1]">Me</span>Baby
+              </span>
             </div>
-            <p className="text-sm leading-relaxed mb-4">
-              A plataforma mais completa para criar quizzes interativos que geram leads e conversões.
+            <p className="text-sm leading-relaxed mb-1 text-gray-400">
+              Parece brincadeira. Converte pra valer.
+            </p>
+            <p className="text-xs text-gray-600">
+              Quiz full-funnel para marketeiros e criadores BR.
             </p>
           </div>
 
