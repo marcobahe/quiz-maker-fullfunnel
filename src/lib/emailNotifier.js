@@ -276,6 +276,58 @@ export async function sendWeeklySummary({ quizData, leadsThisWeek }) {
     totalLeads: leadsThisWeek.length,
     hotLeads: leadsThisWeek.filter(lead => isHotLead(lead.score, quizData.scoreRanges)).length,
   });
-  
+
   return { success: true, reason: 'Weekly summary placeholder' };
+}
+
+/**
+ * Send an alert email when WhatsApp DLQ failures exceed the configured threshold.
+ *
+ * @param {object} params
+ * @param {number} params.count          - Number of DLQ entries in the window
+ * @param {number} params.windowMinutes  - Rolling window in minutes
+ * @param {number} params.threshold      - Threshold that triggered the alert
+ */
+export async function sendWhatsappFailureAlert({ count, windowMinutes, threshold }) {
+  const alertEmail = process.env.WHATSAPP_ALERT_EMAIL || 'marcobahe@gmail.com';
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Alerta: Falhas WhatsApp</title>
+    </head>
+    <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f5f5f5;">
+      <div style="background:white;border-radius:12px;padding:30px;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div style="background:linear-gradient(135deg,#dc2626,#991b1b);color:white;padding:20px;border-radius:8px;text-align:center;margin-bottom:25px;">
+          <h1 style="margin:0;font-size:22px;">Alerta de Falhas WhatsApp</h1>
+        </div>
+        <p><strong>${count}</strong> mensagens WhatsApp falharam permanentemente (DLQ) nos últimos <strong>${windowMinutes} minutos</strong>.</p>
+        <p>Limite configurado: <strong>${threshold} falhas</strong> por janela de ${windowMinutes} min.</p>
+        <p style="color:#666;font-size:14px;">Acesse o banco de dados (<code>WhatsappMessageLog</code> onde <code>status = 'dlq'</code>) para revisar as mensagens na fila morta e investigar a causa.</p>
+        <div style="margin-top:20px;padding-top:20px;border-top:1px solid #e9ecef;color:#6c757d;font-size:12px;text-align:center;">
+          <p>Enviado automaticamente pelo QuizMeBaby · Evolution API Monitor</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  if (!isEmailConfigured()) {
+    console.warn('[WhatsappAlert] GMAIL_APP_PASSWORD not set — alert suppressed. Count:', count);
+    return;
+  }
+
+  try {
+    await transporter.sendMail({
+      from: '"QuizMeBaby Alerts" <fully11012001@gmail.com>',
+      to: alertEmail,
+      subject: `[ALERTA] ${count} falhas WhatsApp nos últimos ${windowMinutes}min`,
+      html,
+    });
+    console.log(`[WhatsappAlert] Alert sent to ${alertEmail} (count=${count})`);
+  } catch (err) {
+    console.error('[WhatsappAlert] Failed to send alert email:', err.message);
+  }
 }

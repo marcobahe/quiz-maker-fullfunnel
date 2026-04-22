@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { sendHotLeadNotification, isHotLead } from '@/lib/emailNotifier';
+import { enqueueWhatsappMessage } from '@/lib/whatsappQueue';
 
 /**
  * Dispatch webhooks and Full Funnel integrations for a new lead.
@@ -39,6 +40,7 @@ async function _dispatch({ quiz, lead, answers, score, resultCategory, scoreRang
         slug: quiz.slug,
       },
       lead: {
+        id: lead.id || null,
         name: lead.name || null,
         email: lead.email || null,
         phone: lead.phone || null,
@@ -330,54 +332,44 @@ function renderTemplate(template, { name, result, score }) {
  * }
  */
 async function sendToEvolution(integration, payload) {
-  try {
-    const config = JSON.parse(integration.config);
-    const { apiUrl, apiKey, instance, messageTemplate } = config;
+  const config = JSON.parse(integration.config);
+  const { apiUrl, apiKey, instance, messageTemplate } = config;
 
-    if (!apiUrl || !apiKey || !instance) {
-      console.error('[Evolution] Missing required config fields (apiUrl, apiKey, instance)');
-      return;
-    }
-
-    const phone = payload.lead.phone;
-    if (!phone) {
-      console.warn('[Evolution] Lead has no phone — skipping WhatsApp message');
-      return;
-    }
-
-    if (!E164_RE.test(phone)) {
-      console.warn(`[Evolution] Phone "${phone}" is not in E.164 format — skipping`);
-      return;
-    }
-
-    const template = messageTemplate || 'Olá {{name}}, seu resultado no quiz foi: {{result}}.';
-    const text = renderTemplate(template, {
-      name: payload.lead.name,
-      result: payload.result?.title || '',
-      score: payload.score,
-    });
-
-    const url = `${apiUrl.replace(/\/$/, '')}/message/sendText/${encodeURIComponent(instance)}`;
-
-    const res = await fetchWithRetry(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': apiKey,
-      },
-      body: JSON.stringify({
-        number: phone,
-        text,
-        delay: 1200,
-      }),
-      signal: AbortSignal.timeout(15000),
-    });
-
-    const body = await res.json().catch(() => ({}));
-    console.log(`[Evolution] ${integration.name} → ${res.status}`, body?.key?.id || '');
-  } catch (err) {
-    console.error(`[Evolution] ${integration.name} failed:`, err.message);
+  if (!apiUrl || !apiKey || !instance) {
+    console.error('[Evolution] Missing required config fields (apiUrl, apiKey, instance)');
+    return;
   }
+
+  const phone = payload.lead.phone;
+  if (!phone) {
+    console.warn('[Evolution] Lead has no phone — skipping WhatsApp message');
+    return;
+  }
+
+  if (!E164_RE.test(phone)) {
+    console.warn(`[Evolution] Phone "${phone}" is not in E.164 format — skipping`);
+    return;
+  }
+
+  const template = messageTemplate || 'Olá {{name}}, seu resultado no quiz foi: {{result}}.';
+  const message = renderTemplate(template, {
+    name: payload.lead.name,
+    result: payload.result?.title || '',
+    score: payload.score,
+  });
+
+  // Delegate to queue module — handles retry, DB logging, DLQ, and alerts
+  await enqueueWhatsappMessage({
+    leadId: payload.lead?.id || null,
+    quizId: payload.quiz?.id || null,
+    integrationId: integration.id || null,
+    phone,
+    message,
+    apiUrl,
+    apiKey,
+    instance,
+    integrationName: integration.name,
+  });
 }
 
 export async function testEvolution(integration) {
