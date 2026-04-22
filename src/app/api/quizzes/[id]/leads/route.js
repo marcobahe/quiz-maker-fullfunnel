@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { dispatchIntegrations } from '@/lib/webhookDispatcher';
 import { checkLimit } from '@/lib/planLimits';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function GET(request, { params }) {
   try {
@@ -66,6 +67,23 @@ export async function GET(request, { params }) {
 export async function POST(request, { params }) {
   try {
     const { id: quizId } = await params;
+
+    // Rate limit: 5 lead submissions per IP per quiz per minute
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
+    const rl = checkRateLimit(`lead:${quizId}:${ip}`, { max: 5, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rl.retryAfter) },
+        }
+      );
+    }
+
     const body = await request.json();
 
     // Verify quiz exists
