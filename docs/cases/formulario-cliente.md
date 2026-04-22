@@ -3,7 +3,7 @@
 > **Para uso externo.** Enviar ao cliente por email/WhatsApp para coletar o depoimento.
 > Adaptar o tom conforme o relacionamento (formal/informal).
 >
-> ⚠️ **Não disparar antes de:** (1) termo PDF separado aprovado pelo jurídico/Marco, (2) marca "QuizMeBaby" confirmada como definitiva.
+> ⚠️ **Não disparar antes de:** (1) termo PDF separado aprovado pelo jurídico/Marco ([ICO-163](/ICO/issues/ICO-163)), (2) marca "QuizMeBaby" confirmada como definitiva ([ICO-162](/ICO/issues/ICO-162)).
 
 ---
 
@@ -47,28 +47,32 @@ São apenas **7 perguntinhas rápidas** (5-10 min) + uma foto de perfil. Se topa
 
 ---
 
-**5. Você toparia gravar um vídeo curto de 30-60 segundos contando sua experiência?**
+**5. Podemos usar publicamente os números que você compartilhou (em anúncios, posts, site)?**
+
+`( ) Sim, com nome da empresa` `( ) Sim, anonimizado` `( ) Não`
+
+---
+
+**6. Topa que a gente use o logo da [Empresa] junto do depoimento e marque vocês quando publicarmos?**
+
+`( ) Sim, pode usar logo e marcar` `( ) Prefiro sem logo/tag` `( ) Sem preferência`
+
+Se sim, qual o @ oficial da empresa nas redes? *(Instagram/LinkedIn — opcional)*
+
+`@` ___________________________
+
+---
+
+**7. Você toparia gravar um vídeo curto de 30-60 segundos contando sua experiência?**
 *(Pode ser selfie no celular mesmo — a gente edita! Não precisa ser perfeito.)*
 
 `( ) Sim, topo!` `( ) Prefiro só o texto por enquanto`
 
 ---
 
-**6. Podemos usar publicamente os números que você compartilhou (em anúncios, posts, site)?**
-
-`( ) Sim, com nome da empresa` `( ) Sim, anonimizado` `( ) Não`
-
----
-
-**7. Topa que a gente use o logo da [Empresa] junto do depoimento e marque vocês quando publicarmos?**
-
-`( ) Sim, pode usar logo e marcar` `( ) Prefiro sem logo/tag` `( ) Sem preferência`
-
----
-
 ## Autorização de uso
 
-> ⚠️ **Nota interna:** esta seção é temporária. Substituir pelo **termo PDF separado** (aprovação pendente com Marco/jurídico) antes de qualquer disparo. O texto abaixo é apenas rascunho de referência.
+> ⚠️ **Nota interna:** esta seção é temporária. Substituir pelo **termo PDF separado** ([ICO-163](/ICO/issues/ICO-163)) antes de qualquer disparo. O texto abaixo é apenas rascunho de referência.
 
 Ao responder este formulário, você autoriza o QuizMeBaby a usar suas respostas, nome, cargo e foto para fins de marketing digital (redes sociais, site, anúncios). Você pode revogar essa autorização a qualquer momento mediante solicitação formal por escrito.
 
