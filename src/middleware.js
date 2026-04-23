@@ -18,6 +18,8 @@ const APP_HOSTNAMES = new Set([
 
 // Add your production domain(s) here
 const PRODUCTION_DOMAINS = [
+  'quizmebaby.app',
+  'www.quizmebaby.app',
   'quizmaker.fullfunnel.com.br',
   'quiz-maker-fullfunnel.vercel.app',
   'go.quizmebaby.app',
