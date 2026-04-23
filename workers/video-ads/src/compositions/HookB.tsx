@@ -239,7 +239,7 @@ const SceneTopa: React.FC = () => {
           lineHeight: 1,
         }}
       >
-        Topa? 🤝
+        TOPA?
       </span>
     </AbsoluteFill>
   );
