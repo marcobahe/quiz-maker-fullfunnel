@@ -101,7 +101,11 @@ export async function PUT(request, { params }) {
     // Behavior fields
     if (body.shuffleQuestions !== undefined) updateData.shuffleQuestions = body.shuffleQuestions;
     if (body.questionTimer !== undefined) updateData.questionTimer = body.questionTimer;
-    
+
+    // Webhook fields
+    if (body.webhookUrl !== undefined) updateData.webhookUrl = body.webhookUrl;
+    if (body.webhookSecret !== undefined) updateData.webhookSecret = body.webhookSecret;
+
     if (body.status === 'published' && existing.status !== 'published') {
       updateData.status = 'published';
       // Generate a new slug if publishing for the first time

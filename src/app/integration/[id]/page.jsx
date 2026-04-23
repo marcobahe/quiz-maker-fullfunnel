@@ -38,6 +38,295 @@ function CopyButton({ text, label = 'Copiar' }) {
   );
 }
 
+// ── Webhook Config Section (native quiz webhook) ─────────────
+function WebhookConfigSection({ quizId }) {
+  const [quiz, setQuiz] = useState(null);
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookSecret, setWebhookSecret] = useState('');
+  const [showSecret, setShowSecret] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(true);
+  const [urlError, setUrlError] = useState('');
+
+  const fetchQuiz = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/quizzes/${quizId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setQuiz(data);
+      setWebhookUrl(data.webhookUrl || '');
+      setWebhookSecret(data.webhookSecret || '');
+    } catch (err) {
+      console.error('Error fetching quiz:', err);
+    }
+  }, [quizId]);
+
+  const fetchLogs = useCallback(async () => {
+    setLogsLoading(true);
+    try {
+      const res = await fetch(`/api/quizzes/${quizId}/webhook-logs`);
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(data);
+      }
+    } catch (err) {
+      console.error('Error fetching webhook logs:', err);
+    } finally {
+      setLogsLoading(false);
+    }
+  }, [quizId]);
+
+  useEffect(() => {
+    if (quizId) {
+      fetchQuiz();
+      fetchLogs();
+    }
+  }, [quizId, fetchQuiz, fetchLogs]);
+
+  const validateUrl = (url) => {
+    if (!url) return true;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
+  const handleUrlChange = (e) => {
+    const val = e.target.value;
+    setWebhookUrl(val);
+    if (val && !validateUrl(val)) {
+      setUrlError('A URL deve ser válida e começar com https://');
+    } else {
+      setUrlError('');
+    }
+  };
+
+  const handleSave = async () => {
+    if (webhookUrl && !validateUrl(webhookUrl)) return;
+    setSaving(true);
+    setTestResult(null);
+
+    try {
+      const res = await fetch(`/api/quizzes/${quizId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          webhookUrl: webhookUrl || null,
+          webhookSecret: webhookSecret || null,
+        }),
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setQuiz(updated);
+        setTestResult({ success: true, message: 'Configuração salva!' });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setTestResult({ success: false, error: err.error || 'Erro ao salvar' });
+      }
+    } catch (err) {
+      setTestResult({ success: false, error: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTest = async () => {
+    if (!webhookUrl) {
+      setTestResult({ success: false, error: 'Informe a URL do webhook antes de testar' });
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+
+    try {
+      const res = await fetch(`/api/quizzes/${quizId}/webhook`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTestResult({ success: true, message: `Webhook respondeu HTTP ${data.status} em ${data.responseTimeMs}ms` });
+      } else {
+        setTestResult({ success: false, error: data.error || 'Erro ao testar webhook' });
+      }
+    } catch (err) {
+      setTestResult({ success: false, error: err.message });
+    } finally {
+      setTesting(false);
+      fetchLogs();
+    }
+  };
+
+  const formatDate = (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString('pt-BR');
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+            <Webhook className="text-indigo-600" size={20} />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800 text-lg">Webhook Pos-Quiz</h3>
+            <p className="text-gray-500 text-sm">Receba dados do lead automaticamente após cada conclusão de quiz</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6">
+        {/* URL field */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">URL do Webhook</label>
+          <input
+            type="url"
+            value={webhookUrl}
+            onChange={handleUrlChange}
+            placeholder="https://sua-api.com/webhook"
+            className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none ${
+              urlError ? 'border-red-300 focus:border-red-400' : 'border-gray-200'
+            }`}
+          />
+          {urlError && (
+            <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+              <AlertCircle size={12} /> {urlError}
+            </p>
+          )}
+          <p className="text-xs text-gray-400 mt-1">Deve começar com https://</p>
+        </div>
+
+        {/* Secret field */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Secret Key <span className="text-gray-400 font-normal">(opcional)</span>
+          </label>
+          <div className="relative">
+            <input
+              type={showSecret ? 'text' : 'password'}
+              value={webhookSecret}
+              onChange={(e) => setWebhookSecret(e.target.value)}
+              placeholder="whsec_xxxxxxxxxxxx"
+              className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowSecret(!showSecret)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showSecret ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Enviada no header X-Webhook-Secret para validação no seu servidor</p>
+        </div>
+
+        {/* Test result */}
+        {testResult && (
+          <div className={`flex items-center gap-2 p-3 rounded-lg mb-4 text-sm ${
+            testResult.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'
+          }`}>
+            {testResult.success ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            {testResult.success ? testResult.message : testResult.error}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2 mb-8">
+          <button
+            onClick={handleSave}
+            disabled={saving || !!urlError}
+            className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg font-medium text-sm hover:bg-accent-hover transition-colors disabled:opacity-50"
+          >
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+            {saving ? 'Salvando...' : 'Salvar'}
+          </button>
+          <button
+            onClick={handleTest}
+            disabled={testing || !webhookUrl || !!urlError}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {testing ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {testing ? 'Testando...' : 'Testar Webhook'}
+          </button>
+          <a
+            href="/help#webhooks"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 px-3 py-2 text-gray-500 hover:text-accent text-sm transition-colors ml-auto"
+          >
+            <ExternalLink size={14} />
+            Documentação
+          </a>
+        </div>
+
+        {/* Recent events */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <Database size={16} />
+            Eventos Recentes
+          </h4>
+
+          {logsLoading ? (
+            <div className="flex items-center justify-center py-6 text-gray-400">
+              <Loader2 size={20} className="animate-spin mr-2" />
+              Carregando...
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-xl border border-gray-100">
+              <Webhook size={24} className="mx-auto mb-2 opacity-40" />
+              <p className="text-sm">Nenhum evento registrado ainda</p>
+              <p className="text-xs mt-1">Os eventos aparecerão aqui após o primeiro disparo</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wide">
+                    <th className="text-left py-2 px-3">Data</th>
+                    <th className="text-left py-2 px-3">Status</th>
+                    <th className="text-left py-2 px-3">HTTP</th>
+                    <th className="text-left py-2 px-3">Tempo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log) => (
+                    <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                      <td className="py-2 px-3 text-gray-700 whitespace-nowrap">{formatDate(log.createdAt)}</td>
+                      <td className="py-2 px-3">
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                          log.status === 'success'
+                            ? 'bg-green-100 text-green-700'
+                            : log.status === 'dlq'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${
+                            log.status === 'success' ? 'bg-green-500' : log.status === 'dlq' ? 'bg-red-500' : 'bg-amber-500'
+                          }`} />
+                          {log.status === 'success' ? 'Sucesso' : log.status === 'dlq' ? 'DLQ' : 'Falhou'}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-gray-600">{log.statusCode ?? '—'}</td>
+                      <td className="py-2 px-3 text-gray-600">{log.responseTimeMs ? `${log.responseTimeMs}ms` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Webhooks Section ─────────────────────────────────────────
 function WebhooksSection({ quizId }) {
   const [webhooks, setWebhooks] = useState([]);
@@ -1114,6 +1403,11 @@ export default function IntegrationPage() {
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Integrações</h1>
             <p className="text-gray-500">Conecte seu quiz com suas ferramentas favoritas para automatizar o fluxo de leads.</p>
+          </div>
+
+          {/* ── Native Webhook Config ─────────────────────── */}
+          <div className="mb-8">
+            <WebhookConfigSection quizId={params.id} />
           </div>
 
           {/* ── Webhooks Section ──────────────────────────── */}

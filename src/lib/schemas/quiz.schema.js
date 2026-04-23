@@ -22,4 +22,6 @@ export const updateQuizSchema = z.object({
   questionTimer: z.number().int().nonnegative().optional().nullable(),
   status: z.string().optional(),
   clientUpdatedAt: z.string().datetime().optional(),
+  webhookUrl: z.string().url().optional().nullable(),
+  webhookSecret: z.string().optional().nullable(),
 });
