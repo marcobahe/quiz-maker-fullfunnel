@@ -39,7 +39,7 @@ const SceneHook: React.FC = () => {
     >
       <span
         style={{
-          fontFamily: fonts.body,
+          fontFamily: fonts.display,
           fontWeight: fontWeights.medium,
           fontSize: 36,
           color: colors.white,
@@ -67,7 +67,7 @@ const SceneHook: React.FC = () => {
 
       <span
         style={{
-          fontFamily: fonts.body,
+          fontFamily: fonts.display,
           fontWeight: fontWeights.semibold,
           fontSize: 40,
           color: colors.white,
@@ -100,7 +100,7 @@ const SceneIdentification: React.FC = () => {
     >
       <span
         style={{
-          fontFamily: fonts.body,
+          fontFamily: fonts.display,
           fontWeight: fontWeights.medium,
           fontSize: 36,
           color: colors.textMuted,
@@ -187,7 +187,7 @@ const BulletLine: React.FC<{ icon: string; text: string; delay: number }> = ({
       </span>
       <span
         style={{
-          fontFamily: fonts.body,
+          fontFamily: fonts.display,
           fontWeight: fontWeights.medium,
           fontSize: 34,
           color: colors.white,

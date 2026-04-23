@@ -38,7 +38,7 @@ const SceneHook: React.FC = () => {
     >
       <span
         style={{
-          fontFamily: fonts.body,
+          fontFamily: fonts.display,
           fontWeight: fontWeights.regular,
           fontSize: 32,
           color: colors.textMuted,
@@ -117,7 +117,7 @@ const ReportLine: React.FC<{ text: string; color: string; delay: number }> = ({
   return (
     <span
       style={{
-        fontFamily: isHighlight ? fonts.display : fonts.body,
+        fontFamily: fonts.display,
         fontWeight: isHighlight ? fontWeights.extrabold : fontWeights.medium,
         fontSize: isHighlight ? 56 : 34,
         color,
@@ -422,7 +422,7 @@ const AuthorityLine: React.FC<{
   return (
     <span
       style={{
-        fontFamily: large ? fonts.display : fonts.body,
+        fontFamily: fonts.display,
         fontWeight: large ? fontWeights.extrabold : fontWeights.medium,
         fontSize: large ? 64 : 40,
         color,

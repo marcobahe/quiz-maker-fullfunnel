@@ -139,7 +139,7 @@ const StepLine: React.FC<{ num: string; text: string; delay: number }> = ({
       </span>
       <span
         style={{
-          fontFamily: fonts.body,
+          fontFamily: fonts.display,
           fontWeight: fontWeights.semibold,
           fontSize: 40,
           color: colors.white,
@@ -171,7 +171,7 @@ const SceneBet: React.FC = () => {
     >
       <span
         style={{
-          fontFamily: fonts.body,
+          fontFamily: fonts.display,
           fontWeight: fontWeights.medium,
           fontSize: 34,
           color: colors.textMuted,
