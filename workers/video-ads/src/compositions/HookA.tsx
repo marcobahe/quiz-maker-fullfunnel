@@ -17,7 +17,6 @@ import {
   useSlideUp,
   useScaleIn,
   useBlurReveal,
-  useCounter,
 } from "../animations";
 
 // ─── Scene 1: HOOK (0–60fr / 0–2s) ──────────────────────────────────────────
@@ -334,10 +333,13 @@ const SceneComparison: React.FC = () => {
   );
 };
 
-// ─── Scene 5: PROVA SOCIAL (450–540fr / 15–18s) ──────────────────────────────
+// ─── Scene 5: BETA ACESSO (450–540fr / 15–18s) ───────────────────────────────
+// Substituído vanity count (10k+ leads) por prova honesta de pré-launch:
+// "Beta aberto — primeiros founders testando." Evita claim sem lastro.
 const SceneSocialProof: React.FC = () => {
-  const count = useCounter(10000, { delay: 0, duration: 60 });
-  const sub = useSlideUp({ delay: 45, duration: 18 });
+  const badge = useScaleIn({ delay: 0 });
+  const l1 = useSlideUp({ delay: 18, duration: 18 });
+  const l2 = useSlideUp({ delay: 36, duration: 18 });
 
   return (
     <AbsoluteFill
@@ -345,46 +347,66 @@ const SceneSocialProof: React.FC = () => {
         justifyContent: "center",
         alignItems: "center",
         flexDirection: "column",
-        gap: 20,
+        gap: 24,
         paddingLeft: 60,
         paddingRight: 60,
       }}
     >
-      <span
+      {/* Badge "BETA" */}
+      <div
         style={{
-          fontFamily: fonts.display,
-          fontWeight: fontWeights.extrabold,
-          fontSize: 96,
-          color: colors.gold,
-          lineHeight: 1,
-          textAlign: "center",
+          opacity: badge.opacity,
+          transform: `scale(${badge.scale})`,
+          background: `linear-gradient(135deg, rgba(99,102,241,0.30), rgba(139,92,246,0.20))`,
+          border: `2px solid ${colors.primary}`,
+          borderRadius: 16,
+          paddingTop: 14,
+          paddingBottom: 14,
+          paddingLeft: 40,
+          paddingRight: 40,
         }}
       >
-        {count.toLocaleString("pt-BR")}+
-      </span>
+        <span
+          style={{
+            fontFamily: fonts.display,
+            fontWeight: fontWeights.extrabold,
+            fontSize: 56,
+            color: colors.primary,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+          }}
+        >
+          BETA ABERTO
+        </span>
+      </div>
+
       <span
         style={{
           fontFamily: fonts.display,
           fontWeight: fontWeights.bold,
-          fontSize: 44,
+          fontSize: 40,
           color: colors.white,
+          opacity: l1.opacity,
+          transform: `translateY(${l1.translateY}px)`,
           textAlign: "center",
+          lineHeight: 1.3,
         }}
       >
-        leads capturados
+        Primeiros founders testando agora.
       </span>
+
       <span
         style={{
           fontFamily: fonts.body,
           fontWeight: fontWeights.medium,
           fontSize: 28,
-          color: colors.textMuted,
-          opacity: sub.opacity,
-          transform: `translateY(${sub.translateY}px)`,
+          color: colors.gold,
+          opacity: l2.opacity,
+          transform: `translateY(${l2.translateY}px)`,
           textAlign: "center",
         }}
       >
-        por criadores BR com QuizMeBaby
+        Sem cartão, sem compromisso.
       </span>
     </AbsoluteFill>
   );
