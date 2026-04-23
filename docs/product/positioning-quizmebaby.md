@@ -1,10 +1,11 @@
 # Positioning QuizMeBaby — Documento de Posicionamento
 
-> **Status:** Draft v0.3 — 22/04/2026
-> **Autor:** PM (ICO-155) · atualizado por Claudinho (incorporação ICO-154)
+> **Status:** Draft v0.4 — 23/04/2026
+> **Autor:** PM (ICO-155) · atualizado por Claudinho (incorporação ICO-154) · PM (micro-ajustes v0.4)
 > **Inputs:** TheBoss (steer estratégico) · Analyzer (benchmarks ICO-153 + ICO-154) · Opus (validação infra + pricing)
-> **Aprovação ICO-154:** TheBoss ✅ 22/04/2026
-> **Aguarda revisão:** TheBoss (antes de copy final)
+> **Aprovação TheBoss:** ✅ 23/04/2026
+> **Aprovação Opus:** ✅ 23/04/2026
+> **Status ICO-155:** ✅ Done
 
 ---
 
@@ -40,6 +41,8 @@ O único quiz builder BR com plano grátis, A/B testing nativo, AI Analysis de l
 
 ### ICP Prioritário
 **Agência digital que hoje paga R$197-297/mês na inLead** — dor real:
+
+> **Sizing ICP agência:** Agências digitais 3-15 pessoas, faturamento R$30-300k/mês, já pagando ferramenta de funil/landing (inLead, Typebot, ClickFunnels).
 - "Edição compartilhada" fraca, sem roles granulares (owner/admin/editor/viewer)
 - Sem white-label: "Criado via inlead.digital" no rodapé de *todos* os funis dos clientes deles, mesmo pagando R$497/mês
 - Sem A/B testing nativo
@@ -290,13 +293,19 @@ Sabe que o produto é bom. Não precisa atacar o concorrente pelo nome — deixa
 
 ## 7. Pilares Diferenciadores (Ranqueados por Impacto)
 
-1. **Plano Free** — inLead não tem. Remove barreira de entrada. Diferencial de aquisição #1.
-2. **A/B testing nativo** — nenhum concorrente BR tem. Posição exclusiva.
-3. **GHL nativo** — gap real da inLead. ICP agência adora.
-4. **White-label completo** — inLead cobra R$497 e ainda mostra "Criado via inlead.digital". Faca na mão.
-5. **Multi-workspace com roles granulares** — supera "edição compartilhada" da inLead.
-6. **AI Analysis de leads** — ninguém no BR faz (quando corrigido o timeout).
-7. **Edge delivery Cloudflare KV** — performance mensurável, marketável.
+### Top-3 que martelam em toda copy (inegociáveis — usar em todo criativo, landing e email)
+
+1. **Plano Free real** — "A inLead começa em R$97. A gente começa de graça." Único BR com free tier real. Diferencial de aquisição #1.
+2. **A/B testing desde o free** — "Testes A/B desde o plano grátis. Sem pegadinha." Involve.me $129, Typeform $379. Claim killer sem concorrente BR.
+3. **Full Funnel PT-BR nativo** — "Do primeiro clique até o pagamento — WhatsApp, CRM e gateways BR integrados." Cruzamento que nenhum player internacional tem.
+
+### Pilares de suporte (reforçam o Top-3, não substituem)
+
+4. **GHL nativo** — gap real da inLead. ICP agência adora. (NÃO usar "único com GHL" — Involve.me já tem.)
+5. **White-label completo** — inLead cobra R$497 e ainda mostra "Criado via inlead.digital". Faca na mão.
+6. **Multi-workspace com roles granulares** — supera "edição compartilhada" da inLead.
+7. **AI Analysis de leads** — ninguém no BR faz (quando corrigido o timeout — não promover até ICO-151 fechar).
+8. **Edge delivery Cloudflare KV** — performance mensurável, marketável.
 
 ---
 
@@ -306,7 +315,7 @@ Sabe que o produto é bom. Não precisa atacar o concorrente pelo nome — deixa
 |---|---|---|
 | Draft v0.2 incorporar benchmark ICO-153 + infra | ✅ Feito | PM |
 | Benchmark internacionais ([ICO-154](/ICO/issues/ICO-154)) ingerido | ✅ Feito (v0.3) | Claudinho |
-| Revisão e aprovação do positioning | ⬜ Aguardando | TheBoss |
+| Revisão e aprovação do positioning | ✅ Aprovado (TheBoss + Opus) 23/04/2026 | TheBoss + Opus |
 | Copy página de vendas standalone (Ângulo B) | ⬜ Pós-aprovação ICO-155 | Claudinho |
 | Copy página de captura ICP agência | ⬜ Pós-aprovação ICO-155 | Claudinho |
 | Copy upgrade-path Full Funnel (Ângulo A) | ⬜ Pós-aprovação ICO-155 | Claudinho |
@@ -316,6 +325,8 @@ Sabe que o produto é bom. Não precisa atacar o concorrente pelo nome — deixa
 
 ---
 
-*Draft v0.3 — Claudinho (incorporação ICO-154) · 22/04/2026*
+*Draft v0.4 — PM (micro-ajustes: Top-3 copy + sizing ICP agência) · 23/04/2026*
+*v0.3: Claudinho (incorporação ICO-154) · 22/04/2026*
 *v0.2: PM / TheBoss (steer estratégico) · Opus (validação infra+pricing)*
-*Correção crítica: GHL não é mais diferencial exclusivo (Involve.me já tem). Claim cancelado. Pivot: Full Funnel PT-BR = gateways BR + WhatsApp + GHL + AI.*
+*Correção crítica v0.3: GHL não é mais diferencial exclusivo (Involve.me já tem). Claim cancelado. Pivot: Full Funnel PT-BR = gateways BR + WhatsApp + GHL + AI.*
+*v0.4: Top-3 inegociável explicitado em seção 7 · Sizing ICP agência adicionado em seção 2 · Header de aprovação atualizado.*
