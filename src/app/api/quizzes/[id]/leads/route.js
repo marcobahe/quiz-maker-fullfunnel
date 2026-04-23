@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { dispatchIntegrations } from '@/lib/webhookDispatcher';
+import { dispatchQuizWebhook } from '@/lib/quizWebhookDispatcher';
 import { checkLimit } from '@/lib/planLimits';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { handleApiError } from '@/lib/apiError';
@@ -95,7 +96,7 @@ export async function POST(request, { params }) {
     }
     const body = parsed.data;
 
-    // Verify quiz exists
+    // Verify quiz exists (include webhook fields for dispatcher)
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
     });
@@ -135,7 +136,7 @@ export async function POST(request, { params }) {
       },
     });
 
-    // Fire-and-forget: dispatch webhooks and integrations asynchronously
+    // Fire-and-forget: dispatch integrations and outbound webhook asynchronously
     const answers = body.answers || [];
     const scoreRanges = quiz.scoreRanges;
     dispatchIntegrations({
@@ -145,6 +146,13 @@ export async function POST(request, { params }) {
       score: body.score || 0,
       resultCategory: body.resultCategory || null,
       scoreRanges,
+    });
+    dispatchQuizWebhook({
+      quiz,
+      lead,
+      answers,
+      score: body.score || 0,
+      resultCategory: body.resultCategory || null,
     });
 
     return NextResponse.json(lead, { status: 201 });

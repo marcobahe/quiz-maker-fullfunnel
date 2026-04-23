@@ -57,6 +57,10 @@ model Quiz {
   splitPercent  Int?             @default(50)
   isVariant     Boolean          @default(false)
   customDomains CustomDomain[]
+  // Outbound webhook (generic — any platform)
+  webhookUrl    String?
+  webhookSecret String?
+  webhookLogs   WebhookLog[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 }
@@ -141,6 +145,25 @@ model CustomDomain {
   cnameTarget String   @default("play.quizmebaby.app")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model WebhookLog {
+  id             String   @id @default(cuid())
+  // Soft reference — no FK so records survive quiz deletion
+  quizId         String?
+  quiz           Quiz?    @relation(fields: [quizId], references: [id])
+  leadId         String?
+  attempt        Int      @default(1)
+  // 'success' | 'failed' | 'dlq'
+  status         String   @default("failed")
+  statusCode     Int?
+  responseTimeMs Int?
+  lastError      String?
+  createdAt      DateTime @default(now())
+
+  @@index([quizId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model WhatsappMessageLog {
