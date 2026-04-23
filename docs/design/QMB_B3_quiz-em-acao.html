@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>QuizMeBaby — B3 Quiz em Ação | ICO-159</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .canvas {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    background: #f8faff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Blob decorativo top-right */
+  .blob-tr {
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 620px;
+    height: 620px;
+    background: radial-gradient(ellipse at 60% 40%,
+      rgba(236, 72, 153, 0.18) 0%,
+      rgba(167, 139, 250, 0.12) 40%,
+      rgba(248, 250, 255, 0) 70%
+    );
+    filter: blur(40px);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Blob decorativo bottom-left sutil */
+  .blob-bl {
+    position: absolute;
+    bottom: -100px;
+    left: -60px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(ellipse at 40% 60%,
+      rgba(99, 102, 241, 0.08) 0%,
+      rgba(248, 250, 255, 0) 65%
+    );
+    filter: blur(30px);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Card principal */
+  .quiz-card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 64px 72px 72px;
+    width: 720px;
+    box-shadow:
+      0 20px 60px rgba(99, 102, 241, 0.10),
+      0 4px 16px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+    z-index: 10;
+  }
+
+  /* Wordmark */
+  .wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .wordmark .quiz { color: #6366f1; }
+  .wordmark .me { color: #8b5cf6; }
+  .wordmark .baby { color: #EC4899; }
+
+  /* Step indicator */
+  .step-indicator {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #94a3b8;
+    letter-spacing: 0.04em;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 100px;
+    margin-bottom: 36px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 100px;
+  }
+
+  /* Question */
+  .question {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: #0f172a;
+    line-height: 1.35;
+    margin-bottom: 32px;
+    letter-spacing: -0.01em;
+  }
+
+  /* Answer options */
+  .answers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .answer-option {
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .answer-option.selected {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.06);
+    color: #4338ca;
+  }
+
+  .answer-option .option-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .answer-option.selected .option-dot {
+    border-color: #6366f1;
+    background: #6366f1;
+  }
+
+  .answer-option.selected .option-dot::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+  }
+
+  /* Footer card */
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .btn-next {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 14px 28px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-next svg { width: 16px; height: 16px; }
+
+  .step-count {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  /* Badge ICO */
+  .ico-badge {
+    position: absolute;
+    bottom: 32px;
+    right: 48px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: #cbd5e1;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="blob-tr"></div>
+  <div class="blob-bl"></div>
+
+  <div class="quiz-card">
+    <!-- Wordmark -->
+    <div class="wordmark">
+      <span class="quiz">Quiz</span><span class="me">Me</span><span class="baby">Baby</span>
+    </div>
+
+    <!-- Progress -->
+    <div class="step-indicator">Pergunta 2 de 5</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+
+    <!-- Question -->
+    <div class="question">
+      Qual é seu maior desafio<br>com geração de leads hoje?
+    </div>
+
+    <!-- Answers -->
+    <div class="answers">
+      <div class="answer-option selected">
+        <span class="option-dot"></span>
+        Volume insuficiente de leads
+      </div>
+      <div class="answer-option">
+        <span class="option-dot"></span>
+        Leads sem qualidade ou perfil errado
+      </div>
+      <div class="answer-option">
+        <span class="option-dot"></span>
+        Custo por lead muito alto
+      </div>
+      <div class="answer-option">
+        <span class="option-dot"></span>
+        Processo de nutrição desorganizado
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer">
+      <span class="step-count">2 / 5 respondidas</span>
+      <button class="btn-next">
+        Próxima
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="ico-badge">QuizMeBaby · ICO-159 · B3 Quiz em Ação</div>
+</div>
+</body>
+</html>

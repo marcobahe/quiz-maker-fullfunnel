@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>QuizMeBaby — D2 Split + Glass Card | ICO-159</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .canvas {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #be185d 100%);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* Orbes de blur */
+  .orb-tl {
+    position: absolute;
+    top: -60px;
+    left: -40px;
+    width: 380px;
+    height: 380px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  .orb-br {
+    position: absolute;
+    bottom: -60px;
+    right: 300px;
+    width: 280px;
+    height: 280px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50%;
+    filter: blur(50px);
+    pointer-events: none;
+  }
+
+  /* Half esquerda — métricas */
+  .left-half {
+    width: 45%;
+    padding-left: 120px;
+    padding-right: 40px;
+    z-index: 10;
+    position: relative;
+  }
+
+  .wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.60);
+    margin-bottom: 64px;
+  }
+
+  /* Métricas */
+  .metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .metric-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .metric-number {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 64px;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .metric-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.50);
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+  }
+
+  /* Divisor central */
+  .center-divider {
+    width: 1px;
+    height: 320px;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.15), transparent);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  /* Half direita — glass card */
+  .right-half {
+    width: 55%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 120px;
+    padding-left: 60px;
+    z-index: 10;
+    position: relative;
+  }
+
+  /* Glass card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-radius: 24px;
+    padding: 44px 48px 52px;
+    width: 640px;
+    position: relative;
+  }
+
+  .card-question {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: #ffffff;
+    margin-bottom: 32px;
+    line-height: 1.35;
+  }
+
+  .pill-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pill {
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.70);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pill.selected {
+    background: rgba(255, 255, 255, 0.20);
+    border-color: rgba(255, 255, 255, 0.40);
+    color: #ffffff;
+  }
+
+  .pill-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.30);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pill.selected .pill-dot {
+    border-color: rgba(255, 255, 255, 0.70);
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* Step indicator no glass card */
+  .card-step {
+    position: absolute;
+    top: 44px;
+    right: 48px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.35);
+    font-weight: 500;
+  }
+
+  /* CTA no glass card */
+  .card-cta {
+    margin-top: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .btn-next {
+    background: rgba(255, 255, 255, 0.95);
+    color: #4f46e5;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.01em;
+  }
+
+  /* Badge */
+  .ico-badge {
+    position: absolute;
+    bottom: 28px;
+    left: 120px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    text-transform: uppercase;
+    z-index: 20;
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="orb-tl"></div>
+  <div class="orb-br"></div>
+
+  <!-- Esquerda: wordmark + métricas -->
+  <div class="left-half">
+    <div class="wordmark">QuizMeBaby</div>
+    <div class="subtitle">Quiz full-funnel para o mercado BR</div>
+
+    <div class="metrics">
+      <div class="metric-block">
+        <span class="metric-number">2.847</span>
+        <span class="metric-label">leads capturados hoje</span>
+      </div>
+      <div class="metric-block">
+        <span class="metric-number">68%</span>
+        <span class="metric-label">taxa de conversão média</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="center-divider"></div>
+
+  <!-- Direita: glass card -->
+  <div class="right-half">
+    <div class="glass-card">
+      <div class="card-step">1 de 4</div>
+
+      <div class="card-question">
+        Você vende: produto físico ou digital?
+      </div>
+
+      <div class="pill-options">
+        <div class="pill selected">
+          <span class="pill-dot"></span>
+          Digital (curso, mentoria, SaaS)
+        </div>
+        <div class="pill">
+          <span class="pill-dot"></span>
+          Físico (e-commerce, loja)
+        </div>
+        <div class="pill">
+          <span class="pill-dot"></span>
+          Serviços (agência, consultoria)
+        </div>
+      </div>
+
+      <div class="card-cta">
+        <button class="btn-next">Próxima →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ico-badge">QuizMeBaby · ICO-159 · D2 Split + Glass Card</div>
+</div>
+</body>
+</html>
