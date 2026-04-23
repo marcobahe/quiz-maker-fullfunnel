@@ -1,0 +1,23 @@
+{
+  "name": "quizmebaby-video-ads",
+  "version": "1.0.0",
+  "description": "QuizMeBaby B2B video ads — Hook A/B/C Meta Reels 1080x1920",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "render:hook-a": "remotion render src/index.ts HookA out/hook-a.mp4 && remotion render src/index.ts HookA out/hook-a.webm",
+    "render:hook-b": "remotion render src/index.ts HookB out/hook-b.mp4 && remotion render src/index.ts HookB out/hook-b.webm",
+    "render:hook-c": "remotion render src/index.ts HookC out/hook-c.mp4 && remotion render src/index.ts HookC out/hook-c.webm",
+    "render:all": "npm run render:hook-a && npm run render:hook-b && npm run render:hook-c"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "remotion": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0"
+  }
+}
