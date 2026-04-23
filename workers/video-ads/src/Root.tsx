@@ -4,6 +4,9 @@ import { HookA } from "./compositions/HookA";
 import { HookB } from "./compositions/HookB";
 import { HookC } from "./compositions/HookC";
 import { VIDEO_WIDTH, VIDEO_HEIGHT, FPS } from "./brand";
+// Font loading must happen at module level — imported here so all compositions
+// share the same loaded instances (Outfit, Spline Sans, Inter via @remotion/google-fonts)
+import "./loadFonts";
 
 export const Root: React.FC = () => {
   return (
