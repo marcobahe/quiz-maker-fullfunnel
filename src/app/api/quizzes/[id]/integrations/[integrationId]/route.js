@@ -1,11 +1,33 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
 
 // PUT /api/quizzes/[id]/integrations/[integrationId] — update
 export async function PUT(request, { params }) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
     const { id: quizId, integrationId } = await params;
+
+    // Verify ownership
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      select: { userId: true },
+    });
+
+    if (!quiz) {
+      return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
+    }
+
+    if (quiz.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+    }
+
     const body = await request.json();
 
     const existing = await prisma.integration.findFirst({
@@ -29,14 +51,33 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'PUT', userId: null });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'PUT', userId: session?.user?.id });
   }
 }
 
 // DELETE /api/quizzes/[id]/integrations/[integrationId] — delete
 export async function DELETE(request, { params }) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
     const { id: quizId, integrationId } = await params;
+
+    // Verify ownership
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      select: { userId: true },
+    });
+
+    if (!quiz) {
+      return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
+    }
+
+    if (quiz.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+    }
 
     const existing = await prisma.integration.findFirst({
       where: { id: integrationId, quizId },
@@ -50,6 +91,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'DELETE', userId: null });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'DELETE', userId: session?.user?.id });
   }
 }

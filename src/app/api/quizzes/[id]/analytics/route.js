@@ -1,12 +1,41 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { analyticsEventSchema } from '@/lib/schemas/analytics.schema';
 import { handleApiError } from '@/lib/apiError';
 
 // ── POST: Save analytics event ──────────────────────────────
 export async function POST(request, { params }) {
   try {
     const { id: quizId } = await params;
-    const body = await request.json();
+
+    // Rate limit: 30 events per IP per minute
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
+    const rl = checkRateLimit(`analytics:${ip}`, { max: 30, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rl.retryAfter) },
+        }
+      );
+    }
+
+    const rawBody = await request.json();
+    const parsed = analyticsEventSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
 
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
@@ -16,7 +45,6 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
     }
 
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '';
     const userAgent = request.headers.get('user-agent') || '';
 
     const event = await prisma.analyticsEvent.create({
@@ -41,14 +69,25 @@ export async function POST(request, { params }) {
 // ── GET: Aggregated analytics ────────────────────────────────
 export async function GET(request, { params }) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
     const { id: quizId } = await params;
 
+    // Verify ownership
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
+      select: { userId: true },
     });
 
     if (!quiz) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
+    }
+
+    if (quiz.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
     }
 
     // Fetch all events for this quiz
@@ -206,6 +245,6 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ overview, funnel, daily, results });
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/analytics', method: 'GET', userId: null });
+    return handleApiError(error, { route: '/api/quizzes/[id]/analytics', method: 'GET', userId: session?.user?.id });
   }
 }

@@ -1,15 +1,45 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { PLAYER_ORIGIN } from '@/lib/urls';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { handleApiError } from '@/lib/apiError';
 
 // Disable caching to always get fresh data
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+const publicParamsSchema = z.object({
+  id: z.string().min(1).max(255),
+});
+
 export async function GET(request, { params }) {
   try {
-    const { id: slug } = await params;
+    // Rate limit: 20 requests per IP per minute
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
+    const rl = checkRateLimit(`public:${ip}`, { max: 20, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rl.retryAfter) },
+        }
+      );
+    }
+
+    const parsedParams = publicParamsSchema.safeParse(await params);
+    if (!parsedParams.success) {
+      return NextResponse.json(
+        { error: 'Parâmetro inválido', details: parsedParams.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { id: slug } = parsedParams.data;
     const { searchParams } = new URL(request.url);
     const isPreview = searchParams.get('preview') === 'true';
 

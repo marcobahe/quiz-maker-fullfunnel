@@ -1,11 +1,32 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
 
 // GET /api/quizzes/[id]/integrations — list integrations for a quiz
 export async function GET(request, { params }) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
     const { id: quizId } = await params;
+
+    // Verify ownership
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      select: { userId: true },
+    });
+
+    if (!quiz) {
+      return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
+    }
+
+    if (quiz.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+    }
 
     const integrations = await prisma.integration.findMany({
       where: { quizId },
@@ -14,22 +35,35 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(integrations);
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'GET', userId: null });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'GET', userId: session?.user?.id });
   }
 }
 
 // POST /api/quizzes/[id]/integrations — create a new integration
 export async function POST(request, { params }) {
   try {
-    const { id: quizId } = await params;
-    const body = await request.json();
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
 
-    // Verify quiz exists
-    const quiz = await prisma.quiz.findUnique({ where: { id: quizId } });
+    const { id: quizId } = await params;
+
+    // Verify ownership
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      select: { userId: true },
+    });
+
     if (!quiz) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
     }
 
+    if (quiz.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+    }
+
+    const body = await request.json();
     const { type, name, config, active } = body;
 
     if (!type || !config) {
@@ -48,6 +82,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(integration, { status: 201 });
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'POST', userId: null });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'POST', userId: session?.user?.id });
   }
 }

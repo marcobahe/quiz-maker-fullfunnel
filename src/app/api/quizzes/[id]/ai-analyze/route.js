@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { aiAnalyzeSchema } from '@/lib/schemas/aiAnalyze.schema';
 import { handleApiError } from '@/lib/apiError';
 
 // Simple in-memory rate limiter: max 10 requests per minute per quiz
@@ -7,7 +9,7 @@ const rateLimitMap = new Map();
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60 * 1000;
 
-function checkRateLimit(quizId) {
+function checkQuizRateLimit(quizId) {
   const now = Date.now();
   const entry = rateLimitMap.get(quizId);
 
@@ -44,6 +46,22 @@ export async function POST(request, { params }) {
   try {
     const { id } = await params;
 
+    // Rate limit by IP: 10 req/IP/min (defense in depth)
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
+    const ipRl = checkRateLimit(`ai-analyze:${ip}`, { max: 10, windowMs: 60_000 });
+    if (!ipRl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas requisições. Tente novamente em alguns instantes.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(ipRl.retryAfter) },
+        }
+      );
+    }
+
     // Check API key
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -53,17 +71,24 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Rate limit check
-    if (!checkRateLimit(id)) {
+    // Rate limit check (per quiz)
+    if (!checkQuizRateLimit(id)) {
       return NextResponse.json(
         { error: 'Muitas requisições. Tente novamente em alguns instantes.' },
         { status: 429 }
       );
     }
 
-    // Parse request body
-    const body = await request.json();
-    const { answers, score, maxScore, leadName, leadEmail, resultTitle } = body;
+    // Validate body
+    const rawBody = await request.json();
+    const parsed = aiAnalyzeSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { answers, score, maxScore, leadName, leadEmail, resultTitle } = parsed.data;
 
     // Fetch quiz to get aiResultConfig
     const quiz = await prisma.quiz.findFirst({
