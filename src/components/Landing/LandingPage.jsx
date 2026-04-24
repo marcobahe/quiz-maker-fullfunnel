@@ -267,6 +267,9 @@ function HeroSection() {
                 <span className="flex items-center gap-1.5">
                   <Check size={16} className="text-[#F59E0B]" /> Média de 68% de conversão
                 </span>
+                <span className="flex items-center gap-1.5">
+                  <Check size={16} className="text-green-400" /> Onboarding guiado incluso
+                </span>
               </div>
             </Reveal>
           </div>
@@ -556,10 +559,10 @@ function PricingSection() {
                   <span className="text-sm font-bold uppercase tracking-wider text-white/70">Full Funnel</span>
                 </div>
                 <h3 className="text-xl md:text-2xl font-extrabold font-display mb-1">
-                  Já tem o QuizMeBaby? Migre pro Full Funnel.
+                  Você já está no QMB — ativa o Full Funnel agora
                 </h3>
                 <p className="text-white/70 text-sm max-w-md">
-                  Integração automática dos seus quizzes com GHL, e-mail marketing e WhatsApp. Seu funil completo em uma stack.
+                  Você já está no QMB. Um passo: ativa o Full Funnel com desconto exclusivo de cliente.
                 </p>
               </div>
               <div className="shrink-0">
@@ -567,7 +570,7 @@ function PricingSection() {
                   href="/upgrade-full-funnel"
                   className="inline-flex items-center gap-2 bg-white text-[#6366f1] font-bold px-6 py-3 rounded-xl text-sm transition-all hover:shadow-xl hover:shadow-white/20 group"
                 >
-                  Ver upgrade com desconto
+                  Ativar meu desconto exclusivo
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
@@ -662,6 +665,9 @@ function PricingSection() {
                   <div className="text-xs text-[#F59E0B] mt-1 flex items-center gap-1">
                     <Check size={12} />
                     Clientes QuizMeBaby ganham 20% off
+                  </div>
+                  <div className="text-xs text-white/50 mt-0.5">
+                    Você economiza R$99/mês vs. comprar Full Funnel direto
                   </div>
                 </div>
 
