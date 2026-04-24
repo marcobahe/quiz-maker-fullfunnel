@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { requireOwner } from '@/lib/admin';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
   try {
@@ -33,7 +34,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Remove admin error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/admin/users/[id]/remove-admin', method: 'POST', userId: null });
   }
 }

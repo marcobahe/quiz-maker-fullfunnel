@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { requireAdmin } from '@/lib/admin';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { impersonateSchema } from '@/lib/schemas/admin.schema';
 
 export async function POST(request) {
   try {
@@ -10,11 +13,24 @@ export async function POST(request) {
     const error = requireAdmin(session);
     if (error) return error;
 
-    const { userId } = await request.json();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
+    // Rate limit: 20 impersonate attempts per admin per minute
+    const rl = checkRateLimit(`admin:impersonate:${session.user.id}`, { max: 20, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
+
+    const rawBody = await request.json();
+    const parsed = impersonateSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { userId } = parsed.data;
 
     const targetUser = await prisma.user.findUnique({
       where: { id: userId },
@@ -40,7 +56,6 @@ export async function POST(request) {
       originalRole: session.user.role,
     });
   } catch (error) {
-    console.error('Impersonate error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/admin/impersonate', method: 'POST', userId: null });
   }
 }

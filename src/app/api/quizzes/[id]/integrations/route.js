@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
+import { createIntegrationSchema } from '@/lib/schemas/integrations.schema';
 
 // GET /api/quizzes/[id]/integrations — list integrations for a quiz
 export async function GET(request, { params }) {
@@ -65,12 +66,15 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { type, name, config, active } = body;
-
-    if (!type || !config) {
-      return NextResponse.json({ error: 'Campos type e config são obrigatórios' }, { status: 400 });
+    const rawBody = await request.json();
+    const parsed = createIntegrationSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+    const { type, name, config, active } = parsed.data;
 
     const integration = await prisma.integration.create({
       data: {

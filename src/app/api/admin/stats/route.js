@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { requireAdmin } from '@/lib/admin';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 export async function GET() {
   try {
@@ -120,7 +121,6 @@ export async function GET() {
       dailyGrowth: dailyUsers,
     });
   } catch (error) {
-    console.error('Admin stats error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/admin/stats', method: 'GET', userId: null });
   }
 }

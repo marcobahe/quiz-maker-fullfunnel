@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { handleApiError } from '@/lib/apiError';
 
 export async function POST() {
   try {
@@ -16,7 +17,6 @@ export async function POST() {
       stopImpersonating: true,
     });
   } catch (error) {
-    console.error('Stop impersonate error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/admin/impersonate/stop', method: 'POST', userId: null });
   }
 }

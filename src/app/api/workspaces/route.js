@@ -5,6 +5,8 @@ import prisma from '@/lib/prisma';
 import { ensurePersonalWorkspace, getUserWorkspaces } from '@/lib/workspace';
 import { isAdmin } from '@/lib/admin';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { createWorkspaceSchema } from '@/lib/schemas/workspaces.schema';
 
 export async function GET(request) {
   let session;
@@ -58,10 +60,24 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { name } = await request.json();
-    if (!name || !name.trim()) {
-      return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 });
+    // Rate limit: 10 workspace creations per user per minute
+    const rl = checkRateLimit(`workspaces:create:${session.user.id}`, { max: 10, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
+
+    const rawBody = await request.json();
+    const parsed = createWorkspaceSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { name } = parsed.data;
 
     const baseSlug = name
       .toLowerCase()

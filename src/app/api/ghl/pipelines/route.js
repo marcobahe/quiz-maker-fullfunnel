@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { z } from 'zod';
 
 const GHL_BASE = 'https://services.leadconnectorhq.com';
 const GHL_VERSION = '2021-07-28';
@@ -13,6 +15,10 @@ const GHL_VERSION = '2021-07-28';
  *
  * Proxies to GHL to list pipelines for the sub-account associated with the private token.
  */
+const ghlPipelineSchema = z.object({
+  token: z.string().min(1, 'Token obrigatório').max(2000),
+});
+
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions);
@@ -20,12 +26,24 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { token } = body;
-
-    if (!token || typeof token !== 'string' || !token.trim()) {
-      return NextResponse.json({ error: 'Token obrigatório' }, { status: 400 });
+    // Rate limit: 30 GHL pipeline requests per user per minute
+    const rl = checkRateLimit(`ghl:pipelines:${session.user.id}`, { max: 30, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
+
+    const rawBody = await request.json();
+    const parsed = ghlPipelineSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { token } = parsed.data;
 
     const ghlHeaders = {
       'Authorization': `Bearer ${token.trim()}`,

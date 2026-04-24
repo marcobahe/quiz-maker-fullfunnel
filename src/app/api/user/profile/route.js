@@ -1,9 +1,12 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { cleanupQuizUploads } from '@/lib/uploadthing-cleanup';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { updateProfileSchema } from '@/lib/schemas/userProfile.schema';
 
 // GET /api/user/profile — retorna dados do perfil do usuário
 export async function GET() {
@@ -57,8 +60,24 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, email, currentPassword, newPassword, image } = body;
+    // Rate limit: 10 profile updates per user per minute
+    const rl = checkRateLimit(`profile:update:${session.user.id}`, { max: 10, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
+    }
+
+    const rawBody = await request.json();
+    const parsed = updateProfileSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { name, email, currentPassword, newPassword, image } = parsed.data;
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -72,19 +91,11 @@ export async function PUT(request) {
 
     // Atualizar nome
     if (name !== undefined) {
-      if (!name || name.trim().length < 2) {
-        return NextResponse.json({ error: 'Nome deve ter pelo menos 2 caracteres' }, { status: 400 });
-      }
       updateData.name = name.trim();
     }
 
     // Atualizar email
     if (email !== undefined && email !== user.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
-      }
-
       const existing = await prisma.user.findUnique({ where: { email } });
       if (existing) {
         return NextResponse.json({ error: 'Este email já está em uso' }, { status: 409 });
@@ -94,10 +105,6 @@ export async function PUT(request) {
 
     // Atualizar senha
     if (newPassword) {
-      if (newPassword.length < 6) {
-        return NextResponse.json({ error: 'A nova senha deve ter pelo menos 6 caracteres' }, { status: 400 });
-      }
-
       // Se o usuário já tem senha, exige a senha atual
       if (user.password) {
         if (!currentPassword) {

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { publishDomainMapping } from '@/lib/cloudflare-kv';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { createDomainSchema } from '@/lib/schemas/domains.schema';
 
 // GET /api/domains — list user's domains
 export async function GET() {
@@ -37,12 +39,24 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { domain, quizId } = body;
-
-    if (!domain || typeof domain !== 'string') {
-      return NextResponse.json({ error: 'Domínio é obrigatório' }, { status: 400 });
+    // Rate limit: 10 domain creations per user per minute
+    const rl = checkRateLimit(`domains:create:${session.user.id}`, { max: 10, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
+
+    const rawBody = await request.json();
+    const parsed = createDomainSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { domain, quizId } = parsed.data;
 
     // Normalize domain: lowercase, trim, remove protocol/path
     const cleanDomain = domain
@@ -51,12 +65,6 @@ export async function POST(request) {
       .replace(/^https?:\/\//, '')
       .replace(/\/.*$/, '')
       .replace(/^www\./, '');
-
-    // Basic domain validation
-    const domainRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
-    if (!domainRegex.test(cleanDomain)) {
-      return NextResponse.json({ error: 'Formato de domínio inválido' }, { status: 400 });
-    }
 
     // Check if domain already exists
     const existing = await prisma.customDomain.findUnique({
