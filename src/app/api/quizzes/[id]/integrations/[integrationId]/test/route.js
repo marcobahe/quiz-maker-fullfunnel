@@ -67,6 +67,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]/test', method: 'POST', userId: session?.user?.id });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]/test', method: 'POST', userId: null });
   }
 }

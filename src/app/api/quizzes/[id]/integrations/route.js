@@ -37,7 +37,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(integrations);
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'GET', userId: session?.user?.id });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'GET', userId: null });
   }
 }
 
@@ -88,6 +88,6 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(integration, { status: 201 });
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'POST', userId: session?.user?.id });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations', method: 'POST', userId: null });
   }
 }

@@ -61,7 +61,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'PUT', userId: session?.user?.id });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'PUT', userId: null });
   }
 }
 
@@ -102,6 +102,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'DELETE', userId: session?.user?.id });
+    return handleApiError(error, { route: '/api/quizzes/[id]/integrations/[integrationId]', method: 'DELETE', userId: null });
   }
 }

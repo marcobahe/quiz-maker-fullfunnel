@@ -246,6 +246,6 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ overview, funnel, daily, results });
   } catch (error) {
-    return handleApiError(error, { route: '/api/quizzes/[id]/analytics', method: 'GET', userId: session?.user?.id });
+    return handleApiError(error, { route: '/api/quizzes/[id]/analytics', method: 'GET', userId: null });
   }
 }
