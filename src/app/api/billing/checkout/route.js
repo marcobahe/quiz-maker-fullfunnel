@@ -5,6 +5,8 @@ import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import { PLANS } from '@/lib/plans';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { checkoutSchema } from '@/lib/schemas/billing.schema';
 
 export async function POST(request) {
   try {
@@ -20,10 +22,27 @@ export async function POST(request) {
       );
     }
 
-    const stripe = getStripe();
-    const { plan, annual } = await request.json();
+    // Rate limit: 10 checkouts per user per minute
+    const rl = checkRateLimit(`billing:checkout:${session.user.id}`, { max: 10, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
+    }
 
-    if (!plan || !PLANS[plan]) {
+    const stripe = getStripe();
+    const rawBody = await request.json();
+    const parsed = checkoutSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { plan, annual } = parsed.data;
+
+    if (!PLANS[plan]) {
       return NextResponse.json({ error: 'Plano inválido' }, { status: 400 });
     }
 

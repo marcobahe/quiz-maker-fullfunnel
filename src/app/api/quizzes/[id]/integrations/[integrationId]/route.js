@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
+import { updateIntegrationSchema } from '@/lib/schemas/integrations.schema';
 
 // PUT /api/quizzes/[id]/integrations/[integrationId] — update
 export async function PUT(request, { params }) {
@@ -28,7 +29,15 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
     }
 
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = updateIntegrationSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
 
     const existing = await prisma.integration.findFirst({
       where: { id: integrationId, quizId },

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { requireAdmin } from '@/lib/admin';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
 
 export async function GET(request) {
   try {
@@ -49,7 +50,6 @@ export async function GET(request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Admin workspaces list error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/admin/workspaces', method: 'GET', userId: null });
   }
 }

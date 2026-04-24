@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import * as cheerio from 'cheerio';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { aiGenerateSchema } from '@/lib/schemas/aiGenerate.schema';
 
 // ── URL Scraping ────────────────────────────────────────────────
 async function scrapeUrl(url, maxChars = 5000) {
@@ -162,7 +164,23 @@ export async function POST(request) {
       );
     }
 
-    const body = await request.json();
+    // Rate limit: 5 AI generations per user per minute
+    const rl = checkRateLimit(`ai:generate:${session.user.id}`, { max: 5, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
+    }
+
+    const rawBody = await request.json();
+    const parsed = aiGenerateSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
     const {
       tema,
       objetivo,
@@ -175,11 +193,7 @@ export async function POST(request) {
       categorias = '',
       tom = 'Casual',
       informacoesAdicionais = '',
-    } = body;
-
-    if (!tema || !tema.trim()) {
-      return NextResponse.json({ error: 'O tema do quiz é obrigatório.' }, { status: 400 });
-    }
+    } = parsed.data;
 
     // Map question types to internal types
     const tiposInternos = tiposPerguntas.map(t => TYPE_MAP[t] || 'question-single');

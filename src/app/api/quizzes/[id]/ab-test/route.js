@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { updateAbTestSchema } from '@/lib/schemas/abTest.schema';
 
 // GET: Get A/B test info for a quiz (original + variants + comparative analytics)
 export async function GET(request, { params }) {
@@ -87,7 +89,25 @@ export async function PUT(request, { params }) {
     }
 
     const { id } = await params;
-    const body = await request.json();
+
+    // Rate limit: 20 A/B test updates per user per minute
+    const rl = checkRateLimit(`abtest:update:${session.user.id}`, { max: 20, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
+    }
+
+    const rawBody = await request.json();
+    const parsed = updateAbTestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
 
     const quiz = await prisma.quiz.findFirst({
       where: { id, userId: session.user.id },
@@ -100,7 +120,7 @@ export async function PUT(request, { params }) {
 
     // Update split percent
     if (body.splitPercent !== undefined) {
-      const split = Math.min(100, Math.max(0, parseInt(body.splitPercent)));
+      const split = Math.min(100, Math.max(0, body.splitPercent));
       await prisma.quiz.update({
         where: { id },
         data: { splitPercent: split },

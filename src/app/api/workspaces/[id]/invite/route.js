@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkWorkspaceAccess } from '@/lib/admin';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { inviteSchema } from '@/lib/schemas/workspaces.schema';
 
 export async function POST(request, { params }) {
   try {
@@ -18,13 +20,24 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Sem permissão para convidar' }, { status: 403 });
     }
 
-    const { email, role } = await request.json();
-    if (!email) {
-      return NextResponse.json({ error: 'Email é obrigatório' }, { status: 400 });
+    // Rate limit: 10 invites per user per minute
+    const rl = checkRateLimit(`workspaces:invite:${session.user.id}`, { max: 10, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
-    if (!['admin', 'editor', 'viewer'].includes(role)) {
-      return NextResponse.json({ error: 'Role inválido' }, { status: 400 });
+
+    const rawBody = await request.json();
+    const parsed = inviteSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+    const { email, role } = parsed.data;
 
     // Find user by email
     const targetUser = await prisma.user.findUnique({ where: { email } });

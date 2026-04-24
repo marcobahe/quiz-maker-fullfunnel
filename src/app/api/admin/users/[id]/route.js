@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { requireAdmin, requireOwner } from '@/lib/admin';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { updateUserSchema } from '@/lib/schemas/admin.schema';
 
 // GET - User details
 export async function GET(request, { params }) {
@@ -69,8 +72,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ ...user, totalLeads });
   } catch (error) {
-    console.error('Admin user detail error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/admin/users/[id]', method: 'GET', userId: null });
   }
 }
 
@@ -81,8 +83,25 @@ export async function PATCH(request, { params }) {
     const error = requireAdmin(session);
     if (error) return error;
 
+    // Rate limit: 30 admin user updates per admin per minute
+    const rl = checkRateLimit(`admin:user:update:${session.user.id}`, { max: 30, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
+    }
+
     const { id } = params;
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = updateUserSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
@@ -92,11 +111,11 @@ export async function PATCH(request, { params }) {
     // Build update data - only allow specific fields
     const updateData = {};
 
-    if (body.plan && ['free', 'pro', 'business', 'advanced', 'enterprise'].includes(body.plan)) {
+    if (body.plan) {
       updateData.plan = body.plan;
     }
 
-    if (body.role && ['user', 'admin', 'owner'].includes(body.role)) {
+    if (body.role) {
       // Only owner can change roles to admin/owner
       if (body.role !== 'user') {
         const ownerError = requireOwner(session);
@@ -133,8 +152,7 @@ export async function PATCH(request, { params }) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Admin user update error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/admin/users/[id]', method: 'PATCH', userId: null });
   }
 }
 
@@ -213,7 +231,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Admin user delete error:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    return handleApiError(error, { route: '/api/admin/users/[id]', method: 'DELETE', userId: null });
   }
 }
