@@ -16,7 +16,7 @@ export async function POST(request, { params }) {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown';
-    const rl = checkRateLimit(`analytics:${ip}`, { max: 30, windowMs: 60_000 });
+    const rl = await checkRateLimit(`analytics:${ip}`, { max: 30, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Muitas tentativas. Tente novamente em instantes.' },
@@ -68,8 +68,9 @@ export async function POST(request, { params }) {
 
 // ── GET: Aggregated analytics ────────────────────────────────
 export async function GET(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

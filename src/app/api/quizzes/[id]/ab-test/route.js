@@ -6,8 +6,9 @@ import { handleApiError } from '@/lib/apiError';
 
 // GET: Get A/B test info for a quiz (original + variants + comparative analytics)
 export async function GET(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -80,8 +81,9 @@ export async function GET(request, { params }) {
 
 // PUT: Update A/B test settings (split percent, declare winner)
 export async function PUT(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

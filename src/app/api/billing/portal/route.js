@@ -6,8 +6,9 @@ import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
 
 export async function POST() {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

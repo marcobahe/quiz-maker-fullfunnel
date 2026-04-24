@@ -10,8 +10,9 @@ const resolveCname = dns.promises.resolveCname;
 
 // POST /api/domains/[id]/verify — verify DNS CNAME
 export async function POST(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

@@ -13,7 +13,7 @@ export async function POST(request) {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown';
-    const rl = checkRateLimit(`register:${ip}`, { max: 3, windowMs: 60_000 });
+    const rl = await checkRateLimit(`register:${ip}`, { max: 3, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Muitas tentativas. Tente novamente em instantes.' },

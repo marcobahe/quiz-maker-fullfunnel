@@ -8,8 +8,9 @@ import { handleApiError } from '@/lib/apiError';
 
 // POST /api/quizzes/[id]/integrations/[integrationId]/test — test an integration
 export async function POST(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -21,7 +22,7 @@ export async function POST(request, { params }) {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown';
-    const rl = checkRateLimit(`integration-test:${ip}`, { max: 5, windowMs: 60_000 });
+    const rl = await checkRateLimit(`integration-test:${ip}`, { max: 5, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Muitas tentativas. Tente novamente em instantes.' },

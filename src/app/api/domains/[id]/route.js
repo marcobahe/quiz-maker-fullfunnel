@@ -8,8 +8,9 @@ import { invalidateDomainCache } from '@/lib/domain-cache';
 
 // PUT /api/domains/[id] — update domain (e.g., associate quiz)
 export async function PUT(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -111,8 +112,9 @@ export async function PATCH(request, { params }) {
 
 // DELETE /api/domains/[id] — remove domain
 export async function DELETE(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

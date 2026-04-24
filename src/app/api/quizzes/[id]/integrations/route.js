@@ -6,8 +6,9 @@ import { handleApiError } from '@/lib/apiError';
 
 // GET /api/quizzes/[id]/integrations — list integrations for a quiz
 export async function GET(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -41,8 +42,9 @@ export async function GET(request, { params }) {
 
 // POST /api/quizzes/[id]/integrations — create a new integration
 export async function POST(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

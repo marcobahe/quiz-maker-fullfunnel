@@ -16,8 +16,9 @@ function generateSlug(name) {
 
 // POST: Create a variant (duplicate) of a quiz for A/B testing
 export async function POST(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

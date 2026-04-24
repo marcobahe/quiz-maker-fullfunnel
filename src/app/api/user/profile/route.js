@@ -7,8 +7,9 @@ import { handleApiError } from '@/lib/apiError';
 
 // GET /api/user/profile — retorna dados do perfil do usuário
 export async function GET() {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -49,8 +50,9 @@ export async function GET() {
 
 // PUT /api/user/profile — atualiza dados do perfil
 export async function PUT(request) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -140,8 +142,9 @@ export async function PUT(request) {
 
 // DELETE /api/user/profile — excluir conta
 export async function DELETE() {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

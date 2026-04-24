@@ -143,8 +143,9 @@ const TYPE_MAP = {
 };
 
 export async function POST(request) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

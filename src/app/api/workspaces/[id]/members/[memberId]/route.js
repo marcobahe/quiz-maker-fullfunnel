@@ -7,8 +7,9 @@ import { handleApiError } from '@/lib/apiError';
 
 // Update member role
 export async function PUT(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -47,8 +48,9 @@ export async function PUT(request, { params }) {
 
 // Remove member
 export async function DELETE(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

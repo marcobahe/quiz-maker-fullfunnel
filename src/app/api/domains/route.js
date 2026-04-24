@@ -7,8 +7,9 @@ import { handleApiError } from '@/lib/apiError';
 
 // GET /api/domains — list user's domains
 export async function GET() {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -29,8 +30,9 @@ export async function GET() {
 
 // POST /api/domains — add a new domain
 export async function POST(request) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

@@ -9,8 +9,9 @@ import { handleApiError } from '@/lib/apiError';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

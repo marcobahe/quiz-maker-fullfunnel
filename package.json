@@ -22,6 +22,8 @@
     "@prisma/client": "^5.22.0",
     "@stripe/stripe-js": "^8.7.0",
     "@uploadthing/react": "^7.3.3",
+    "@upstash/ratelimit": "^2.0.8",
+    "@vercel/kv": "^3.0.0",
     "@vercel/og": "^0.8.6",
     "@xyflow/react": "^12.0.0",
     "bcryptjs": "^2.4.3",

@@ -46,8 +46,9 @@ function extractQuestionLabels(canvasData) {
 }
 
 export async function GET(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

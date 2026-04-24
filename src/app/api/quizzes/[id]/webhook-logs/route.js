@@ -6,8 +6,9 @@ import { handleApiError } from '@/lib/apiError';
 
 // GET /api/quizzes/[id]/webhook-logs — list last 10 webhook dispatches for a quiz
 export async function GET(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

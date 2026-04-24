@@ -51,7 +51,7 @@ export async function POST(request, { params }) {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown';
-    const ipRl = checkRateLimit(`ai-analyze:${ip}`, { max: 10, windowMs: 60_000 });
+    const ipRl = await checkRateLimit(`ai-analyze:${ip}`, { max: 10, windowMs: 60_000 });
     if (!ipRl.allowed) {
       return NextResponse.json(
         { error: 'Muitas requisições. Tente novamente em alguns instantes.' },

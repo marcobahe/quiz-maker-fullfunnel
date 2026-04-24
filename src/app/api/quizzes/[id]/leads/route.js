@@ -10,8 +10,9 @@ import { handleApiError } from '@/lib/apiError';
 import { createLeadSchema } from '@/lib/schemas/lead.schema';
 
 export async function GET(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -75,7 +76,7 @@ export async function POST(request, { params }) {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown';
-    const rl = checkRateLimit(`lead:${quizId}:${ip}`, { max: 5, windowMs: 60_000 });
+    const rl = await checkRateLimit(`lead:${quizId}:${ip}`, { max: 5, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Muitas tentativas. Tente novamente em instantes.' },

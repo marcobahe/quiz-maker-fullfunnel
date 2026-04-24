@@ -6,8 +6,9 @@ import { handleApiError } from '@/lib/apiError';
 
 // PUT /api/quizzes/[id]/integrations/[integrationId] — update
 export async function PUT(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -57,8 +58,9 @@ export async function PUT(request, { params }) {
 
 // DELETE /api/quizzes/[id]/integrations/[integrationId] — delete
 export async function DELETE(request, { params }) {
+  let session;
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
