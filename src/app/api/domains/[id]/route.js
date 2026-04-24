@@ -71,12 +71,12 @@ export async function PUT(request, { params }) {
 
 // PATCH /api/domains/[id] — toggle active status
 export async function PATCH(request, { params }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-  }
-
+  let session;
   try {
+    session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
     const { id } = await params;
     const body = await request.json();
 
