@@ -206,7 +206,7 @@ Ordenado por frequência + tempo em rotação na amostra:
 
 ### Gap #5 — "Social proof de marca/agência, não de influencer"
 - Toda prova social na amostra é numérica genérica ("8k casos resolvidos") ou do próprio criador. **Nenhuma** menciona marcas/agências conhecidas.
-- **Oportunidade**: assim que QMB tiver 3–5 clientes agência publicáveis (logotipos), montar ads que mostram *"Usado por [Logo 1] [Logo 2] [Logo 3] para gerar X leads em Y dias"* — padrão B2B que falta no ecosistema BR.
+- **Oportunidade (pós-launch, maio/2026+)**: depois de QMB acumular 3–5 clientes agência com 45d+ uso ativo (critério honeymoon @andreza), montar ads que mostram *"Usado por [Logo 1] [Logo 2] [Logo 3] para gerar X leads em Y dias"* — padrão B2B que falta no ecosistema BR. **Pré-launch isso NÃO é alavanca** (ver §10.3).
 
 ---
 
@@ -268,7 +268,12 @@ Emular o padrão vencedor da amostra: **Pergunta direta → Micro-prova social �
 
 1. **Concorrência direta inLead no leilão Meta é baixíssima** — é momento para entrar com tráfego pago agressivo sem disputa direta no leilão.
 2. **Posicionamento de campanha**: NÃO competir em "primeira plataforma de funis interativos" (já ganha da inLead). Competir em **"A plataforma de quiz que entende agência + performance"** — nichar.
-3. **Cases publicáveis urgentes**: precisamos fechar 3–5 cases BR (agência + infoprodutor) nas próximas 2–3 semanas para ter social proof na campanha de lançamento. Gap #5 acima é bloqueador.
+3. **Social proof pré-launch — não tentar fabricar cases BR.** QMB é pré-launch (30/04/2026) e Marco cancelou coleta de cases ([ICO-161](ICO-161)/[ICO-162](ICO-162)/[ICO-163](ICO-163)) em 2026-04-23: "o produto nem foi lançado, como podemos ter cases?". Coleta fica parked pra maio/2026 pós-launch. Alavancas válidas pré-launch:
+   - **Tabela comparativa direta QMB vs inLead** (já temos em [ICO-153](ICO-153)/[benchmark-inlead.md](./benchmark-inlead.md)) — usar como prova de superioridade técnica em vez de testemunhal.
+   - **Speed audit + edge speed proof** ([ICO-192](ICO-192)) — diferencial técnico mensurável (carga <1s vs ~2s da inLead) é social proof objetiva, não fabricada.
+   - **Beta testers wave 0** — recrutar 10–20 infoprodutores/agências pré-launch sem compromisso de case publicável; métricas de uso viram diferencial quantitativo na campanha sem violar autenticidade.
+   - **Benchmark de mercado como autoridade comparativa** — este próprio doc + benchmark-inlead.md posicionam QMB como quem leu o mercado, não como quem inventou clientes.
+4. **Pós-launch (maio/2026)**: abrir espelho de [ICO-161](ICO-161) com critério honeymoon @andreza (mín 45d uso ativo) para coleta de cases formal.
 
 ---
 
