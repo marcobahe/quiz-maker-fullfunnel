@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { publishToEdge, unpublishFromEdge, refreshEdgeCache, publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
+import { publishToEdge, unpublishFromEdge, refreshEdgeCache, publishDomainMapping, removeDomainMapping, invalidateEdgeCache } from '@/lib/cloudflare-kv';
 import { handleApiError } from '@/lib/apiError';
 import { updateQuizSchema } from '@/lib/schemas/quiz.schema';
 
@@ -106,6 +106,14 @@ export async function PUT(request, { params }) {
     if (body.webhookUrl !== undefined) updateData.webhookUrl = body.webhookUrl;
     if (body.webhookSecret !== undefined) updateData.webhookSecret = body.webhookSecret;
 
+    // Paywall fields
+    if (body.paywallEnabled !== undefined) updateData.paywallEnabled = body.paywallEnabled;
+    if (body.paywallPrice !== undefined) updateData.paywallPrice = body.paywallPrice;
+    if (body.paywallType !== undefined) updateData.paywallType = body.paywallType;
+    if (body.paywallStripePriceId !== undefined) updateData.paywallStripePriceId = body.paywallStripePriceId;
+    if (body.paywallTitle !== undefined) updateData.paywallTitle = body.paywallTitle;
+    if (body.paywallDescription !== undefined) updateData.paywallDescription = body.paywallDescription;
+
     if (body.status === 'published' && existing.status !== 'published') {
       updateData.status = 'published';
       // Generate a new slug if publishing for the first time
@@ -124,11 +132,15 @@ export async function PUT(request, { params }) {
     // Publish/refresh edge cache on Cloudflare
     if (quiz.slug && quiz.status === 'published') {
       if (existing.status !== 'published') {
-        // First time publishing — push to edge
-        publishToEdge(quiz.slug).catch(() => {});
+        // First time publishing — push to edge, then purge CDN cache
+        publishToEdge(quiz.slug)
+          .then(() => invalidateEdgeCache(quiz.slug))
+          .catch(() => {});
       } else {
-        // Already published, content may have changed — refresh
-        refreshEdgeCache(quiz.slug).catch(() => {});
+        // Already published, content may have changed — refresh KV, then purge CDN cache
+        refreshEdgeCache(quiz.slug)
+          .then(() => invalidateEdgeCache(quiz.slug))
+          .catch(() => {});
       }
 
       // Sync custom domain mappings: publish mapping for any verified custom domains
@@ -138,6 +150,7 @@ export async function PUT(request, { params }) {
         });
         for (const cd of customDomains) {
           publishDomainMapping(cd.domain, quiz.slug, quiz.id).catch(() => {});
+          invalidateEdgeCache(quiz.slug, cd.domain).catch(() => {});
         }
       } catch (err) {
         console.error('[CF-KV] Error syncing custom domain mappings:', err);

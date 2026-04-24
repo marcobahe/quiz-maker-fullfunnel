@@ -9,6 +9,8 @@ const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID || '160ea79933a744b19af54d9d1652
 const CF_KV_NAMESPACE = process.env.CF_KV_NAMESPACE || '07070b407cf94db4a1419e7a1a87c447';
 const CF_DOMAIN_MAP_NAMESPACE = process.env.CF_DOMAIN_MAP_NAMESPACE || 'd74ab364d6264846a749b6da9a579c1a';
 const ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'https://go.quizmebaby.app';
+const EDGE_RENDERER_URL = process.env.EDGE_RENDERER_URL || 'https://play.quizmebaby.app';
+const EDGE_OPS_SECRET = process.env.EDGE_OPS_SECRET;
 
 /**
  * Publish quiz HTML to Cloudflare KV edge cache.
@@ -126,6 +128,44 @@ export async function publishDomainMapping(domain, slug, quizId = null) {
     return data.success;
   } catch (err) {
     console.error(`[CF-KV] Error publishing domain mapping: ${err.message}`);
+    return false;
+  }
+}
+
+/**
+ * Purge the Cloudflare CDN cache entry for a quiz via the edge-renderer ops endpoint.
+ * Call this after updating KV content (publishToEdge / refreshEdgeCache) so the CDN
+ * serves fresh HTML on the next request instead of returning a stale cached response.
+ *
+ * @param {string} slug - quiz slug
+ * @param {string|null} [domain] - custom domain (optional; defaults to primary host on the worker)
+ */
+export async function invalidateEdgeCache(slug, domain = null) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (EDGE_OPS_SECRET) {
+      headers['Authorization'] = `Bearer ${EDGE_OPS_SECRET}`;
+    }
+
+    const body = { slug };
+    if (domain) body.domain = domain;
+
+    const res = await fetch(`${EDGE_RENDERER_URL}/_ops/invalidate`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      console.error(`[CF-OPS] invalidate failed for "${slug}": HTTP ${res.status}`);
+      return false;
+    }
+
+    const data = await res.json();
+    console.log(`[CF-OPS] Invalidated CDN cache for "${slug}": cache_deleted=${data.cache_deleted}`);
+    return data.ok === true;
+  } catch (err) {
+    console.error(`[CF-OPS] Error calling /_ops/invalidate for "${slug}": ${err.message}`);
     return false;
   }
 }
