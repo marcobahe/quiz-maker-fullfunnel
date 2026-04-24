@@ -126,6 +126,20 @@ Set `OPS_SECRET` via:
 wrangler secret put OPS_SECRET
 ```
 
+### `CF_API_TOKEN` (warm-cache script)
+
+`scripts/warm-cache.ts` requires `CF_API_TOKEN` in env. This is a Cloudflare API token stored in **1Password → Ops vault → "Cloudflare Workers API token"** (confirm with @Marco if vault path differs).
+
+Required token scopes (minimum):
+- **Workers KV Storage: Read** — to list KV keys for warming
+- **Workers Scripts: Read** — to enumerate deployed routes
+
+```bash
+# Export before running warm-cache manually:
+export CF_API_TOKEN=$(op read "op://Ops/Cloudflare Workers API token/credential")
+npx tsx scripts/warm-cache.ts
+```
+
 ---
 
 ## Escalation
