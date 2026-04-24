@@ -31,11 +31,16 @@ function getLimiter(max, windowMs) {
  */
 export async function checkRateLimit(key, { max = 5, windowMs = 60_000 } = {}) {
   const limiter = getLimiter(max, windowMs);
-  const { success, limit, remaining, reset } = await limiter.limit(key);
+  try {
+    const { success, limit, remaining, reset } = await limiter.limit(key);
 
-  return {
-    allowed: success,
-    remaining: Math.max(0, remaining),
-    retryAfter: success ? 0 : Math.ceil((reset - Date.now()) / 1000),
-  };
+    return {
+      allowed: success,
+      remaining: Math.max(0, remaining),
+      retryAfter: success ? 0 : Math.ceil((reset - Date.now()) / 1000),
+    };
+  } catch (err) {
+    console.error('[rateLimit] KV unavailable, failing open', { key, max, windowMs, error: err?.message });
+    return { allowed: true, remaining: max, retryAfter: 0 };
+  }
 }
