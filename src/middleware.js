@@ -38,6 +38,7 @@ const AUTH_PATHS = [
   '/templates',
   '/settings',
   '/quiz',
+  '/admin',
 ];
 
 function isAuthPath(pathname) {
