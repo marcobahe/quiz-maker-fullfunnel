@@ -20,5 +20,5 @@ id = "07070b407cf94db4a1419e7a1a87c447"
 
 [vars]
 # Vercel origin — fallback when KV miss
-VERCEL_ORIGIN = "https://quiz-maker-fullfunnel.vercel.app"
+VERCEL_ORIGIN = "https://quizmebaby.vercel.app"
 PRIMARY_HOST = "play.quizmebaby.app"
