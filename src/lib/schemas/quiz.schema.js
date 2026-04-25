@@ -26,8 +26,8 @@ export const updateQuizSchema = z.object({
   webhookSecret: z.string().max(255).optional().nullable(),
   // Paywall fields
   paywallEnabled: z.boolean().optional(),
-  paywallPrice: z.number().int().min(0).optional().nullable(),
-  paywallType: z.enum(['result', 'full', 'lead']).optional().nullable(),
+  paywallPrice: z.number().int().nonnegative().optional().nullable(),
+  paywallType: z.enum(['one_time', 'subscription']).optional().nullable(),
   paywallStripePriceId: z.string().max(255).optional().nullable(),
   paywallTitle: z.string().max(255).optional().nullable(),
   paywallDescription: z.string().max(2000).optional().nullable(),

@@ -65,7 +65,7 @@ model Quiz {
   // Paywall (Stripe-backed)
   paywallEnabled         Boolean  @default(false)
   paywallPrice           Int?     // em centavos (BRL)
-  paywallType            String?  // 'result' | 'full' | 'lead'
+  paywallType            String?  // 'one_time' | 'subscription'
   paywallStripePriceId   String?
   paywallTitle           String?
   paywallDescription     String?
@@ -206,18 +206,22 @@ model QuizPurchase {
   id                    String   @id @default(cuid())
   quizId                String
   quiz                  Quiz     @relation(fields: [quizId], references: [id])
-  email                 String
-  status                String   @default("pending") // 'pending' | 'completed' | 'failed'
-  stripeSessionId       String?
+  email                 String?
+  customerName          String?
+  status                String   @default("pending") // 'pending' | 'paid' | 'failed' | 'refunded'
+  stripeSessionId       String   @unique
   stripePaymentIntentId String?
-  amount                Int      @default(0) // em centavos
+  amount                Int?     // em centavos
+  currency              String?
+  metadata              String   @default("{}")
+  paidAt                DateTime?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  @@unique([quizId, email])
   @@index([quizId])
-  @@index([email])
+  @@index([quizId, email])
   @@index([status])
+  @@index([createdAt])
 }
 
 model MediaAsset {

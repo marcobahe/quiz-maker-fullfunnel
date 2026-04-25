@@ -70,6 +70,11 @@ export async function GET(request, { params }) {
         parentId: true,
         isVariant: true,
         splitPercent: true,
+        paywallEnabled: true,
+        paywallPrice: true,
+        paywallType: true,
+        paywallTitle: true,
+        paywallDescription: true,
         variants: {
           where: { status: 'published' },
           select: {
