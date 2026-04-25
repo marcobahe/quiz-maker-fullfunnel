@@ -5,6 +5,9 @@ import { requireAdmin } from '@/lib/admin';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
 
+// Force dynamic rendering — this route requires DB access at request time
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
