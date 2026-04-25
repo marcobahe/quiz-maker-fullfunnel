@@ -29,9 +29,9 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-ok()   { echo -e "${GREEN}✅ PASS${NC} — $1"; ((PASS++)); }
-fail() { echo -e "${RED}❌ FAIL${NC} — $1"; ((FAIL++)); }
-skip() { echo -e "${YELLOW}⏭  SKIP${NC} — $1"; ((SKIP++)); }
+ok()   { echo -e "${GREEN}✅ PASS${NC} — $1"; PASS=$((PASS+1)); }
+fail() { echo -e "${RED}❌ FAIL${NC} — $1"; FAIL=$((FAIL+1)); }
+skip() { echo -e "${YELLOW}⏭  SKIP${NC} — $1"; SKIP=$((SKIP+1)); }
 info() { echo -e "   ℹ  $1"; }
 
 # ── Helpers ──────────────────────────────────────────────────
@@ -53,9 +53,9 @@ api_post() {
     "$@" "$url"
 }
 
-api_patch() {
+api_put() {
   local url="$1"; shift
-  curl -sS -X PATCH \
+  curl -sS -X PUT \
     -H "Content-Type: application/json" \
     -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
     "$@" "$url"
@@ -120,7 +120,7 @@ signin_status=$(curl -sS -X POST \
   --data-urlencode "callbackUrl=$BASE" \
   -o /dev/null -w "%{http_code}" \
   -L --max-redirs 3 \
-  "$BASE/api/auth/signin/credentials")
+  "$BASE/api/auth/callback/credentials")
 
 # Verify session
 session_body=$(api_get "$BASE/api/auth/session")
@@ -169,7 +169,7 @@ else
 fi
 
 # Publish quiz
-publish_response=$(api_patch "$BASE/api/quizzes/$QUIZ_ID" \
+publish_response=$(api_put "$BASE/api/quizzes/$QUIZ_ID" \
   -d '{"status": "published"}')
 pub_status=$(echo "$publish_response" | jq -r '.status // empty')
 [[ "$pub_status" == "published" ]] && ok "Quiz publicado" || fail "Publicação falhou: $publish_response"
@@ -224,7 +224,7 @@ echo "─── 5. Webhook ─────────────────�
 
 if [[ -n "${WEBHOOK_TEST_URL:-}" ]]; then
   # Configure webhook URL on quiz
-  wh_patch=$(api_patch "$BASE/api/quizzes/$QUIZ_ID" \
+  wh_patch=$(api_put "$BASE/api/quizzes/$QUIZ_ID" \
     -d "{\"webhookUrl\": \"$WEBHOOK_TEST_URL\", \"webhookSecret\": \"smoke-secret-123\"}")
   wh_url=$(echo "$wh_patch" | jq -r '.webhookUrl // empty')
 
@@ -302,7 +302,7 @@ echo "─── 7. Email ──────────────────�
 
 # Can't send email programmatically without GMAIL_APP_PASSWORD in env
 # Check if emailNotifications can be enabled on the quiz (validates the API path)
-email_patch=$(api_patch "$BASE/api/quizzes/$QUIZ_ID" \
+email_patch=$(api_put "$BASE/api/quizzes/$QUIZ_ID" \
   -d "{\"emailNotifications\": true, \"notificationEmail\": \"$QMB_EMAIL\"}")
 notif_set=$(echo "$email_patch" | jq -r '.emailNotifications // false')
 if [[ "$notif_set" == "true" ]]; then
@@ -332,8 +332,8 @@ echo ""
 # ── 9. Upgrade Path ──────────────────────────────────────────
 echo "─── 9. Upgrade Path ─────────────────────────────────────"
 
-upgrade_status=$(curl -sS -o /dev/null -w "%{http_code}" -L "$BASE/upgrade-full-funnel")
-[[ "$upgrade_status" == "200" ]] && ok "/upgrade-full-funnel → /pricing ($upgrade_status)" || fail "Upgrade path retornou $upgrade_status"
+upgrade_status=$(curl -sS -o /dev/null -w "%{http_code}" "$BASE/upgrade-full-funnel")
+[[ "$upgrade_status" == "307" ]] && ok "/upgrade-full-funnel → /pricing ($upgrade_status)" || fail "Upgrade path retornou $upgrade_status"
 
 billing_status=$(api_get "$BASE/api/billing/status")
 has_plan=$(echo "$billing_status" | jq -r '.plan // empty')
