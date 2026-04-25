@@ -25,6 +25,7 @@ model User {
   customDomains        CustomDomain[]
   ownedWorkspaces      Workspace[]         @relation("WorkspaceOwner")
   memberships          WorkspaceMember[]
+  mediaAssets          MediaAsset[]
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
 }
@@ -66,15 +67,18 @@ model Quiz {
 }
 
 model Workspace {
-  id        String            @id @default(cuid())
-  name      String
-  slug      String            @unique
-  ownerId   String
-  owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
-  members   WorkspaceMember[]
-  quizzes   Quiz[]
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  id             String            @id @default(cuid())
+  name           String
+  slug           String            @unique
+  ownerId        String
+  owner          User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members        WorkspaceMember[]
+  quizzes        Quiz[]
+  // GHL self-service integration
+  ghlApiKey      String?           // encrypted at rest via AES-256-GCM (fieldEncryption.js)
+  ghlSyncStatus  String            @default("not_configured") // "not_configured" | "active" | "pending_setup" | "error"
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 }
 
 model WorkspaceMember {
@@ -186,4 +190,24 @@ model WhatsappMessageLog {
   @@index([createdAt])
   @@index([leadId])
   @@index([quizId])
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId    String?  // soft ref — survives quiz deletion for audit
+  fileKey   String   @unique
+  fileName  String
+  fileType  String   // 'image' | 'audio' | 'video'
+  fileSize  Int
+  url       String
+  endpoint  String   // 'imageUploader' | 'audioUploader' | 'videoUploader'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([quizId])
+  @@index([fileType])
+  @@index([createdAt])
 }

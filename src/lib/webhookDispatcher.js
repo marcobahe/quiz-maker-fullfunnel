@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { sendHotLeadNotification, isHotLead } from '@/lib/emailNotifier';
 import { enqueueWhatsappMessage } from '@/lib/whatsappQueue';
+import { decrypt, isEncryptionAvailable } from '@/lib/fieldEncryption';
 
 /**
  * Dispatch webhooks and Full Funnel integrations for a new lead.
@@ -58,7 +59,7 @@ async function _dispatch({ quiz, lead, answers, score, resultCategory, scoreRang
       if (integration.type === 'webhook') {
         return sendWebhook(integration, payload);
       } else if (integration.type === 'gohighlevel') {
-        return sendToGHL(integration, payload);
+        return sendToGHL(integration, payload, quiz.workspaceId);
       } else if (integration.type === 'evolution') {
         return sendToEvolution(integration, payload);
       }
@@ -120,15 +121,52 @@ async function sendWebhook(integration, payload) {
 
 // ── Full Funnel (GHL API) ────────────────────────────────────
 
-async function sendToGHL(integration, payload) {
+/**
+ * Resolve the GHL API token for a quiz:
+ * 1. Per-integration config token (existing behaviour — backward compat)
+ * 2. Workspace-level encrypted key (new self-service model)
+ * 3. Platform env var GHL_PRIVATE_TOKEN (legacy Stripe sync flow)
+ */
+async function resolveGhlToken(config, quizWorkspaceId) {
+  // Priority 1: explicit per-integration token
+  if (config.privateToken || config.apiKey) {
+    return config.privateToken || config.apiKey;
+  }
+
+  // Priority 2: workspace-level key (self-service)
+  if (quizWorkspaceId && isEncryptionAvailable()) {
+    try {
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: quizWorkspaceId },
+        select: { ghlApiKey: true, ghlSyncStatus: true },
+      });
+      if (workspace?.ghlApiKey && workspace.ghlSyncStatus === 'active') {
+        return decrypt(workspace.ghlApiKey);
+      }
+      if (workspace && workspace.ghlSyncStatus !== 'active') {
+        console.log(`[FullFunnel] Workspace ${quizWorkspaceId} GHL key present but status=${workspace.ghlSyncStatus} — flagging pending_setup`);
+        await prisma.workspace.update({
+          where: { id: quizWorkspaceId },
+          data: { ghlSyncStatus: 'pending_setup' },
+        }).catch(() => {});
+      }
+    } catch (err) {
+      console.error('[FullFunnel] Error resolving workspace GHL key:', err.message);
+    }
+  }
+
+  return null;
+}
+
+async function sendToGHL(integration, payload, quizWorkspaceId) {
   try {
     const config = JSON.parse(integration.config);
-    // Backward compat: use privateToken, fallback to apiKey from old configs
-    const token = config.privateToken || config.apiKey;
     const { pipelineId, stageId, tags, customFieldMappings } = config;
 
+    const token = await resolveGhlToken(config, quizWorkspaceId);
+
     if (!token) {
-      console.error('[FullFunnel] Missing privateToken (or apiKey fallback)');
+      console.log(`[FullFunnel] ${integration.name} — no API key available (workspace=${quizWorkspaceId ?? 'none'}); skipping`);
       return;
     }
 
