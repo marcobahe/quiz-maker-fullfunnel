@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { encrypt, isEncryptionAvailable } from '@/lib/fieldEncryption';
+
+// Force dynamic rendering — route requires DB access and session at request time
+export const dynamic = 'force-dynamic';
 import { handleApiError } from '@/lib/apiError';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
