@@ -22,7 +22,7 @@ async function main() {
   // Find users who have no workspace membership with role=owner
   const orphans = await prisma.user.findMany({
     where: {
-      workspaceMembers: {
+      memberships: {
         none: { role: 'owner' },
       },
     },
@@ -49,7 +49,7 @@ async function main() {
       .replace(/(^-|-$)/g, '');
     const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 8)}`;
 
-    await prisma.workspace.create({
+    const workspace = await prisma.workspace.create({
       data: {
         name: `${name}'s Workspace`,
         slug,
@@ -61,7 +61,7 @@ async function main() {
     // Assign existing quizzes that have no workspace
     const updated = await prisma.quiz.updateMany({
       where: { userId: user.id, workspaceId: null },
-      data: { workspaceId: (await prisma.workspace.findFirst({ where: { ownerId: user.id } }))?.id },
+      data: { workspaceId: workspace.id },
     });
 
     console.log(`    ✓ workspace created. Quizzes reassigned: ${updated.count}`);
