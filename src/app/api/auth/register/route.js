@@ -24,7 +24,15 @@ export async function POST(request) {
       );
     }
 
-    const rawBody = await request.json();
+    let rawBody;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: 'Dados inválidos', code: 'BAD_REQUEST' },
+        { status: 400 }
+      );
+    }
     const parsed = registerSchema.safeParse(rawBody);
     if (!parsed.success) {
       return NextResponse.json(

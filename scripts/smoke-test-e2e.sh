@@ -150,6 +150,22 @@ fi
 
 echo ""
 
+# ── 2b. Register — invalid request handling (regression ICO-439) ─
+echo "─── 2b. Register input validation ───────────────────────"
+
+reg_invalid_status=$(curl -sS -X POST \
+  -H "Content-Type: application/json" \
+  -d 'garbage' \
+  -o /dev/null -w "%{http_code}" \
+  "$BASE/api/auth/register")
+if [[ "$reg_invalid_status" =~ ^4 ]]; then
+  ok "Register com body inválido retorna 4xx ($reg_invalid_status)"
+else
+  fail "Register com body inválido retornou $reg_invalid_status (esperado 4xx) — regressão ICO-439"
+fi
+
+echo ""
+
 # ── 3. Quiz — Criar + Publicar ────────────────────────────────
 echo "─── 3. Quiz Builder ─────────────────────────────────────"
 
