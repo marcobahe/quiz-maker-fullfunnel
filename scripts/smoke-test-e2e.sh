@@ -109,15 +109,18 @@ if [[ -z "$CSRF_TOKEN" ]]; then
 fi
 info "CSRF token obtido"
 
-# Sign in with credentials
-signin_status=$(api_post "$BASE/api/auth/signin/credentials" \
+# Sign in with credentials — use direct curl (not api_post) to avoid
+# double Content-Type header conflict (api_post sets application/json)
+signin_status=$(curl -sS -X POST \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
   --data-urlencode "email=$QMB_EMAIL" \
   --data-urlencode "password=$QMB_PASSWORD" \
   --data-urlencode "csrfToken=$CSRF_TOKEN" \
   --data-urlencode "callbackUrl=$BASE" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
   -o /dev/null -w "%{http_code}" \
-  -L --max-redirs 3)
+  -L --max-redirs 3 \
+  "$BASE/api/auth/signin/credentials")
 
 # Verify session
 session_body=$(api_get "$BASE/api/auth/session")
@@ -219,7 +222,7 @@ if [[ -n "${WEBHOOK_TEST_URL:-}" ]]; then
     # Fire test webhook
     wh_test=$(api_post "$BASE/api/quizzes/$QUIZ_ID/webhook" -d '{}')
     wh_ok=$(echo "$wh_test" | jq -r '.success // false')
-    wh_status=$(echo "$wh_test" | jq -r '.statusCode // empty')
+    wh_status=$(echo "$wh_test" | jq -r '.status // empty')
     [[ "$wh_ok" == "true" ]] && ok "Webhook test disparado (HTTP $wh_status)" || fail "Webhook test falhou: $wh_test"
 
     # Check webhook logs
@@ -331,11 +334,13 @@ del_response=$(api_delete "$BASE/api/quizzes/$QUIZ_ID")
 del_ok=$(echo "$del_response" | jq -r '.success // .id // empty')
 [[ -n "$del_ok" ]] && ok "Quiz de teste deletado ($QUIZ_ID)" || info "Delete response: $del_response (pode ser idempotente)"
 
-# Sign out
-api_post "$BASE/api/auth/signout" \
-  -d "csrfToken=$CSRF_TOKEN" \
+# Sign out — direct curl to avoid double Content-Type header (same reason as signin)
+curl -sS -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -o /dev/null -w "" > /dev/null 2>&1 || true
+  -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
+  --data-urlencode "csrfToken=$CSRF_TOKEN" \
+  -o /dev/null \
+  "$BASE/api/auth/signout" > /dev/null 2>&1 || true
 ok "Logout"
 
 rm -f "$COOKIE_JAR"
