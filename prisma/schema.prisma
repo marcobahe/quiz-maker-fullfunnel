@@ -77,6 +77,8 @@ model Workspace {
   // GHL self-service integration
   ghlApiKey      String?           // encrypted at rest via AES-256-GCM (fieldEncryption.js)
   ghlSyncStatus  String            @default("not_configured") // "not_configured" | "active" | "pending_setup" | "error"
+  ghlAccountName String?           // plain text — display name from GHL location
+  ghlLocationId  String?           // plain text — GHL sub-account location ID
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 }

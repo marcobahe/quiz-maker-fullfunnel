@@ -8,8 +8,12 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
 
 const saveSchema = z.object({
-  apiKey: z.string().min(1, 'API key obrigatória').max(2000),
-});
+  // Accept "token" (frontend field name) or "apiKey" (direct API usage)
+  token: z.string().min(1).max(2000).optional(),
+  apiKey: z.string().min(1).max(2000).optional(),
+  accountName: z.string().max(255).optional(),
+  locationId: z.string().max(255).optional(),
+}).refine((d) => d.token || d.apiKey, { message: 'token ou apiKey obrigatório' });
 
 /**
  * Resolve the workspace and verify the caller is owner or admin.
@@ -69,13 +73,16 @@ export async function PUT(request, { params }) {
       );
     }
 
-    const encryptedKey = encrypt(parsed.data.apiKey.trim());
+    const rawKey = (parsed.data.token || parsed.data.apiKey).trim();
+    const encryptedKey = encrypt(rawKey);
 
     await prisma.workspace.update({
       where: { id: workspaceId },
       data: {
         ghlApiKey: encryptedKey,
         ghlSyncStatus: 'active',
+        ghlAccountName: parsed.data.accountName ?? null,
+        ghlLocationId: parsed.data.locationId ?? null,
       },
     });
 
@@ -108,6 +115,8 @@ export async function DELETE(request, { params }) {
       data: {
         ghlApiKey: null,
         ghlSyncStatus: 'not_configured',
+        ghlAccountName: null,
+        ghlLocationId: null,
       },
     });
 
@@ -135,9 +144,13 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Workspace não encontrado ou sem permissão.' }, { status: 404 });
     }
 
+    const connected = workspace.ghlApiKey !== null && workspace.ghlSyncStatus === 'active';
     return NextResponse.json({
       configured: workspace.ghlApiKey !== null,
+      connected,
       ghlSyncStatus: workspace.ghlSyncStatus,
+      accountName: workspace.ghlAccountName ?? null,
+      locationId: workspace.ghlLocationId ?? null,
     });
   } catch (error) {
     return handleApiError(error, { route: '/api/workspaces/[id]/integrations/ghl', method: 'GET', userId: session?.user?.id });
