@@ -139,6 +139,15 @@ fi
 status=$(get_status -L "$BASE/admin")
 [[ "$status" == "200" ]] && ok "/admin acessível como $SESSION_ROLE" || fail "/admin retornou $status"
 
+# Fetch (and auto-create) personal workspace
+ws_response=$(api_get "$BASE/api/workspaces")
+WORKSPACE_ID=$(echo "$ws_response" | jq -r '.[0].id // empty')
+if [[ -n "$WORKSPACE_ID" ]]; then
+  ok "Workspace pessoal disponível (id=$WORKSPACE_ID)"
+else
+  fail "Workspace não encontrado — resposta: $ws_response"
+fi
+
 echo ""
 
 # ── 3. Quiz — Criar + Publicar ────────────────────────────────
@@ -248,9 +257,10 @@ echo "─── 6. GHL Integration ───────────────
 # Set GHL_PIT_TOKEN + GHL_WORKSPACE_ID to test end-to-end.
 # Without them, this section is skipped (not a blocker for go-live gate).
 
-if [[ -n "${GHL_PIT_TOKEN:-}" && -n "${GHL_WORKSPACE_ID:-}" ]]; then
+WS_ID="${GHL_WORKSPACE_ID:-$WORKSPACE_ID}"
+if [[ -n "${GHL_PIT_TOKEN:-}" && -n "$WS_ID" ]]; then
   # Step 1: Validate token
-  validate_resp=$(api_post "$BASE/api/workspaces/$GHL_WORKSPACE_ID/integrations/ghl/validate" \
+  validate_resp=$(api_post "$BASE/api/workspaces/$WS_ID/integrations/ghl/validate" \
     -d "{\"token\": \"$GHL_PIT_TOKEN\"}")
   ghl_valid=$(echo "$validate_resp" | jq -r '.valid // false')
 
@@ -263,14 +273,14 @@ if [[ -n "${GHL_PIT_TOKEN:-}" && -n "${GHL_WORKSPACE_ID:-}" ]]; then
       -H "Content-Type: application/json" \
       -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
       -d "{\"token\": \"$GHL_PIT_TOKEN\"}" \
-      "$BASE/api/workspaces/$GHL_WORKSPACE_ID/integrations/ghl")
+      "$BASE/api/workspaces/$WS_ID/integrations/ghl")
     saved=$(echo "$save_resp" | jq -r '.ghlSyncStatus // empty')
     [[ "$saved" == "active" ]] && ok "GHL integration salva (status: active)" || fail "Falha ao salvar GHL: $save_resp"
 
     # Step 3: Cleanup — remove integration after smoke test
     del_ghl=$(curl -sS -X DELETE \
       -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
-      "$BASE/api/workspaces/$GHL_WORKSPACE_ID/integrations/ghl")
+      "$BASE/api/workspaces/$WS_ID/integrations/ghl")
     del_ok=$(echo "$del_ghl" | jq -r '.success // .removed // false')
     [[ "$del_ok" != "false" ]] && ok "GHL integration removida (cleanup)" || info "GHL cleanup: $del_ghl"
   else
@@ -279,8 +289,9 @@ if [[ -n "${GHL_PIT_TOKEN:-}" && -n "${GHL_WORKSPACE_ID:-}" ]]; then
     info "Resposta: $validate_resp"
   fi
 else
-  skip "GHL integration (GHL_PIT_TOKEN + GHL_WORKSPACE_ID não definidos)"
-  info "Para testar: export GHL_PIT_TOKEN=pit-xxx GHL_WORKSPACE_ID=<workspace-id>"
+  skip "GHL integration (GHL_PIT_TOKEN não definido)"
+  info "Para testar: export GHL_PIT_TOKEN=pit-xxx"
+  info "GHL_WORKSPACE_ID é opcional — usa workspace pessoal do usuário logado se não definido"
   info "Token deve ser um Location-level PIT com scopes: contacts.write, contacts.readonly, opportunities.write, locations.readonly"
 fi
 
