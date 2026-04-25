@@ -14,6 +14,14 @@ const categoryColors = {
   'Feedback': 'bg-yellow-100 text-yellow-700',
   'Vendas': 'bg-red-100 text-red-700',
   'Produto': 'bg-purple-100 text-purple-700',
+  // Niche verticals
+  'Infoproduto': 'bg-violet-100 text-violet-700',
+  'E-commerce': 'bg-teal-100 text-teal-700',
+  'Agência': 'bg-indigo-100 text-indigo-700',
+  'Saúde & Bem-Estar': 'bg-green-100 text-green-700',
+  'SaaS': 'bg-cyan-100 text-cyan-700',
+  'Beleza': 'bg-rose-100 text-rose-700',
+  'Imobiliário': 'bg-orange-100 text-orange-700',
 };
 
 // ── Template Card ────────────────────────────────────────────────
