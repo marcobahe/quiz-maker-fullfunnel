@@ -1,18 +1,28 @@
 # Stripe Setup — QuizMeBaby
 
+> **Source-of-truth de pricing:** [`docs/product/positioning-quizmebaby.md`](./product/positioning-quizmebaby.md) (v0.4, aprovado TheBoss+Opus 2026-04-23).
+> Em caso de divergência entre este doc e o positioning, **o positioning vence.** Atualize este arquivo, não o contrário.
+
 ## Produtos e Preços a Criar no Stripe (PRODUÇÃO)
 
 Acesse https://dashboard.stripe.com/products e crie:
 
 ### Produto 1: QuizMeBaby Pro
 - **Nome:** QuizMeBaby Pro
-- **Preço mensal:** R$ 47,00 (BRL, recorrente mensal)
-- **Preço anual:** R$ 397,00 (BRL, recorrente anual)
+- **Preço mensal:** R$ 97,00 (BRL, recorrente mensal)
+- **Preço anual:** R$ 970,00 (BRL, recorrente anual — equivale a 10 meses, 2 meses grátis)
 
 ### Produto 2: QuizMeBaby Business
 - **Nome:** QuizMeBaby Business
-- **Preço mensal:** R$ 97,00 (BRL, recorrente mensal)
-- **Preço anual:** R$ 897,00 (BRL, recorrente anual)
+- **Preço mensal:** R$ 247,00 (BRL, recorrente mensal)
+- **Preço anual:** R$ 2.470,00 (BRL, recorrente anual — equivale a 10 meses, 2 meses grátis)
+
+### Produto 3: QuizMeBaby Agency
+- **Nome:** QuizMeBaby Agency
+- **Preço mensal:** R$ 497,00 (BRL, recorrente mensal)
+- **Preço anual:** R$ 4.970,00 (BRL, recorrente anual — equivale a 10 meses, 2 meses grátis)
+
+> Free tier (R$ 0) não precisa de produto/price no Stripe — é gerenciado no banco de dados.
 
 ---
 
@@ -26,10 +36,12 @@ STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Price IDs (copiar do painel Stripe após criar os produtos)
-STRIPE_PRO_PRICE_ID=price_...          # Pro mensal R$47
-STRIPE_PRO_ANNUAL_PRICE_ID=price_...    # Pro anual R$397
-STRIPE_BUSINESS_PRICE_ID=price_...      # Business mensal R$97
-STRIPE_BUSINESS_ANNUAL_PRICE_ID=price_... # Business anual R$897
+STRIPE_PRO_PRICE_ID=price_...           # Pro mensal R$97
+STRIPE_PRO_ANNUAL_PRICE_ID=price_...     # Pro anual R$970
+STRIPE_BUSINESS_PRICE_ID=price_...       # Business mensal R$247
+STRIPE_BUSINESS_ANNUAL_PRICE_ID=price_... # Business anual R$2.470
+STRIPE_AGENCY_PRICE_ID=price_...         # Agency mensal R$497
+STRIPE_AGENCY_ANNUAL_PRICE_ID=price_...   # Agency anual R$4.970
 
 # GHL (Full Funnel) — já configurado
 GHL_PRIVATE_TOKEN=pit-4ac80803-e5e0-4aa0-abe9-3e65a383bc17
@@ -83,7 +95,7 @@ Criar estes custom fields no GHL (Full Funnel) → Settings → Custom Fields:
 
 1. **Novo assinante** (`checkout.session.completed`):
    - Atualiza banco local (plano, stripeCustomerId, stripeSubscriptionId)
-   - GHL: upsert contato com tags `quizmebaby-cliente`, `plano-{pro|business}`, `assinante-ativo`
+   - GHL: upsert contato com tags `quizmebaby-cliente`, `plano-{pro|business|agency}`, `assinante-ativo`
 
 2. **Upgrade/downgrade** (`customer.subscription.updated`):
    - Atualiza plano no banco
