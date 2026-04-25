@@ -1,6 +1,6 @@
 # Outreach Matheus Bressan — Versões A/B/C
 
-> **Status:** draft para review @theboss + Opus (ICO-201)
+> **Status:** fixes aplicados (blockers Opus + TheBoss) — aguarda sign-off final @theboss (ICO-201)
 > **Prioridade:** P1 — Bressan subiu após decisão ICO-197 (Cenário C)
 > **Envio real:** aguarda GO final @theboss
 > **Nota:** `COMUNICACAO.md` não encontrado no repo — tom baseado em `partnership-bressan.md` §6 + `deep-bressan-yt.md`
