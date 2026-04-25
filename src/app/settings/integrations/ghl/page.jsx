@@ -24,8 +24,8 @@ import {
 
 const GHL_SCOPES = [
   { key: 'contacts.write', label: 'contacts.write', required: true },
-  { key: 'contacts.read', label: 'contacts.read', required: true },
-  { key: 'locations.read', label: 'locations.read', required: true },
+  { key: 'contacts.readonly', label: 'contacts.readonly', required: true },
+  { key: 'locations.readonly', label: 'locations.readonly', required: true },
   { key: 'opportunities.write', label: 'opportunities.write', required: false },
 ];
 
@@ -126,10 +126,10 @@ export default function GhlIntegrationPage() {
     setValidationResult(null);
 
     try {
-      const res = await fetch('/api/integrations/ghl/validate', {
+      const res = await fetch(`/api/workspaces/${activeWorkspaceId}/integrations/ghl/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: apiKey.trim() }),
+        body: JSON.stringify({ token: apiKey.trim() }),
       });
       const data = await res.json();
 
@@ -160,7 +160,11 @@ export default function GhlIntegrationPage() {
       const res = await fetch(`/api/workspaces/${activeWorkspaceId}/integrations/ghl`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: apiKey.trim() }),
+        body: JSON.stringify({
+          apiKey: apiKey.trim(),
+          accountName: validationResult.accountName ?? null,
+          locationId: validationResult.locationId ?? null,
+        }),
       });
       const data = await res.json();
 
