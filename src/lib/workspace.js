@@ -2,6 +2,8 @@ import prisma from './prisma';
 
 /**
  * Ensures a user has a personal workspace. Creates one if not.
+ * Accepts an optional Prisma transaction client (db) so this can run
+ * inside a prisma.$transaction — pass the tx client to keep everything atomic.
  * Returns the personal workspace.
  */
 export async function ensurePersonalWorkspace(userId, db = prisma) {
