@@ -26,9 +26,15 @@ QMB + Bressan: funil dinâmico em [X] min, 30% lifetime, R$ 2.500 no upload
 
 Bressan,
 
-Refiz seu funil dinâmico do vídeo de 27min no QuizMeBaby — publicado em [X] min, mesmo score + regras + 6 fases, sem Clarity, sem Excel, sem Eleven Labs. Montei direto no builder: score negativo por faixa, regras condicionais, ramificação por perfil — sem aba extra, sem gambiarra. Os quizzes no QMB que seguem score + regras condicionais chegam ou superam o piso de 70% que você define em `XPBV3bvzrVk` — a matemática do framework garante isso, não é promessa.
+Refiz seu funil dinâmico do vídeo de 27min no QuizMeBaby — publicado em [X] min, mesmo score + regras + 6 fases, sem Clarity, sem Excel, sem Eleven Labs. Montei direto no builder: score negativo por faixa, regras condicionais, ramificação por perfil — sem aba extra, sem gambiarra.
 
-Proposta: **30% recorrente lifetime** via cupom `BRESSAN` (seu `CANALBRESSAN` paga 10% flat único no Kirvano — aqui paga todo mês enquanto o usuário ficar); **R$ 2.500 flat** no upload do vídeo YT (15-30min tutorial, tua tela, teu jeito, sem roteiro nosso); **cupom `BRESSAN`** novo, rastreado separado; **Fase 2 condicional:** Template "Funil Dinâmico Bressan" na biblioteca QMB — sem data cravada.
+Os quizzes no QMB que seguem score + regras condicionais chegam ou superam o piso de 70% que você define em `XPBV3bvzrVk` — a matemática do framework garante isso, não é promessa.
+
+Proposta:
+- **30% recorrente lifetime** via cupom `BRESSAN` (seu `CANALBRESSAN` paga 10% flat único no Kirvano — aqui paga todo mês enquanto o usuário ficar no plano Pro)
+- **R$ 2.500 flat** no upload do vídeo YT (15-30min tutorial, tua tela, teu jeito, sem roteiro nosso)
+- **Cupom `BRESSAN`** co-branded, rastreado separado do `CANALBRESSAN`
+- **Fase 2 condicional:** Template "Funil Dinâmico Bressan" na biblioteca QMB — sem data cravada
 
 Relação com a inLead fica como está. QMB entra pelo mérito, não por exclusividade. Sim / contra-proposta / não — responde direto aqui.
 
@@ -56,7 +62,13 @@ Bressan,
 
 Refiz seu funil dinâmico do vídeo de 27min no QuizMeBaby — publicado em [X] min, mesmo score + regras + 6 fases, sem Clarity, sem Excel, sem Eleven Labs.
 
-O ponto financeiro direto: `CANALBRESSAN` no Kirvano gera 10% flat único por venda. QMB gera 30% todo mês enquanto o usuário estiver no plano Pro — sem teto, sem prazo. Em base ativa de N usuários, a diferença composta em 12 meses é ordem de magnitude maior. Proposta completa: **30% recorrente lifetime** via cupom `BRESSAN` (novo, rastreado separado do `CANALBRESSAN`); **R$ 2.500 flat** no upload do vídeo YT (tutorial prático 15-30min, tua tela, teu jeito); **Fase 2 condicional:** Template "Funil Dinâmico Bressan" na biblioteca QMB — sem data cravada.
+O ponto financeiro direto: `CANALBRESSAN` no Kirvano gera 10% flat único por venda. QMB gera 30% todo mês enquanto o usuário estiver no plano Pro — sem teto, sem prazo.
+
+Proposta completa:
+- **30% recorrente lifetime** via cupom `BRESSAN` (novo, rastreado separado do `CANALBRESSAN`)
+- **R$ 2.500 flat** no upload do vídeo YT (tutorial prático 15-30min, tua tela, teu jeito)
+- **Cupom `BRESSAN`** co-branded, rastreado separado do `CANALBRESSAN`
+- **Fase 2 condicional:** Template "Funil Dinâmico Bressan" na biblioteca QMB — sem data cravada
 
 Relação com a inLead não muda. QMB entra por mérito. Sim / contra-proposta / não.
 
@@ -84,7 +96,13 @@ Bressan,
 
 Refiz seu funil dinâmico do vídeo de 27min no QuizMeBaby — publicado em [X] min, mesmo score + regras + 6 fases, sem Clarity, sem Excel, sem Eleven Labs.
 
-O argumento do conteúdo é direto: tua audiência aprendeu o que é funil dinâmico com você — 19k views no `5FC3qdIjclo`. Eles querem implementar. A fricção é a configuração. O tutorial no QMB inverte isso: mesmo framework, publicado em [X] min. Esse delta temporal vira o hook do vídeo — não é claim, é demo ao vivo na tua tela. Proposta: **30% recorrente lifetime** via cupom `BRESSAN`, todo mês enquanto o usuário ficar no plano Pro; **R$ 2.500 flat** no upload do vídeo YT (15-30min tutorial prático, formato que você já domina); **cupom `BRESSAN`** co-branded, rastreado separado; **Fase 2 condicional:** Template "Funil Dinâmico Bressan" no QMB — sem data cravada.
+O argumento do conteúdo é direto: tua audiência aprendeu o que é funil dinâmico com você — 19k views no `5FC3qdIjclo`. Eles querem implementar. A fricção é a configuração. O tutorial no QMB inverte isso: mesmo framework, publicado em [X] min. Esse delta temporal vira o hook do vídeo — não é claim, é demo ao vivo na tua tela.
+
+Proposta:
+- **30% recorrente lifetime** via cupom `BRESSAN`, todo mês enquanto o usuário ficar no plano Pro
+- **R$ 2.500 flat** no upload do vídeo YT (15-30min tutorial prático, formato que você já domina)
+- **Cupom `BRESSAN`** co-branded, rastreado separado do `CANALBRESSAN`
+- **Fase 2 condicional:** Template "Funil Dinâmico Bressan" no QMB — sem data cravada
 
 Relação com a inLead fica intacta. QMB entra pelo resultado. Sim / contra-proposta / não.
 
