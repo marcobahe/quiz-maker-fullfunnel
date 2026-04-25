@@ -3,6 +3,16 @@ import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import prisma from './prisma';
 
+// Validate required OAuth environment variables at startup
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  console.error(
+    '[AUTH] Missing required environment variables: GOOGLE_CLIENT_ID and/or GOOGLE_CLIENT_SECRET'
+  );
+}
+if (!process.env.NEXTAUTH_SECRET) {
+  console.error('[AUTH] Missing required environment variable: NEXTAUTH_SECRET');
+}
+
 export const authOptions = {
   providers: [
     GoogleProvider({
