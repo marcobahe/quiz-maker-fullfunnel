@@ -246,6 +246,13 @@ app.get('/:slug', async (c) => {
       latency_ms: latency,
       status: 200,
     })
+    // Primary host: Next.js serves quizzes at /q/{slug}; proxy there instead
+    // of /{slug} which returns DEPLOYMENT_NOT_FOUND from Vercel.
+    if (host === primaryHost) {
+      const url = new URL(c.req.url)
+      url.pathname = `/q/${slug}`
+      return proxyToVercel(new Request(url, c.req.raw), env.VERCEL_ORIGIN)
+    }
     return proxyToVercel(c.req.raw, env.VERCEL_ORIGIN)
   }
 
