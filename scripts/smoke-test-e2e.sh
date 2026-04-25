@@ -297,8 +297,44 @@ fi
 
 echo ""
 
-# ── 7. Email (notifier config) ────────────────────────────────
-echo "─── 7. Email ────────────────────────────────────────────"
+# ── 7. WhatsApp pipeline (internal — Opção A, sem credentials reais) ──
+echo "─── 7. WhatsApp Pipeline ────────────────────────────────"
+
+WA_INTEG=$(api_post "$BASE/api/quizzes/$QUIZ_ID/integrations" \
+  -d '{"type":"evolution","name":"smoke-evolution","config":{"apiUrl":"https://localhost:9999","apiKey":"fake","instance":"smoke","messageTemplate":"Ola {{name}}"}}')
+WA_INTEG_ID=$(echo "$WA_INTEG" | jq -r ".id // empty")
+
+if [[ -n "$WA_INTEG_ID" ]]; then
+  ok "WhatsApp: integração Evolution criada (id=$WA_INTEG_ID)"
+else
+  fail "WhatsApp: falha ao criar integração Evolution"
+fi
+
+# Lead with E.164 phone triggers dispatch pipeline
+LEAD_WA=$(curl -sS -X POST \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Smoke WA\",\"email\":\"smoke-wa-${SMOKE_TS}@quizmebaby.test\",\"phone\":\"+5511999990000\",\"answers\":[],\"score\":80,\"resultCategory\":\"Perfil Smoke Test\"}" \
+  "$BASE/api/quizzes/$QUIZ_ID/leads")
+LEAD_WA_ID=$(echo "$LEAD_WA" | jq -r ".id // .lead.id // empty")
+
+if [[ -n "$LEAD_WA_ID" ]]; then
+  ok "WhatsApp: lead com phone E.164 aceito — dispatch pipeline acionado"
+  info "WhatsappMessageLog criado no DB com status=pending/failed (fake URL esperado)"
+else
+  fail "WhatsApp: lead submission com phone falhou"
+fi
+
+# Cleanup integração Evolution
+if [[ -n "$WA_INTEG_ID" ]]; then
+  curl -sS -X DELETE -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
+    "$BASE/api/quizzes/$QUIZ_ID/integrations/$WA_INTEG_ID" > /dev/null 2>&1 || true
+  ok "WhatsApp: integração Evolution removida (cleanup)"
+fi
+
+echo ""
+
+# ── 8. Email (notifier config) ────────────────────────────────
+echo "─── 8. Email ────────────────────────────────────────────"
 
 # Can't send email programmatically without GMAIL_APP_PASSWORD in env
 # Check if emailNotifications can be enabled on the quiz (validates the API path)
@@ -314,8 +350,8 @@ fi
 
 echo ""
 
-# ── 8. Edge Renderer ─────────────────────────────────────────
-echo "─── 8. Edge Renderer (play.quizmebaby.app) ──────────────"
+# ── 9. Edge Renderer ─────────────────────────────────────────
+echo "─── 9. Edge Renderer (play.quizmebaby.app) ──────────────"
 
 edge_status=$(curl -sS -o /dev/null -w "%{http_code}" "$PLAY/$QUIZ_SLUG")
 if [[ "$edge_status" == "200" ]]; then
@@ -329,8 +365,8 @@ fi
 
 echo ""
 
-# ── 9. Upgrade Path ──────────────────────────────────────────
-echo "─── 9. Upgrade Path ─────────────────────────────────────"
+# ── 10. Upgrade Path ──────────────────────────────────────────
+echo "─── 10. Upgrade Path ─────────────────────────────────────"
 
 upgrade_status=$(curl -sS -o /dev/null -w "%{http_code}" "$BASE/upgrade-full-funnel")
 [[ "$upgrade_status" == "307" ]] && ok "/upgrade-full-funnel → /pricing ($upgrade_status)" || fail "Upgrade path retornou $upgrade_status"
@@ -341,8 +377,8 @@ has_plan=$(echo "$billing_status" | jq -r '.plan // empty')
 
 echo ""
 
-# ── 10. Cleanup ───────────────────────────────────────────────
-echo "─── 10. Cleanup ─────────────────────────────────────────"
+# ── 11. Cleanup ───────────────────────────────────────────────
+echo "─── 11. Cleanup ─────────────────────────────────────────"
 
 del_response=$(api_delete "$BASE/api/quizzes/$QUIZ_ID")
 del_ok=$(echo "$del_response" | jq -r '.success // .id // empty')
