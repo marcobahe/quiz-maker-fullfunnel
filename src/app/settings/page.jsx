@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Layout/Sidebar';
 import Link from 'next/link';
-import { Globe, Settings, ChevronRight, CreditCard, Users, User } from 'lucide-react';
+import { Globe, Settings, ChevronRight, CreditCard, Users, User, Puzzle } from 'lucide-react';
 
 const settingsItems = [
   {
@@ -31,6 +31,12 @@ const settingsItems = [
     title: 'Domínios Personalizados',
     description: 'Configure domínios customizados (CNAME) para seus quizzes',
     href: '/settings/domains',
+  },
+  {
+    icon: Puzzle,
+    title: 'Integrações',
+    description: 'Conecte seu workspace ao GoHighLevel e outras ferramentas',
+    href: '/settings/integrations/ghl',
   },
 ];
 
