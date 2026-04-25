@@ -175,10 +175,13 @@ echo ""
 # ── 4. Lead Submission ────────────────────────────────────────
 echo "─── 4. Lead Submission ──────────────────────────────────"
 
+# Naming follows Plano B convention (ICO-211): identifiable/filterable in any GHL sub-account
+# email domain "quizmebaby.test" is a non-existent TLD — zero collision with real leads
+SMOKE_TS=$(date +%s)
 lead_payload=$(cat <<EOF
 {
-  "name": "Lead Smoke Test",
-  "email": "smoke-test-$(date +%s)@test.quizmebaby.app",
+  "name": "SMOKE-TEST",
+  "email": "smoke-${SMOKE_TS}@quizmebaby.test",
   "phone": "+5511999990000",
   "answers": [{"questionId": "q_smoke", "question": "Pergunta teste", "answer": "Resposta A", "points": 10}],
   "score": 80,
@@ -307,7 +310,7 @@ edge_status=$(curl -sS -o /dev/null -w "%{http_code}" "$PLAY/$QUIZ_SLUG")
 if [[ "$edge_status" == "200" ]]; then
   ok "play.quizmebaby.app/$QUIZ_SLUG carrega (edge renderer)"
 elif [[ "$edge_status" == "404" ]]; then
-  skip "Edge renderer retornou 404 para slug — KV sync pode ter latência ou ICO-164 pendente"
+  skip "Edge renderer retornou 404 para slug — KV sync pode ter latência (ICO-164 concluído)"
   info "URL: $PLAY/$QUIZ_SLUG"
 else
   fail "Edge renderer retornou $edge_status para $QUIZ_SLUG"
