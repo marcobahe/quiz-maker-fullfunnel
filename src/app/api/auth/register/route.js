@@ -47,16 +47,21 @@ export async function POST(request) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = await prisma.user.create({
-      data: {
-        name: name || null,
-        email: email.toLowerCase().trim(),
-        password: hashedPassword,
-      },
-    });
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          name: name || null,
+          email: email.toLowerCase().trim(),
+          password: hashedPassword,
+        },
+      });
 
-    // Auto-create personal workspace
-    await ensurePersonalWorkspace(user.id);
+      // Auto-create personal workspace — runs inside transaction so user is
+      // rolled back if workspace creation fails (prevents orphaned users)
+      await ensurePersonalWorkspace(newUser.id, tx);
+
+      return newUser;
+    });
 
     return NextResponse.json(
       { id: user.id, name: user.name, email: user.email },

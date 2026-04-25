@@ -4,9 +4,9 @@ import prisma from './prisma';
  * Ensures a user has a personal workspace. Creates one if not.
  * Returns the personal workspace.
  */
-export async function ensurePersonalWorkspace(userId) {
+export async function ensurePersonalWorkspace(userId, db = prisma) {
   // Check if user already has an owned workspace
-  const existing = await prisma.workspace.findFirst({
+  const existing = await db.workspace.findFirst({
     where: {
       ownerId: userId,
       members: {
@@ -21,7 +21,7 @@ export async function ensurePersonalWorkspace(userId) {
   if (existing) return existing;
 
   // Get user info for naming
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) throw new Error('User not found');
 
   const name = user.name || user.email.split('@')[0];
@@ -33,7 +33,7 @@ export async function ensurePersonalWorkspace(userId) {
     .replace(/(^-|-$)/g, '');
   const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 8)}`;
 
-  const workspace = await prisma.workspace.create({
+  const workspace = await db.workspace.create({
     data: {
       name: `${name}'s Workspace`,
       slug,
@@ -48,7 +48,7 @@ export async function ensurePersonalWorkspace(userId) {
   });
 
   // Assign existing quizzes (without workspace) to this workspace
-  await prisma.quiz.updateMany({
+  await db.quiz.updateMany({
     where: {
       userId,
       workspaceId: null,
