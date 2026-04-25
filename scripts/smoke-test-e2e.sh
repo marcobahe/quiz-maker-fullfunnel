@@ -236,22 +236,46 @@ fi
 
 echo ""
 
-# ── 6. GHL Pipeline ──────────────────────────────────────────
+# ── 6. GHL Integration (self-service workspace model — ICO-242/243) ──
 echo "─── 6. GHL Integration ──────────────────────────────────"
+# GHL is now self-service: each workspace brings its own PIT token.
+# Set GHL_PIT_TOKEN + GHL_WORKSPACE_ID to test end-to-end.
+# Without them, this section is skipped (not a blocker for go-live gate).
 
-# Test GHL pipelines endpoint (needs GHL token configured in Vercel env)
-# We test the API route response shape (real GHL sync happens on lead submission)
-ghl_response=$(api_post "$BASE/api/ghl/pipelines" -d '{"token": "probe-only"}')
-ghl_error=$(echo "$ghl_response" | jq -r '.error // empty')
+if [[ -n "${GHL_PIT_TOKEN:-}" && -n "${GHL_WORKSPACE_ID:-}" ]]; then
+  # Step 1: Validate token
+  validate_resp=$(api_post "$BASE/api/workspaces/$GHL_WORKSPACE_ID/integrations/ghl/validate" \
+    -d "{\"token\": \"$GHL_PIT_TOKEN\"}")
+  ghl_valid=$(echo "$validate_resp" | jq -r '.valid // false')
 
-if echo "$ghl_response" | jq -e '.pipelines' > /dev/null 2>&1; then
-  ghl_count=$(echo "$ghl_response" | jq '.pipelines | length')
-  ok "GHL pipelines carregados ($ghl_count pipelines)"
-elif [[ "$ghl_error" == *"Token"* || "$ghl_error" == *"token"* ]]; then
-  fail "GHL token inválido ou ausente — verifique GHL_PRIVATE_TOKEN no Vercel"
-  info "Resposta: $ghl_response"
+  if [[ "$ghl_valid" == "true" ]]; then
+    ghl_account=$(echo "$validate_resp" | jq -r '.accountName // "unknown"')
+    ok "GHL token válido (account: $ghl_account)"
+
+    # Step 2: Save the integration
+    save_resp=$(curl -sS -X PUT \
+      -H "Content-Type: application/json" \
+      -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
+      -d "{\"token\": \"$GHL_PIT_TOKEN\"}" \
+      "$BASE/api/workspaces/$GHL_WORKSPACE_ID/integrations/ghl")
+    saved=$(echo "$save_resp" | jq -r '.ghlSyncStatus // empty')
+    [[ "$saved" == "active" ]] && ok "GHL integration salva (status: active)" || fail "Falha ao salvar GHL: $save_resp"
+
+    # Step 3: Cleanup — remove integration after smoke test
+    del_ghl=$(curl -sS -X DELETE \
+      -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
+      "$BASE/api/workspaces/$GHL_WORKSPACE_ID/integrations/ghl")
+    del_ok=$(echo "$del_ghl" | jq -r '.success // .removed // false')
+    [[ "$del_ok" != "false" ]] && ok "GHL integration removida (cleanup)" || info "GHL cleanup: $del_ghl"
+  else
+    ghl_err=$(echo "$validate_resp" | jq -r '.error // "erro desconhecido"')
+    fail "GHL token inválido: $ghl_err"
+    info "Resposta: $validate_resp"
+  fi
 else
-  fail "GHL endpoint falhou: $ghl_response"
+  skip "GHL integration (GHL_PIT_TOKEN + GHL_WORKSPACE_ID não definidos)"
+  info "Para testar: export GHL_PIT_TOKEN=pit-xxx GHL_WORKSPACE_ID=<workspace-id>"
+  info "Token deve ser um Location-level PIT com scopes: contacts.write, contacts.readonly, opportunities.write, locations.readonly"
 fi
 
 echo ""
