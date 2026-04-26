@@ -36,16 +36,14 @@ const PLAN_ICONS = {
   free: Zap,
   pro: Crown,
   business: Rocket,
-  advanced: Rocket,
-  enterprise: Rocket,
+  agency: Rocket,
 };
 
 const PLAN_COLORS = {
   free: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
   pro: 'bg-accent/10 text-accent border-accent/20',
   business: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  advanced: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  enterprise: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  agency: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
 };
 
 function UsageBar({ label, icon: Icon, current, limit, className }) {
@@ -233,9 +231,7 @@ function BillingContent() {
                     ? 'bg-gradient-to-br from-violet-500 to-purple-600'
                     : plan === 'business'
                     ? 'bg-gradient-to-br from-amber-500 to-orange-600'
-                    : plan === 'advanced'
-                    ? 'bg-gradient-to-br from-blue-500 to-cyan-600'
-                    : plan === 'enterprise'
+                    : plan === 'agency'
                     ? 'bg-gradient-to-br from-purple-600 to-pink-600'
                     : 'bg-gradient-to-br from-gray-500 to-gray-600'
                 }`}
@@ -282,7 +278,7 @@ function BillingContent() {
                   Gerenciar Assinatura
                 </button>
               )}
-              {plan !== 'enterprise' && (
+              {plan !== 'agency' && (
                 <Link
                   href="/pricing"
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-medium transition-colors"

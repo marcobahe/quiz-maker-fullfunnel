@@ -135,7 +135,7 @@ export default function PricingPage() {
             const plan = PLANS[planId];
             const isCurrentPlan = currentPlan === planId;
             const displayPrice = annual ? plan.priceAnnual : plan.price;
-            const isEnterprise = planId === 'enterprise';
+            const isAgency = planId === 'agency';
 
             return (
               <div
@@ -143,7 +143,7 @@ export default function PricingPage() {
                 className={`relative rounded-2xl p-6 transition-all flex flex-col ${
                   plan.popular
                     ? 'bg-gradient-to-b from-accent to-purple-700 text-white shadow-xl shadow-accent/20 lg:scale-105 lg:-my-2 z-10'
-                    : isEnterprise
+                    : isAgency
                     ? 'bg-gradient-to-b from-gray-800 to-gray-900 text-white shadow-lg'
                     : 'bg-white dark:bg-[#151837]/60 dark:backdrop-blur border border-gray-200 dark:border-white/10 hover:border-accent/30 hover:shadow-lg'
                 }`}
@@ -160,30 +160,30 @@ export default function PricingPage() {
                 )}
 
                 <h3 className={`text-lg font-semibold mb-1 ${
-                  plan.popular || isEnterprise ? 'text-white' : 'text-gray-900 dark:text-white'
+                  plan.popular || isAgency ? 'text-white' : 'text-gray-900 dark:text-white'
                 }`}>
                   {plan.name}
                 </h3>
                 <p className={`text-xs mb-4 ${
-                  plan.popular ? 'text-purple-200' : isEnterprise ? 'text-gray-400' : 'text-gray-500'
+                  plan.popular ? 'text-purple-200' : isAgency ? 'text-gray-400' : 'text-gray-500'
                 }`}>
                   {plan.description}
                 </p>
 
                 <div className="mb-6">
                   <span className={`text-3xl xl:text-4xl font-bold ${
-                    plan.popular || isEnterprise ? 'text-white' : 'text-gray-900 dark:text-white'
+                    plan.popular || isAgency ? 'text-white' : 'text-gray-900 dark:text-white'
                   }`}>
                     {plan.price === 0 ? 'R$ 0' : `R$ ${Math.round(displayPrice)}`}
                   </span>
                   <span className={`text-xs ${
-                    plan.popular ? 'text-purple-200' : isEnterprise ? 'text-gray-400' : 'text-gray-500'
+                    plan.popular ? 'text-purple-200' : isAgency ? 'text-gray-400' : 'text-gray-500'
                   }`}>
                     {plan.period}
                   </span>
                   {annual && plan.price > 0 && (
                     <p className={`text-xs mt-1 ${
-                      plan.popular ? 'text-purple-200' : isEnterprise ? 'text-gray-400' : 'text-gray-400'
+                      plan.popular ? 'text-purple-200' : isAgency ? 'text-gray-400' : 'text-gray-400'
                     }`}>
                       {plan.priceAnnualLabel}
                     </p>
@@ -196,11 +196,11 @@ export default function PricingPage() {
                       <Check
                         size={14}
                         className={`mt-0.5 shrink-0 ${
-                          plan.popular ? 'text-purple-200' : isEnterprise ? 'text-gray-400' : 'text-accent'
+                          plan.popular ? 'text-purple-200' : isAgency ? 'text-gray-400' : 'text-accent'
                         }`}
                       />
                       <span className={
-                        plan.popular ? 'text-white/90' : isEnterprise ? 'text-gray-300' : 'text-gray-600'
+                        plan.popular ? 'text-white/90' : isAgency ? 'text-gray-300' : 'text-gray-600'
                       }>
                         {feature}
                       </span>
@@ -211,7 +211,7 @@ export default function PricingPage() {
                 {isCurrentPlan ? (
                   <div
                     className={`w-full text-center py-2.5 rounded-xl font-medium text-sm ${
-                      plan.popular ? 'bg-white/20 text-white' : isEnterprise ? 'bg-white/10 text-gray-300' : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'
+                      plan.popular ? 'bg-white/20 text-white' : isAgency ? 'bg-white/10 text-gray-300' : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'
                     }`}
                   >
                     Plano Atual
@@ -222,7 +222,7 @@ export default function PricingPage() {
                     className={`w-full block text-center py-2.5 rounded-xl font-medium text-sm transition-all ${
                       plan.popular
                         ? 'bg-white text-accent hover:bg-gray-100'
-                        : isEnterprise
+                        : isAgency
                         ? 'bg-white text-gray-900 hover:bg-gray-100'
                         : 'bg-accent hover:bg-accent-hover text-white'
                     }`}

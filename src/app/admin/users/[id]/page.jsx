@@ -28,8 +28,7 @@ const PLAN_COLORS = {
   free: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
   pro: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
   business: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  advanced: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  enterprise: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  agency: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
 };
 
 export default function AdminUserDetailPage() {
@@ -272,7 +271,7 @@ export default function AdminUserDetailPage() {
           {/* Edit Plan */}
           {editingPlan ? (
             <div className="flex items-center gap-2">
-              {['free', 'pro', 'business', 'advanced', 'enterprise'].map(plan => (
+              {['free', 'pro', 'business', 'agency'].map(plan => (
                 <button
                   key={plan}
                   onClick={() => handlePlanChange(plan)}
