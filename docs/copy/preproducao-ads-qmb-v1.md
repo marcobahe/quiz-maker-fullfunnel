@@ -86,25 +86,33 @@
 
 ## Especificações de Text Overlay
 
-### Sistema tipográfico
+### Sistema tipográfico ✅ OFICIAL (confirmado por @picasso — brandbook `design-tokens.md`)
 
-| Elemento | Fonte | Peso | Tamanho | Cor |
+| Elemento | Família | Peso | Tamanho | Cor |
 |---|---|---|---|---|
-| Hook principal | Inter ou Syne | ExtraBold (800) | 56–72px (equiv 9:16) | Branco com sombra preta leve |
-| Destaque/número | Inter | Black (900) | 64–80px | Cor primária QMB |
-| Bullets rápidos | Inter | SemiBold (600) | 36–44px | Branco ou primária |
-| CTA | Inter | Bold (700) + All-caps | 40–48px | Branco sobre fundo escuro |
+| Headline hook | **Outfit** | 800 | 28–36px | `#FFFFFF` |
+| Destaque inline / número | **Outfit** | 800 | 28–36px | `#6366f1` |
+| Body overlay / bullets | **Outfit** | 700 | 22–24px | `#FFFFFF` |
+| Caption / label | **Inter** | 500 | 14px | `#FFFFFF` |
+| CTA lower-third | **Outfit** | 800 | 28–32px | `#FFFFFF` sobre `#F43F5E` |
 
-### Paleta de cor (base — alinhar com @picasso no brandbook)
+### Paleta de cor ✅ OFICIAL (confirmado por @picasso — brandbook `design-tokens.md`)
 
-| Uso | Cor sugerida | Fallback |
-|---|---|---|
-| Background escuro (Script A/C) | #0F172A (slate-900) | Preto puro |
-| Destaque numérico | #3B82F6 (blue-500) | Cor primária QMB |
-| Texto principal | #FFFFFF | |
-| CTA button overlay | Primária QMB + texto branco | |
+| Papel | Hex | Token | Uso |
+|---|---|---|---|
+| **Background pill/card** | `#0a0c1b` | `bg-dark` | Fundo sólido de caixas de texto |
+| **Background glass** | `rgba(0,0,0,0.3)` + `blur(16px)` | glass dark | Alternativa glassmorphism |
+| **Texto principal** | `#FFFFFF` | — | Headlines, copy |
+| **Primário / destaque inline** | `#6366f1` | `--color-primary` | Palavras-chave, bordas |
+| **CTA / urgência** | `#F43F5E` | `--color-accent` | Momento de CTA, lower-third |
+| **Gold / badge** | `#F59E0B` | `--color-gold` | Resultados, números ("X leads") |
 
-> ⚠️ @picasso — confirmar paleta exata do brandbook QMB antes de finalizar os overlays. As cores acima são sugestões baseadas no padrão de nicho (finanças/produtividade = azul + preto). Se brandbook usar paleta diferente, sobrescreve.
+**Gradiente (uso moderado — hero/transição apenas):**
+```
+linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #EC4899 100%)
+```
+
+> ~~slate-900 (#0F172A)~~ descartado — não está nos tokens QMB. Dark correto: `#0a0c1b`.
 
 ### Timing de entrada dos overlays
 
