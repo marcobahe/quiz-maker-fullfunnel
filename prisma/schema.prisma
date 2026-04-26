@@ -62,6 +62,14 @@ model Quiz {
   webhookUrl    String?
   webhookSecret String?
   webhookLogs   WebhookLog[]
+  // Paywall (Stripe-backed)
+  paywallEnabled         Boolean  @default(false)
+  paywallPrice           Int?     // em centavos (BRL)
+  paywallType            String?  // 'result' | 'full' | 'lead'
+  paywallStripePriceId   String?
+  paywallTitle           String?
+  paywallDescription     String?
+  purchases              QuizPurchase[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 }
@@ -192,6 +200,24 @@ model WhatsappMessageLog {
   @@index([createdAt])
   @@index([leadId])
   @@index([quizId])
+}
+
+model QuizPurchase {
+  id                    String   @id @default(cuid())
+  quizId                String
+  quiz                  Quiz     @relation(fields: [quizId], references: [id])
+  email                 String
+  status                String   @default("pending") // 'pending' | 'completed' | 'failed'
+  stripeSessionId       String?
+  stripePaymentIntentId String?
+  amount                Int      @default(0) // em centavos
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([quizId, email])
+  @@index([quizId])
+  @@index([email])
+  @@index([status])
 }
 
 model MediaAsset {
