@@ -31,6 +31,7 @@ PRODUCTION_DOMAINS.forEach((d) => APP_HOSTNAMES.add(d));
 // Auth-protected paths (same as before)
 const AUTH_PATHS = [
   '/',
+  '/dashboard',
   '/builder',
   '/diagnostic',
   '/integration',
