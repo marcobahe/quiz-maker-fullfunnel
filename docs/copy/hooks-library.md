@@ -96,6 +96,43 @@ Munição de abertura validada por benchmark e pesquisa. Cada hook tem origem ra
 
 ---
 
+---
+
+## Hooks ABO — Pack Comparativo QMB vs inLead (ICO-229)
+
+> Pack de 3 hooks para os 4 conjuntos ABO do @cadu (A1–A4). Produzido por Andreza (2026-04-26, [ICO-229](/ICO/issues/ICO-229)).
+> Padrão: número/fato verificável + CTA nomeado. Sem CPL, sem ROAS.
+
+**Hook A — Preço direto** (ICP: assinante inLead ou prospect consciente do pricing)
+
+> "Você paga R$197/mês na inLead só pra ter webhook. No QuizMeBaby, webhook vem no plano de R$97. E tem plano grátis pra começar sem cartão."
+
+- CTA: `CRIAR MEU QUIZ GRÁTIS`
+- Variante A2: "R$197/mês pro webhook — ou R$97 com webhook, A/B testing e GHL nativo. Você escolhe."
+- Formato: imagem estática (tabela 2 colunas) OU talking head 15s
+
+---
+
+**Hook B — Desafio / 10 minutos** (ICP: infoprodutor sem quiz, conversão baixa em LP estática)
+
+> "Crie seu primeiro quiz em 10 minutos. Desafio."
+
+- CTA: `ACEITAR O DESAFIO — GRÁTIS`
+- Variante B2: "Seu lead vê a landing, fecha a aba. Sem comprar, sem responder. E se em 10 minutos você tivesse um quiz qualificando por você?"
+- Formato: vídeo 15s (screencast builder) OU carrossel steps
+
+---
+
+**Hook C — GHL / Agências** (ICP: gestor de tráfego ou agência com stack GHL)
+
+> "Agência usando GoHighLevel? Seu próximo quiz integra nativo. Sem Zapier no meio."
+
+- CTA: `VER INTEGRAÇÃO GHL — GRÁTIS`
+- Variante C2: "Configurou GHL mas ainda usa webhook manual pro quiz? Tem jeito mais fácil."
+- Formato: imagem estática (diagrama Quiz → GHL) OU vídeo 15s mostrando integração no painel
+
+---
+
 ## Status
 
 | Seção | Status |
@@ -103,5 +140,6 @@ Munição de abertura validada por benchmark e pesquisa. Cada hook tem origem ra
 | Posicionamento competitivo | ✅ 1 hook (ICO-153) + 3 hooks B2B (ICO-186) |
 | Dor do avatar | ✅ 3 hooks UGC (ICO-190) + 1 hook B2C diagnóstico (ICO-186) |
 | Diagnóstico / Gap #1 | ✅ 2 hooks validados (ICO-186) |
+| ABO comparativo QMB vs inLead | ✅ 3 hooks A/B/C + variantes (ICO-229) |
 | Mecanismo único | ⏳ aguarda ICO-155 |
 | Prova social BR | ⏳ aguarda coleta de cases (pós-launch maio/2026) |
