@@ -4,16 +4,18 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Quiz player pages — cache on Cloudflare edge
+        // Quiz player pages — NO CDN cache. The Cloudflare Worker at
+        // play.quizmebaby.app handles its own edge caching via KV.
+        // Vercel/CDN must not cache 404s or stale HTML here.
         source: '/q/:slug*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=86400, stale-while-revalidate=3600',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
           },
           {
             key: 'CDN-Cache-Control',
-            value: 'public, max-age=86400',
+            value: 'no-store',
           },
         ],
       },

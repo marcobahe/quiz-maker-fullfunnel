@@ -2,6 +2,12 @@ import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import QuizPlayerClient from './QuizPlayerClient';
 
+// Force dynamic rendering — quiz player must never be cached.
+// Without this, Next.js Full Route Cache can serve a stale 404
+// (e.g. quiz accessed before publish gets cached, then after
+// publish the cached 404 is still served).
+export const dynamic = 'force-dynamic';
+
 // Server-side quiz fetch — eliminates client-side waterfall (fetch JS → execute → fetch API)
 // Quiz data is now available on first paint via SSR
 async function getQuizData(slug, isPreview = false) {
