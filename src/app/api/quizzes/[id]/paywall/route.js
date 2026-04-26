@@ -92,6 +92,16 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
     }
 
+    // Cross-validation: cannot enable paywall without a Stripe price ID
+    const enablingPaywall = parsed.data.paywallEnabled === true;
+    const priceIdInBody = 'paywallStripePriceId' in parsed.data ? parsed.data.paywallStripePriceId : quiz.paywallStripePriceId;
+    if (enablingPaywall && !priceIdInBody) {
+      return NextResponse.json(
+        { error: 'Configure o priceId do Stripe antes de ativar o paywall.' },
+        { status: 400 }
+      );
+    }
+
     const updateData = {};
     if ('paywallEnabled' in parsed.data) updateData.paywallEnabled = parsed.data.paywallEnabled;
     if ('paywallPrice' in parsed.data) updateData.paywallPrice = parsed.data.paywallPrice ?? null;

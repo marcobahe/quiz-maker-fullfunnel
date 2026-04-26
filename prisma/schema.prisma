@@ -180,6 +180,28 @@ model WebhookLog {
   @@index([createdAt])
 }
 
+model QuizPurchase {
+  id              String   @id @default(cuid())
+  quizId          String
+  quiz            Quiz     @relation(fields: [quizId], references: [id])
+  stripeSessionId String   @unique
+  stripePaymentIntentId String?
+  amount          Int?     // valor em centavos
+  currency        String?
+  customerEmail   String?
+  customerName    String?
+  status          String   @default("pending") // 'pending' | 'paid' | 'failed' | 'refunded'
+  metadata        String   @default("{}")       // JSON string
+  paidAt          DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([quizId])
+  @@index([quizId, customerEmail])
+  @@index([status])
+  @@index([createdAt])
+}
+
 model WhatsappMessageLog {
   id            String    @id @default(cuid())
   // Soft references — no FK constraints so records survive lead/quiz deletion
@@ -200,28 +222,6 @@ model WhatsappMessageLog {
   @@index([createdAt])
   @@index([leadId])
   @@index([quizId])
-}
-
-model QuizPurchase {
-  id                    String   @id @default(cuid())
-  quizId                String
-  quiz                  Quiz     @relation(fields: [quizId], references: [id])
-  email                 String?
-  customerName          String?
-  status                String   @default("pending") // 'pending' | 'paid' | 'failed' | 'refunded'
-  stripeSessionId       String   @unique
-  stripePaymentIntentId String?
-  amount                Int?     // em centavos
-  currency              String?
-  metadata              String   @default("{}")
-  paidAt                DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  @@index([quizId])
-  @@index([quizId, email])
-  @@index([status])
-  @@index([createdAt])
 }
 
 model MediaAsset {

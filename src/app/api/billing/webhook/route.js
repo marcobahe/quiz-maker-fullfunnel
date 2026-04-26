@@ -34,7 +34,73 @@ export async function POST(request) {
         const session = event.data.object;
         const userId = session.metadata?.userId;
         const plan = session.metadata?.plan;
+        const checkoutType = session.metadata?.type;
 
+        // ── Quiz paywall purchase ─────────────────────────────────
+        if (checkoutType === 'quiz_paywall') {
+          const quizId = session.metadata?.quizId;
+          if (quizId) {
+            const amountTotal = session.amount_total ?? null;
+            const currency = session.currency ?? null;
+            const customerEmail = session.customer_details?.email || session.customer_email || null;
+            const customerName = session.customer_details?.name || null;
+            const paymentIntent = session.payment_intent || null;
+
+            await prisma.quizPurchase.upsert({
+              where: { stripeSessionId: session.id },
+              update: {
+                status: 'paid',
+                stripePaymentIntentId: paymentIntent,
+                amount: amountTotal,
+                currency,
+                customerEmail,
+                customerName,
+                paidAt: new Date(),
+                metadata: JSON.stringify(session.metadata || {}),
+              },
+              create: {
+                quizId,
+                stripeSessionId: session.id,
+                stripePaymentIntentId: paymentIntent,
+                amount: amountTotal,
+                currency,
+                customerEmail,
+                customerName,
+                status: 'paid',
+                paidAt: new Date(),
+                metadata: JSON.stringify(session.metadata || {}),
+              },
+            });
+
+            // GHL Sync: quiz paywall purchase
+            const quiz = await prisma.quiz.findUnique({
+              where: { id: quizId },
+              include: { integrations: { where: { type: 'gohighlevel', active: true } } },
+            });
+            if (customerEmail && quiz?.integrations?.length > 0) {
+              for (const integration of quiz.integrations) {
+                try {
+                  const config = JSON.parse(integration.config || '{}');
+                  if (config.apiKey) {
+                    await syncContactToGHL({
+                      email: customerEmail,
+                      name: customerName,
+                      tags: ['quiz-paywall-comprador'],
+                      customFields: {
+                        qmb_quiz_id: quizId,
+                        qmb_quiz_name: quiz.name || '',
+                        qmb_purchase_amount: amountTotal != null ? String(amountTotal / 100) : '',
+                      },
+                    });
+                  }
+                } catch (_e) { /* ignore integration errors */ }
+              }
+            }
+          }
+          break;
+        }
+
+        // ── Workspace subscription ────────────────────────────────
         if (userId && plan) {
           await prisma.user.update({
             where: { id: userId },
