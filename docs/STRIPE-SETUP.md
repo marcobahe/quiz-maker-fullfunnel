@@ -2,17 +2,24 @@
 
 ## Produtos e Preços a Criar no Stripe (PRODUÇÃO)
 
+Source of truth: `src/lib/plans.js` (v0.4, aprovado 23/04/2026).
+
 Acesse https://dashboard.stripe.com/products e crie:
 
 ### Produto 1: QuizMeBaby Pro
 - **Nome:** QuizMeBaby Pro
-- **Preço mensal:** R$ 47,00 (BRL, recorrente mensal)
-- **Preço anual:** R$ 397,00 (BRL, recorrente anual)
+- **Preço mensal:** R$ 97,00 (BRL, recorrente mensal)
+- **Preço anual:** R$ 970,00 (BRL, recorrente anual)
 
 ### Produto 2: QuizMeBaby Business
 - **Nome:** QuizMeBaby Business
-- **Preço mensal:** R$ 97,00 (BRL, recorrente mensal)
-- **Preço anual:** R$ 897,00 (BRL, recorrente anual)
+- **Preço mensal:** R$ 247,00 (BRL, recorrente mensal)
+- **Preço anual:** R$ 2.470,00 (BRL, recorrente anual)
+
+### Produto 3: QuizMeBaby Agency
+- **Nome:** QuizMeBaby Agency
+- **Preço mensal:** R$ 497,00 (BRL, recorrente mensal)
+- **Preço anual:** R$ 4.970,00 (BRL, recorrente anual)
 
 ---
 
@@ -26,10 +33,18 @@ STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Price IDs (copiar do painel Stripe após criar os produtos)
-STRIPE_PRO_PRICE_ID=price_...          # Pro mensal R$47
-STRIPE_PRO_ANNUAL_PRICE_ID=price_...    # Pro anual R$397
-STRIPE_BUSINESS_PRICE_ID=price_...      # Business mensal R$97
-STRIPE_BUSINESS_ANNUAL_PRICE_ID=price_... # Business anual R$897
+STRIPE_PRO_PRICE_ID=price_...           # Pro mensal R$97
+STRIPE_PRO_ANNUAL_PRICE_ID=price_...    # Pro anual R$970
+STRIPE_BUSINESS_PRICE_ID=price_...      # Business mensal R$247
+STRIPE_BUSINESS_ANNUAL_PRICE_ID=price_... # Business anual R$2470
+STRIPE_AGENCY_PRICE_ID=price_...        # Agency mensal R$497
+STRIPE_AGENCY_ANNUAL_PRICE_ID=price_... # Agency anual R$4970
+
+# Legacy aliases — apontar para os mesmos price IDs do Agency
+STRIPE_ADVANCED_PRICE_ID=price_...      # Alias legacy → Agency
+STRIPE_ADVANCED_ANNUAL_PRICE_ID=price_...
+STRIPE_ENTERPRISE_PRICE_ID=price_...    # Alias legacy → Agency
+STRIPE_ENTERPRISE_ANNUAL_PRICE_ID=price_...
 
 # GHL (Full Funnel) — já configurado
 GHL_PRIVATE_TOKEN=pit-4ac80803-e5e0-4aa0-abe9-3e65a383bc17
@@ -83,7 +98,7 @@ Criar estes custom fields no GHL (Full Funnel) → Settings → Custom Fields:
 
 1. **Novo assinante** (`checkout.session.completed`):
    - Atualiza banco local (plano, stripeCustomerId, stripeSubscriptionId)
-   - GHL: upsert contato com tags `quizmebaby-cliente`, `plano-{pro|business}`, `assinante-ativo`
+   - GHL: upsert contato com tags `quizmebaby-cliente`, `plano-{pro|business|agency}`, `assinante-ativo`
 
 2. **Upgrade/downgrade** (`customer.subscription.updated`):
    - Atualiza plano no banco
