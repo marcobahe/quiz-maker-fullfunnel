@@ -376,7 +376,7 @@ export default function DiagnosticPage() {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(async () => {
       try {
-        const { nodes: n, edges: e, quizName: name, scoreRanges: sr, quizSettings: qs } = useQuizStore.getState();
+        const { nodes: n, edges: e, quizName: name, scoreRanges: sr, quizSettings: qs, serverUpdatedAt } = useQuizStore.getState();
         const res = await fetch(`/api/quizzes/${params.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -385,6 +385,7 @@ export default function DiagnosticPage() {
             canvasData: JSON.stringify({ nodes: n, edges: e }),
             scoreRanges: sr,
             settings: qs,
+            clientUpdatedAt: serverUpdatedAt,
           }),
         });
         if (res.ok) {

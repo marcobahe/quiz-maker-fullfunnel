@@ -163,8 +163,8 @@ export default function TopBar({ quizId }) {
     
     try {
       // Pega dados frescos do store para publicar
-      const { nodes: currentNodes, edges: currentEdges, quizName: currentName, scoreRanges: currentScoreRanges, quizSettings: currentSettings } = useQuizStore.getState();
-      
+      const { nodes: currentNodes, edges: currentEdges, quizName: currentName, scoreRanges: currentScoreRanges, quizSettings: currentSettings, serverUpdatedAt } = useQuizStore.getState();
+
       const res = await fetch(`/api/quizzes/${quizId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -174,6 +174,7 @@ export default function TopBar({ quizId }) {
           canvasData: JSON.stringify({ nodes: currentNodes, edges: currentEdges }),
           scoreRanges: currentScoreRanges,
           settings: currentSettings,
+          clientUpdatedAt: serverUpdatedAt,
         }),
       });
       if (res.ok) {

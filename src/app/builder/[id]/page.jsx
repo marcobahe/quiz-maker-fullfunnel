@@ -43,7 +43,7 @@ export default function BuilderPage() {
   const autoSave = useCallback(async () => {
     if (!params.id || isFirstLoad.current) return;
     try {
-      const { nodes: n, edges: e, quizName: name, scoreRanges: sr, quizSettings: qs } = useQuizStore.getState();
+      const { nodes: n, edges: e, quizName: name, scoreRanges: sr, quizSettings: qs, serverUpdatedAt } = useQuizStore.getState();
       const res = await fetch(`/api/quizzes/${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -55,6 +55,7 @@ export default function BuilderPage() {
           emailNotifications: qs?.notifications?.emailNotifications,
           notificationMode: qs?.notifications?.notificationMode,
           notificationEmail: qs?.notifications?.notificationEmail,
+          clientUpdatedAt: serverUpdatedAt,
         }),
       });
       if (res.ok) {
