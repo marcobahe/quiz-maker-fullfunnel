@@ -1,6 +1,7 @@
 // Plan definitions for QuizMeBaby Full Funnel
 // Used across the app for feature gating and pricing display
-// 5-tier structure: Free → Pro → Business → Advanced → Enterprise
+// 4-tier structure: Free → Pro → Business → Agency
+// Source of truth: docs/product/positioning-quizmebaby.md v0.4 (approved TheBoss + Opus 23/04/2026)
 
 export const PLANS = {
   free: {
@@ -13,12 +14,14 @@ export const PLANS = {
     period: '/mês',
     description: 'Para experimentar e conhecer a plataforma',
     maxUsers: 1,
-    aiCreate: 1,      // 1 criação por IA (experimentar)
-    aiResult: false,   // sem resultado por IA
-    support: 'docs',   // apenas documentação
+    aiCreate: 1,        // 1 criação por IA (experimentar)
+    aiResult: false,    // sem resultado por IA
+    aiAnalysis: 0,      // sem AI Analysis
+    storage: 100,       // 100 MB
+    support: 'community',
     features: [
       '1 quiz ativo',
-      '200 leads/mês',
+      '100 leads/mês',
       '1 usuário',
       'Gamificação básica',
       'Com marca QuizMeBaby',
@@ -28,10 +31,11 @@ export const PLANS = {
     ],
     limits: {
       quizzes: 1,
-      leadsPerMonth: 200,
+      leadsPerMonth: 100,
       customDomains: 0,
       whiteLabel: false,
-      integrations: true,  // webhook básico
+      whiteLabelFull: false,
+      integrations: true,   // webhook básico
       abTesting: false,
       apiAccess: false,
       advancedExport: false,
@@ -49,161 +53,143 @@ export const PLANS = {
     description: 'Para profissionais e pequenas empresas',
     popular: true,
     maxUsers: 3,
-    aiCreate: true,    // ilimitado
-    aiResult: true,    // resultado por IA
-    support: 'docs+bot+chat',
+    aiCreate: true,       // ilimitado
+    aiResult: true,       // resultado por IA
+    aiAnalysis: 500,      // 500 análises/mês
+    storage: 1024,        // 1 GB
+    support: 'email',
     features: [
       '5 quizzes ativos',
       '10.000 leads/mês',
       '3 usuários',
       'IA ilimitada (criar quiz + resultado)',
+      'AI Analysis: 500/mês',
+      'A/B Testing',
       'Gamificação completa',
       'Sem marca QuizMeBaby',
-      'Todas integrações (Webhook, Full Funnel, etc)',
+      '3 domínios customizados',
+      'Todas integrações (Webhook, GHL, etc)',
       'Analytics avançado',
-      'Suporte: Docs + Bot IA + Chat',
+      'Suporte: Email',
     ],
     limits: {
       quizzes: 5,
       leadsPerMonth: 10000,
-      customDomains: 0,
+      customDomains: 3,
       whiteLabel: true,
+      whiteLabelFull: false,
       integrations: true,
-      abTesting: false,
+      abTesting: true,
       apiAccess: false,
       advancedExport: false,
       features: [
         'basic', 'templates', 'analytics', 'webhook', 'embed', 'branding',
-        'gamification-full', 'ai-create', 'ai-result', 'integrations-all',
+        'gamification-full', 'ai-create', 'ai-result', 'ai-analysis',
+        'integrations-all', 'ab-testing', 'custom-domain',
       ],
     },
   },
   business: {
     id: 'business',
     name: 'Business',
-    price: 197,
-    priceAnnual: parseFloat((197 * 10 / 12).toFixed(2)),  // ~164.17
-    priceLabel: 'R$ 197',
-    priceAnnualLabel: 'R$ 1.970/ano',
+    price: 247,
+    priceAnnual: parseFloat((247 * 10 / 12).toFixed(2)),  // ~205.83
+    priceLabel: 'R$ 247',
+    priceAnnualLabel: 'R$ 2.470/ano',
     period: '/mês',
-    description: 'Para empresas em crescimento',
-    maxUsers: 5,
+    description: 'Para agências e empresas em crescimento',
+    maxUsers: 10,
     aiCreate: true,
     aiResult: true,
-    support: 'docs+bot+chat-priority',
+    aiAnalysis: 5000,     // 5.000 análises/mês
+    storage: 10240,       // 10 GB
+    support: 'priority',
     features: [
-      '15 quizzes ativos',
-      '25.000 leads/mês',
-      '5 usuários',
+      '25 quizzes ativos',
+      '50.000 leads/mês',
+      '10 usuários + roles',
       'Tudo do Pro +',
-      'Custom domain (CNAME)',
-      'A/B Testing',
+      'AI Analysis: 5.000/mês',
+      '25 domínios customizados',
+      'White-label parcial',
+      'Teams com roles granulares',
       'Suporte prioritário',
     ],
     limits: {
-      quizzes: 15,
-      leadsPerMonth: 25000,
-      customDomains: 1,
+      quizzes: 25,
+      leadsPerMonth: 50000,
+      customDomains: 25,
       whiteLabel: true,
+      whiteLabelFull: false,
       integrations: true,
       abTesting: true,
       apiAccess: false,
       advancedExport: false,
       features: [
         'basic', 'templates', 'analytics', 'webhook', 'embed', 'branding',
-        'gamification-full', 'ai-create', 'ai-result', 'integrations-all',
-        'custom-domain', 'ab-testing',
+        'gamification-full', 'ai-create', 'ai-result', 'ai-analysis',
+        'integrations-all', 'ab-testing', 'custom-domain', 'teams-roles',
       ],
     },
   },
-  advanced: {
-    id: 'advanced',
-    name: 'Advanced',
-    price: 297,
-    priceAnnual: parseFloat((297 * 10 / 12).toFixed(2)),  // ~247.50
-    priceLabel: 'R$ 297',
-    priceAnnualLabel: 'R$ 2.970/ano',
-    period: '/mês',
-    description: 'Para operações avançadas e times maiores',
-    maxUsers: 10,
-    aiCreate: true,
-    aiResult: true,
-    support: 'docs+bot+chat-priority',
-    features: [
-      'Quizzes ilimitados',
-      '50.000 leads/mês',
-      '10 usuários',
-      'Tudo do Business +',
-      'API completa',
-      'Export avançado',
-      'Suporte prioritário',
-    ],
-    limits: {
-      quizzes: -1,
-      leadsPerMonth: 50000,
-      customDomains: -1,
-      whiteLabel: true,
-      integrations: true,
-      abTesting: true,
-      apiAccess: true,
-      advancedExport: true,
-      features: [
-        'basic', 'templates', 'analytics', 'webhook', 'embed', 'branding',
-        'gamification-full', 'ai-create', 'ai-result', 'integrations-all',
-        'custom-domain', 'ab-testing', 'api', 'advanced-export',
-      ],
-    },
-  },
-  enterprise: {
-    id: 'enterprise',
-    name: 'Enterprise',
+  agency: {
+    id: 'agency',
+    name: 'Agency',
     price: 497,
     priceAnnual: parseFloat((497 * 10 / 12).toFixed(2)),  // ~414.17
     priceLabel: 'R$ 497',
     priceAnnualLabel: 'R$ 4.970/ano',
     period: '/mês',
-    description: 'Para agências e grandes operações',
+    description: 'Para agências que revendem em escala',
     badge: 'Para Agências',
-    maxUsers: 25,
+    maxUsers: -1,         // ilimitado
     aiCreate: true,
     aiResult: true,
+    aiAnalysis: 25000,    // 25.000 análises/mês + overage R$0,015
+    aiAnalysisOverage: 0.015,  // R$0,015 por análise extra
+    storage: 102400,      // 100 GB
     support: 'dedicated',
     features: [
       'Quizzes ilimitados',
-      '200.000 leads/mês',
-      '25 usuários',
-      'Tudo do Advanced +',
-      'Suporte dedicado humano',
-      'Onboarding personalizado',
-      'Webhooks avançados',
+      'Leads ilimitados (fair use)',
+      'Usuários ilimitados + roles',
+      'Tudo do Business +',
+      'AI Analysis: 25.000/mês + overage',
+      'Domínios customizados ilimitados',
+      'White-label completo',
+      'API completa',
+      'Suporte dedicado + onboarding',
     ],
     limits: {
       quizzes: -1,
-      leadsPerMonth: 200000,
+      leadsPerMonth: -1,    // ilimitado (fair use: throttle acima de 500k/mês)
       customDomains: -1,
       whiteLabel: true,
+      whiteLabelFull: true,
       integrations: true,
       abTesting: true,
       apiAccess: true,
       advancedExport: true,
       features: [
         'basic', 'templates', 'analytics', 'webhook', 'embed', 'branding',
-        'gamification-full', 'ai-create', 'ai-result', 'integrations-all',
-        'custom-domain', 'ab-testing', 'api', 'advanced-export',
-        'dedicated-support', 'onboarding', 'webhooks-advanced',
+        'gamification-full', 'ai-create', 'ai-result', 'ai-analysis',
+        'integrations-all', 'ab-testing', 'custom-domain', 'teams-roles',
+        'api', 'advanced-export', 'dedicated-support', 'onboarding',
+        'webhooks-advanced', 'white-label-full',
       ],
     },
   },
 };
 
-export const PLAN_ORDER = ['free', 'pro', 'business', 'advanced', 'enterprise'];
+export const PLAN_ORDER = ['free', 'pro', 'business', 'agency'];
 
 export const ALL_FEATURES = [
   'basic', 'templates', 'analytics', 'webhook', 'embed', 'branding',
   'gamification-basic', 'gamification-full',
-  'ai-create', 'ai-result', 'integrations-all',
-  'custom-domain', 'ab-testing', 'api', 'advanced-export',
-  'dedicated-support', 'onboarding', 'webhooks-advanced',
+  'ai-create', 'ai-result', 'ai-analysis', 'integrations-all',
+  'ab-testing', 'custom-domain', 'teams-roles',
+  'api', 'advanced-export',
+  'dedicated-support', 'onboarding', 'webhooks-advanced', 'white-label-full',
 ];
 
 export const FEATURE_LABELS = {
@@ -217,22 +203,25 @@ export const FEATURE_LABELS = {
   'gamification-full': 'Gamificação Completa',
   'ai-create': 'Criação por IA',
   'ai-result': 'Resultado por IA',
+  'ai-analysis': 'AI Analysis de Leads',
   'integrations-all': 'Todas as Integrações',
-  'custom-domain': 'Domínio Personalizado',
   'ab-testing': 'Testes A/B',
+  'custom-domain': 'Domínio Personalizado',
+  'teams-roles': 'Teams com Roles Granulares',
   api: 'Acesso à API',
   'advanced-export': 'Export Avançado',
   'dedicated-support': 'Suporte Dedicado',
   onboarding: 'Onboarding Personalizado',
   'webhooks-advanced': 'Webhooks Avançados',
+  'white-label-full': 'White-label Completo',
 };
 
 /**
- * Get plan by key. Handles backward compat for old 'enterprise' alias.
+ * Get plan by key. Handles backward compat for old tier names.
  */
 export function getPlan(planKey) {
-  // Backward compat: old 'enterprise' key mapped to new enterprise plan
-  // (previously was alias for 'business')
+  // Backward compat: 'enterprise' and 'advanced' mapped to 'agency'
+  if (planKey === 'enterprise' || planKey === 'advanced') return PLANS.agency;
   return PLANS[planKey] || PLANS.free;
 }
 
@@ -240,7 +229,7 @@ export function getPlan(planKey) {
  * Get plan display info (legacy alias)
  */
 export function getPlanInfo(planId) {
-  return PLANS[planId] || PLANS.free;
+  return getPlan(planId);
 }
 
 /**
@@ -255,7 +244,7 @@ export function hasFeature(planKey, feature) {
  * Check if a user's plan has a specific limit feature
  */
 export function planHasFeature(userPlan, feature) {
-  const plan = PLANS[userPlan] || PLANS.free;
+  const plan = getPlan(userPlan || 'free');
   return plan.limits[feature] === true || plan.limits[feature] === -1;
 }
 
@@ -264,6 +253,13 @@ export function planHasFeature(userPlan, feature) {
  */
 export function canUseWhiteLabel(userPlan) {
   return planHasFeature(userPlan || 'free', 'whiteLabel');
+}
+
+/**
+ * Check if user can use full white-label (no QuizMeBaby branding at all)
+ */
+export function canUseWhiteLabelFull(userPlan) {
+  return planHasFeature(userPlan || 'free', 'whiteLabelFull');
 }
 
 /**
@@ -305,7 +301,15 @@ export function canUseAIResult(userPlan) {
 }
 
 /**
- * Get max users for a plan
+ * Get AI Analysis quota for a plan (0 = no access)
+ */
+export function getAIAnalysisQuota(userPlan) {
+  const plan = getPlan(userPlan || 'free');
+  return plan.aiAnalysis || 0;
+}
+
+/**
+ * Get max users for a plan (-1 = unlimited)
  */
 export function getMaxUsers(userPlan) {
   const plan = getPlan(userPlan || 'free');
@@ -324,7 +328,9 @@ export function formatLimit(value) {
  * Check if plan A is higher tier than plan B
  */
 export function isPlanHigherThan(planA, planB) {
-  const indexA = PLAN_ORDER.indexOf(planA);
-  const indexB = PLAN_ORDER.indexOf(planB);
+  // Normalize legacy keys
+  const normalize = (k) => (k === 'enterprise' || k === 'advanced') ? 'agency' : k;
+  const indexA = PLAN_ORDER.indexOf(normalize(planA));
+  const indexB = PLAN_ORDER.indexOf(normalize(planB));
   return indexA > indexB;
 }
