@@ -87,7 +87,12 @@ export async function POST(request, { params }) {
       );
     }
 
-    const rawBody = await request.json();
+    let rawBody;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dados inválidos', details: { body: ['JSON malformado'] } }, { status: 400 });
+    }
     const parsed = createLeadSchema.safeParse(rawBody);
     if (!parsed.success) {
       return NextResponse.json(
