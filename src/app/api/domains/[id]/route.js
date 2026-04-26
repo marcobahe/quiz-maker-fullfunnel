@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { publishDomainMapping, removeDomainMapping } from '@/lib/cloudflare-kv';
 import { handleApiError } from '@/lib/apiError';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { updateDomainSchema } from '@/lib/schemas/domains.schema';
 import { invalidateDomainCache } from '@/lib/domain-cache';
 
 // PUT /api/domains/[id] — update domain (e.g., associate quiz)
@@ -15,8 +17,25 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
+    // Rate limit: 20 domain updates per user per minute
+    const rl = checkRateLimit(`domains:update:${session.user.id}`, { max: 20, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
+    }
+
     const { id } = await params;
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = updateDomainSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
 
     // Verify ownership
     const existing = await prisma.customDomain.findFirst({
@@ -77,8 +96,26 @@ export async function PATCH(request, { params }) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
+
+    // Rate limit: 20 domain updates per user per minute
+    const rl = checkRateLimit(`domains:update:${session.user.id}`, { max: 20, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
+    }
+
     const { id } = await params;
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = updateDomainSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
 
     if (typeof body.active !== 'boolean') {
       return NextResponse.json({ error: 'Campo "active" obrigatório (boolean)' }, { status: 400 });

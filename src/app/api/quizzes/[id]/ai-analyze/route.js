@@ -4,44 +4,6 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { aiAnalyzeSchema } from '@/lib/schemas/aiAnalyze.schema';
 import { handleApiError } from '@/lib/apiError';
 
-// Simple in-memory rate limiter: max 10 requests per minute per quiz
-const rateLimitMap = new Map();
-const RATE_LIMIT = 10;
-const RATE_WINDOW_MS = 60 * 1000;
-
-function checkQuizRateLimit(quizId) {
-  const now = Date.now();
-  const entry = rateLimitMap.get(quizId);
-
-  if (!entry) {
-    rateLimitMap.set(quizId, { count: 1, windowStart: now });
-    return true;
-  }
-
-  if (now - entry.windowStart > RATE_WINDOW_MS) {
-    // Reset window
-    rateLimitMap.set(quizId, { count: 1, windowStart: now });
-    return true;
-  }
-
-  if (entry.count >= RATE_LIMIT) {
-    return false;
-  }
-
-  entry.count++;
-  return true;
-}
-
-// Periodically clean stale entries (every 5 minutes)
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitMap) {
-    if (now - entry.windowStart > RATE_WINDOW_MS * 2) {
-      rateLimitMap.delete(key);
-    }
-  }
-}, 5 * 60 * 1000);
-
 export async function POST(request, { params }) {
   try {
     const { id } = await params;
@@ -71,11 +33,12 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Rate limit check (per quiz)
-    if (!checkQuizRateLimit(id)) {
+    // Rate limit check (per quiz) — uses shared KV rate limiter
+    const quizRl = await checkRateLimit(`ai-analyze:quiz:${id}`, { max: 10, windowMs: 60_000 });
+    if (!quizRl.allowed) {
       return NextResponse.json(
         { error: 'Muitas requisições. Tente novamente em alguns instantes.' },
-        { status: 429 }
+        { status: 429, headers: { 'Retry-After': String(quizRl.retryAfter) } }
       );
     }
 

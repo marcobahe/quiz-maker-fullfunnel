@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { requireAdmin } from '@/lib/admin';
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+  const error = requireAdmin(session);
+  if (error) return error;
+
   const gcid = process.env.GOOGLE_CLIENT_ID || '';
   const gcs = process.env.GOOGLE_CLIENT_SECRET || '';
 

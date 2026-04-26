@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export const updateDomainSchema = z.object({
+  quizId: z.string().uuid().optional().nullable(),
+  active: z.boolean().optional(),
+});
+
 export const createDomainSchema = z.object({
   domain: z
     .string()

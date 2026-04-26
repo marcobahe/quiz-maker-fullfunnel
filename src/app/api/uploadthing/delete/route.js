@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UTApi } from "uploadthing/server";
 import { handleApiError } from "@/lib/apiError";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { deleteFilesSchema } from "@/lib/schemas/uploadthing.schema";
 
 const utapi = new UTApi();
 
@@ -14,8 +16,24 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const { fileKey, fileKeys } = body;
+    // Rate limit: 20 file deletions per user per minute
+    const rl = checkRateLimit(`uploadthing:delete:${session.user.id}`, { max: 20, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente em instantes." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+      );
+    }
+
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = deleteFilesSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Dados inválidos", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const { fileKey, fileKeys } = parsed.data;
 
     const keys = fileKeys || (fileKey ? [fileKey] : []);
     if (keys.length === 0) {
