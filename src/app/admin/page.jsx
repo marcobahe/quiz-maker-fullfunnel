@@ -118,7 +118,7 @@ export default function AdminDashboard() {
         <StatCard
           icon={TrendingUp}
           label="MRR Estimado"
-          value={`R$ ${((stats?.planCounts?.pro || 0) * 97 + (stats?.planCounts?.business || 0) * 197 + (stats?.planCounts?.agency || 0) * 497).toLocaleString()}`}
+          value={`R$ ${((stats?.planCounts?.pro || 0) * 97 + (stats?.planCounts?.business || 0) * 247 + (stats?.planCounts?.agency || 0) * 497).toLocaleString()}`}
           sub={`${stats?.planCounts?.pro || 0} Pro, ${stats?.planCounts?.business || 0} Business, ${stats?.planCounts?.agency || 0} Agency`}
           color="bg-amber-500"
           gradient="bg-[#151837]/60 backdrop-blur"
