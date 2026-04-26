@@ -93,7 +93,12 @@ export async function POST(request) {
                       },
                     });
                   }
-                } catch (_e) { /* ignore integration errors */ }
+                } catch (_e) {
+                  console.error('[Webhook] GHL sync failed for quiz paywall:', {
+                    quizId,
+                    error: _e?.message,
+                  });
+                }
               }
             }
           }
