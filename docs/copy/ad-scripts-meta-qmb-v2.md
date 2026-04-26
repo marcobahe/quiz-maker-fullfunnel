@@ -3,7 +3,7 @@
 > **Claudinho** · MSE · 2026-04-26 · [ICO-186](/ICO/issues/ICO-186)
 > **Origem:** Meta Ads Library BR — 30 criativos inLead distintos analisados (~8.100 ads ativos total). Benchmark de hooks, ganchos emocionais e gaps narrativos do mercado infoproduto BR — conduzido pelo Analyzer em [ICO-186](/ICO/issues/ICO-186).
 > **Complementa:** Scripts A–D em `docs/copy/ad-scripts-meta-qmb-v1.md` ([ICO-190](/ICO/issues/ICO-190))
-> **Status:** v2.0 draft — aguarda revisão @theboss + @opus (workflow [ICO-196](/ICO/issues/ICO-196))
+> **Status:** v2.1 — Script E refeito (Opção 1 @theboss) · Script F fix de 2 caveats · aguarda sign-off @opus (workflow [ICO-196](/ICO/issues/ICO-196))
 
 ---
 
@@ -11,8 +11,8 @@
 
 | Script | Nome | ICP | Ângulo | Prioridade |
 |---|---|---|---|---|
-| **E** | B2B Competitive | Assinante atual inLead (paga R$97–497/mês) | Canibalização direta — custo vs. gap de feature | 🔴 Alta |
-| **F** | B2C Diagnóstico | Infoprodutor com LP/VSL estática | Gap #1 — quiz como diagnóstico, não qualificador | 🔴 Alta |
+| **E** | B2B Competitive | Assinante inLead Basic/Pro (paga R$97–197/mês sem features Pro) | Canibalização por régua de tier — "R$97 na inLead é Basic; aqui é Pro" | 🔴 Alta |
+| **F** | B2C Diagnóstico | Infoprodutor com LP/VSL estática | Gap #1 — quiz como diagnóstico de funil, não qualificador | 🔴 Alta |
 
 **Por que prioridade Alta em ambos:**
 
@@ -20,12 +20,18 @@ O Analyzer confirmou que inLead não roda ads próprios no Meta BR (zero ads da 
 
 ---
 
-## Script E — B2B COMPETITIVE
+## Script E — B2B COMPETITIVE *(v2.1 — Opção 1 @theboss)*
 
-> **Modelos base:** Thiago Concer (copy longa B2B, 10k vendedores, objeção explícita) + nandohayne (desafio recíproco, 32 ads da mesma creative = longevidade excepcional)
-> **Padrão:** `CUSTO VISÍVEL → GAP DE FEATURE → DIFERENCIAL OBJETIVO → CTA SEM ATRITO`
-> **ICP:** Infoprodutor, agência ou especialista que já paga inLead R$97–497/mês
-> **Gancho emocional:** Ceticismo quebrado + custo visível ("antes que você desista", "a verdade dói" — padrão validado pelo benchmark)
+> **Modelos base:** Thiago Concer (copy longa B2B, 10k vendedores, objeção explícita) + nandohayne (desafio recíproco, 32 ads = longevidade)
+> **Padrão:** `CUSTO REAL POR TIER → COMPARAÇÃO DEFENSÁVEL → CTA GRÁTIS`
+> **ICP:** Assinante inLead Basic (R$97/mês) ou Pro (R$197/mês) sem as features que imagina que tem
+> **Gancho emocional:** Ceticismo + custo visível — "paga R$97 e está no Basic; cá você paga R$97 e está no Pro"
+>
+> **⚠️ Fact-check v2.1 (confirmado em `src/lib/plans.js`):**
+> - A/B testing: Pro QMB (R$97) ✅ | Free QMB ❌ | Basic inLead ❌
+> - Sem "Criado via QMB" no rodapé: Pro QMB (whiteLabel=true) ✅ | Free QMB ❌
+> - Webhook: todos os planos QMB ✅
+> - inLead: branding forçado em todos os planos (benchmark §6 confirmado)
 
 ---
 
@@ -33,58 +39,61 @@ O Analyzer confirmou que inLead não roda ads próprios no Meta BR (zero ads da 
 
 | Segmento | Duração | Fala |
 |---|---|---|
-| **HOOK** | 0–3s | "Você paga R$97 por mês no quiz builder — sem A/B testing, sem white-label, sem webhook no plano básico." |
-| **CUSTO REAL** | 3–9s | "Isso significa que cada quiz que você publica leva o logo da inLead no rodapé do seu cliente. E testar duas versões do funil? Paga mais." |
-| **REVELAÇÃO** | 9–18s | "No QuizMeBaby você começa de graça. A/B testing nativo desde o free, webhook em todos os planos, e o rodapé fica com a sua marca — sem 'Criado via' poluindo o checkout do cliente." |
-| **CTA** | 18–22s | "Testa agora. Sem cartão. Clica aqui embaixo." |
+| **HOOK** | 0–3s | "Você paga R$97 por mês na inLead — e está no plano Basic. Sem A/B testing. Sem o rodapé limpo. Sem o que você realmente precisa." |
+| **COMPARAÇÃO** | 3–11s | "No QuizMeBaby, R$97 é o plano Pro. A/B testing nativo, sem 'Criado via QuizMeBaby' poluindo o funil do seu cliente, e webhook em todos os planos — do free ao Agency." |
+| **CÁLCULO** | 11–17s | "Mesmo valor, mais features. Ou começa de graça pra conhecer e sobe pro Pro quando quiser migrar." |
+| **CTA** | 17–21s | "Clica aqui. Sem cartão. Começa agora." |
 
 **TEXT OVERLAY (on-screen)**
 
 | Momento | Texto na tela |
 |---|---|
-| Hook (0–3s) | **"R$97/mês. Sem A/B. Sem white-label."** |
-| Custo real (3–9s) | `"Criado via inlead.digital"` em destaque — logo do concorrente visível |
-| Revelação (9–18s) | Checklist rápido: **✓ A/B free · ✓ Webhook todos os planos · ✓ Rodapé limpo** |
-| CTA (18–22s) | ▼ **"Criar meu quiz agora (grátis)"** |
+| Hook (0–3s) | **"R$97/mês na inLead = Basic"** |
+| Comparação (3–11s) | **"R$97/mês no QMB = Pro"** — em destaque, mesma fonte |
+| Comparação (3–11s) | Checklist: **✓ A/B nativo · ✓ Rodapé limpo · ✓ Webhook em todos os planos** |
+| CTA (17–21s) | ▼ **"Criar minha conta grátis"** |
 
 **DIREÇÃO VISUAL — Versão Vídeo (para @milagroso)**
 
 - Talking head direto pra câmera. Tom factual, não agressivo — o dado faz o trabalho.
-- Hook: corte seco no frame 1, sem introdução ou trilha introdutória.
-- Custo real: mostrar brevemente print de footer inLead (3s de B-roll ou insert estático) para tornar o ponto concreto e visual.
-- Revelação: checklist animado aparecendo linha a linha na tela enquanto fala.
-- Expressão: séria no hook (verdade dói), calma e confiante na revelação.
+- Hook: corte seco no frame 1. Sem introdução.
+- Comparação: text cards side-by-side aparecem na tela ("Basic inLead" vs "Pro QMB") — visual de 3s enquanto fala.
+- Expressão: séria no hook (custo sem retorno), confiante e direta na comparação.
 
 ---
 
 ### COPY ESTÁTICA — Versão Imagem
 
 **Headline:**
-> A inLead começa em R$97/mês. A gente começa de graça.
+> Você paga R$97 na inLead. Aqui R$97 é o Pro.
 
 **Body:**
-O que você ainda não tem na inLead — e tem no QuizMeBaby desde o free:
+O que você tem no Pro QuizMeBaby (R$97/mês) e não tem no Basic inLead (R$97/mês):
 
-• A/B testing nativo — testa 2 quizzes ao mesmo tempo e vê qual converte mais
-• White-label real — sem "Criado via inLead" poluindo o rodapé do seu cliente
-• Webhook em todos os planos — sem upgrade surpresa, sem letra miúda
+• A/B testing nativo — testa 2 versões do quiz ao mesmo tempo, vê qual converte mais
+• Sem "Criado via" poluindo o rodapé do seu cliente
+• Webhook em todos os planos — sem upgrade surpresa
 
-**CTA:** Criar meu quiz agora
+**CTA:** Criar minha conta grátis
 
 **DIREÇÃO VISUAL — Versão Estática (para @picasso)**
 
-- Duas colunas side-by-side: "inLead" (ausências em vermelho/neutro) x "QuizMeBaby" (presença em verde).
-- Fonte bold no headline. Design limpo — dado que fala por si, sem stock photo.
-- Logo QuizMeBaby no canto inferior direito, discreto.
+- Duas colunas side-by-side: "inLead Basic R$97" (ausências em vermelho/neutro) x "QMB Pro R$97" (presença em verde).
+- Mesmo preço, layout idêntico — o contraste de features é o criativo.
+- Fonte bold no headline. Design limpo, sem stock photo.
 
 ---
 
-## Script F — B2C DIAGNÓSTICO
+## Script F — B2C DIAGNÓSTICO *(v2.1 — fix 2 caveats @theboss)*
 
-> **Modelo base:** Dr. Henrique Binato (revelação + teste simples, 9+ meses ativo = maior longevidade da análise frame-a-frame) + Hook #4 (revelação + baixa fricção)
-> **Gap explorado:** Gap #1 da pesquisa — zero ads na amostra de 8.100 posicionam quiz como *diagnóstico entregável*. 100% usa quiz como qualificador antes de LP. QMB pode ocupar esse espaço sem concorrência de copy no mercado.
+> **Modelo base:** Dr. Henrique Binato (revelação + teste simples, 9+ meses ativo) + Hook #4 (revelação + baixa fricção)
+> **Gap explorado:** Gap #1 da pesquisa — zero ads na amostra de 8.100 posicionam quiz como *diagnóstico de funil entregável*. 100% usa quiz como qualificador antes de LP.
 > **ICP:** Infoprodutor que roda tráfego em LP ou VSL estática e ainda não usa quiz interativo
-> **Gancho emocional:** Frustração com lead que some + revelação de mecanismo diferente (padrão validado no benchmark)
+> **Gancho emocional:** Frustração com lead que some + revelação de mecanismo diferente
+>
+> **⚠️ Fact-check v2.1 (confirmado em `src/app/api/quizzes/[id]/analytics/route.js`):**
+> - Analytics by-question (análise onde o lead esfriou): **todos os planos** — nenhum gate de tier no código ✅
+> - "diagnóstico" → sempre "diagnóstico de funil" ou "diagnóstico de conversão" para evitar leitura clínica em ICP saúde
 
 ---
 
@@ -94,7 +103,7 @@ O que você ainda não tem na inLead — e tem no QuizMeBaby desde o free:
 |---|---|---|
 | **HOOK** | 0–3s | "Você usa quiz no seu funil — o lead olha o resultado e some. Sem comprar, sem responder no WhatsApp, sem nada." |
 | **PROBLEMA** | 3–9s | "Quiz comum captura lead. Ponto. Não mapeia intenção, não personaliza resultado, não entrega o próximo passo certo pra cada perfil." |
-| **REVELAÇÃO** | 9–18s | "No QuizMeBaby o quiz entrega diagnóstico visual — resultado personalizado por perfil, com análise de onde o lead esfriou, e redirecionamento automático pra oferta certa. O lead vê o diagnóstico, entende o problema dele, e vai pra oferta já aquecido." |
+| **REVELAÇÃO** | 9–18s | "No QuizMeBaby o quiz entrega diagnóstico de funil — resultado personalizado por perfil, análise de onde o lead esfriou pergunta a pergunta, e redirecionamento pra oferta certa. O lead vê o diagnóstico, entende o próprio problema, e chega na oferta sabendo por que vai comprar." |
 | **PRAZO + CTA** | 18–22s | "10 minutos pra criar. Grátis pra testar. Topa?" |
 
 **TEXT OVERLAY (on-screen)**
@@ -118,7 +127,7 @@ O que você ainda não tem na inLead — e tem no QuizMeBaby desde o free:
 ### COPY ESTÁTICA — Versão Imagem
 
 **Headline:**
-> Quiz que qualifica é bom. Quiz que entrega diagnóstico converte.
+> Quiz que qualifica é bom. Quiz que entrega diagnóstico de funil converte.
 
 **Body:**
 
@@ -128,7 +137,7 @@ Infoprodutor com quiz comum:
 • Uma LP pra todo perfil — sem segmentação real
 
 Infoprodutor com QuizMeBaby:
-• Lead recebe resultado personalizado por perfil de resposta
+• Lead recebe diagnóstico de conversão personalizado por perfil
 • Você vê, pergunta a pergunta, onde o interesse caiu
 • Redirecionamento automático pra oferta certa por segmento
 
@@ -146,10 +155,10 @@ Infoprodutor com QuizMeBaby:
 
 ### B2B — Script E
 
-**Dores confirmadas pela análise (mercado de assinantes inLead):**
-- Paga mensalidade sem ver ROI claro na qualidade do lead
-- Quiz publica com logo da plataforma no rodapé — erosão de marca própria
-- Precisa de upgrade pra acessar A/B, webhook ou white-label
+**Dores confirmadas pela análise (assinante inLead Basic R$97 ou Pro R$197):**
+- Paga R$97 na inLead (Basic) e não tem A/B testing nem rodapé limpo
+- Paga R$197 na inLead (Pro) pelo que no QMB vem no plano de R$97
+- Quer white-label mas a inLead força branding em todos os planos
 
 **Vocabulário que ressoa (COMUNICACAO.md §3):**
 - "sem gambiarra" · "checkout BR" · "sem upgrade surpresa" · "lead que some"
@@ -192,11 +201,18 @@ Infoprodutor com QuizMeBaby:
 
 ---
 
-## ⚠️ Flags para @theboss (revisão obrigatória antes de produção)
+## ✅ Flags resolvidos v2.1
 
-1. **Script E — Claim de features:** A/B nativo no free, webhook em todos os planos e white-label completo — confirmar que todos estão em produção e sem caveats de plano antes de rodar.
-2. **Script F — "análise de onde o lead esfriou":** usa a mesma linguagem aprovada do Script A v1.1 ("análise pergunta a pergunta que mostra exatamente onde ele esfriou"). Confirmar que essa feature de analytics de abandono está em produção e incluída em todos os planos ou especificar a partir de qual tier.
-3. **Script E footer claim:** "Criado via inlead.digital no rodapé do cliente" — confirmar se esse é um comportamento do plano básico deles ou de todos os planos (para precisão do claim antes de ir ao ar).
+Fact-check direto no código antes de refazer — todos os claims verificados:
+
+| Flag | Resolução |
+|---|---|
+| Script E: A/B no free | ❌ Falso — corrigido: A/B é Pro QMB (R$97) |
+| Script E: white-label completo | ❌ Falso — corrigido: white-label parcial no Pro (sem QMB no rodapé); full só Agency |
+| Script E: rodapé limpo no free | ❌ Falso — corrigido: vinculado ao Pro |
+| Script F: analytics by-question tier | ✅ Confirmado sem gate (`route.js`) — disponível em todos os planos |
+| Script F: "já aquecido" (prediction) | ✅ Corrigido: "chega na oferta sabendo por que vai comprar" |
+| Script F: "diagnóstico" (clínico) | ✅ Corrigido: "diagnóstico de funil" / "diagnóstico de conversão" em todas as ocorrências |
 
 ---
 
@@ -224,6 +240,7 @@ Infoprodutor com QuizMeBaby:
 | Versão | Data | Mudanças |
 |---|---|---|
 | v2.0 draft | 2026-04-26 | Scripts E (B2B Competitive) e F (B2C Diagnóstico) — baseados em Meta Ads Library BR ([ICO-186](/ICO/issues/ICO-186)) |
+| v2.1 | 2026-04-26 | Script E: Opção 1 @theboss — ICP migrado pra "assinante inLead Basic que migra pro Pro QMB", claims corrigidos via `plans.js`. Script F: 2 fixes (@theboss): "diagnóstico de funil" em todas ocorrências + remoção de linguagem prediction "já aquecido". Analytics by-question confirmado sem gate de plano (`analytics/route.js`). |
 
 ---
 
