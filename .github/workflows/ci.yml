@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    name: Lint & Build
+    name: Typecheck, Lint & Build
     runs-on: ubuntu-latest
 
     env:
@@ -46,6 +46,9 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      - name: Typecheck
+        run: npm run typecheck
 
       - name: Lint
         run: npm run lint
