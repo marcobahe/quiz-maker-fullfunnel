@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Typecheck & Build
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      DIRECT_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-secret-not-used-in-build
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      # Stripe (required to pass env validation at build time)
+      STRIPE_SECRET_KEY: sk_test_ci
+      STRIPE_WEBHOOK_SECRET: whsec_ci
+      STRIPE_PRO_PRICE_ID: price_ci
+      STRIPE_PRO_ANNUAL_PRICE_ID: price_ci
+      STRIPE_BUSINESS_PRICE_ID: price_ci
+      STRIPE_BUSINESS_ANNUAL_PRICE_ID: price_ci
+      STRIPE_ADVANCED_PRICE_ID: price_ci
+      STRIPE_ADVANCED_ANNUAL_PRICE_ID: price_ci
+      STRIPE_ENTERPRISE_PRICE_ID: price_ci
+      STRIPE_ENTERPRISE_ANNUAL_PRICE_ID: price_ci
+      # AI keys (empty is fine — not used at build time)
+      OPENROUTER_API_KEY: ci
+      OPENAI_API_KEY: ci
+      # UploadThing
+      UPLOADTHING_TOKEN: ci
+      # Field encryption (32-byte hex)
+      FIELD_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
