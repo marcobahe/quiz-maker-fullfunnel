@@ -37,18 +37,23 @@ The worker is automatically deployed via GitHub Actions on every push to `main` 
 
 ### Requirements
 
-1. **CF_API_TOKEN** must be configured as a GitHub Secret (`Settings -> Secrets and variables -> Actions -> New repository secret`):
-   - Name: `CF_API_TOKEN`
-   - Value: Cloudflare token with "Cloudflare Workers:Edit" permission for the account
+Two GitHub Secrets are required (`Settings -> Secrets and variables -> Actions -> New repository secret`):
 
-2. The `account_id` is already hardcoded in `wrangler.toml` — no env var needed in CI.
+1. **CF_API_TOKEN** — Cloudflare API token:
+   - Create at: Cloudflare dash → My Profile → API Tokens → Create Token
+   - Use the "Edit Cloudflare Workers" template
+   - Name in GitHub Secrets: `CF_API_TOKEN`
+
+2. **CF_ACCOUNT_ID** — Cloudflare Account ID:
+   - Get it from: Cloudflare dash → right sidebar → Account ID
+   - Name in GitHub Secrets: `CF_ACCOUNT_ID`
 
 ### Local deploy script
 
 ```bash
 ./scripts/deploy-worker.sh
 # or with explicit env
-CF_API_TOKEN=xxx ./scripts/deploy-worker.sh
+CF_API_TOKEN=xxx CF_ACCOUNT_ID=yyy ./scripts/deploy-worker.sh
 ```
 
 The script:

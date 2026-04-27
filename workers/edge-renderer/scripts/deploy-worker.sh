@@ -40,8 +40,15 @@ if [[ -z "${CF_API_TOKEN:-}" ]] && [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
   exit 1
 fi
 
+if [[ -z "${CF_ACCOUNT_ID:-}" ]] && [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+  echo "Missing CF_ACCOUNT_ID (or CLOUDFLARE_ACCOUNT_ID) in environment"
+  echo "   Set it in your shell, .env file, or GitHub Secret (CI)."
+  exit 1
+fi
+
 # Prefer CF_API_TOKEN; fall back to CLOUDFLARE_API_TOKEN for backward compat
 export CLOUDFLARE_API_TOKEN="${CF_API_TOKEN:-${CLOUDFLARE_API_TOKEN:-}}"
+export CLOUDFLARE_ACCOUNT_ID="${CF_ACCOUNT_ID:-${CLOUDFLARE_ACCOUNT_ID:-}}"
 
 echo "Installing dependencies..."
 npm ci
