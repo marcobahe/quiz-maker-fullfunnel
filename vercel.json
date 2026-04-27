@@ -1,12 +1,11 @@
 {
   "framework": "nextjs",
-  "buildCommand": "prisma generate && prisma migrate deploy && npm run typecheck && next build",
+  "buildCommand": "prisma generate && prisma db push --skip-generate && next build",
   "installCommand": "npm ci",
   "regions": ["gru1"],
   "git": {
     "deploymentEnabled": {
-      "main": true,
-      "staging": true
+      "main": true
     }
   }
 }
