@@ -32,7 +32,7 @@ function getLimiter(max, windowMs) {
 export async function checkRateLimit(key, { max = 5, windowMs = 60_000 } = {}) {
   const limiter = getLimiter(max, windowMs);
   try {
-    const { success, limit, remaining, reset } = await limiter.limit(key);
+    const { success, remaining, reset } = await limiter.limit(key);
 
     return {
       allowed: success,

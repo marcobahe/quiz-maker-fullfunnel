@@ -111,7 +111,7 @@ const defaultQuizSettings = {
   },
 };
 
-const useQuizStore = create((set, get) => ({
+const useQuizStore = create((set, _get) => ({
   // Quiz metadata
   quizId: null,
   quizName: 'Meu Novo Quiz',
