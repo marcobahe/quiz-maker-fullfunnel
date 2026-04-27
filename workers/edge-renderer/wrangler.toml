@@ -1,7 +1,7 @@
 name = "quiz-edge-renderer"
 main = "src/index.ts"
 compatibility_date = "2024-04-01"
-account_id = "160ea79933a744b19af54d9d16521ea8"
+# account_id is read from CLOUDFLARE_ACCOUNT_ID env var (see .env.example)
 
 # Routes: primary play subdomain
 # zone_id confirmed active: 79d982ba32071fe8e6ab6268d18d7361 (ICO-156)
