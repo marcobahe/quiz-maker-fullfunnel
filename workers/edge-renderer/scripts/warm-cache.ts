@@ -15,8 +15,7 @@
 
 const CF_API_TOKEN = process.env.CF_API_TOKEN ?? ''
 const OPS_SECRET = process.env.OPS_SECRET ?? ''
-
-const ACCOUNT_ID = '160ea79933a744b19af54d9d16521ea8'
+const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID ?? process.env.CLOUDFLARE_ACCOUNT_ID ?? ''
 const KV_QUIZ_HTML_ID = '07070b407cf94db4a1419e7a1a87c447'
 const KV_DOMAIN_MAP_ID = 'd74ab364d6264846a749b6da9a579c1a'
 const PRIMARY_HOST = 'play.quizmebaby.app'
@@ -52,7 +51,7 @@ async function kvListKeys(namespaceId: string): Promise<string[]> {
     const params = new URLSearchParams({ limit: '1000' })
     if (cursor) params.set('cursor', cursor)
 
-    const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/storage/kv/namespaces/${namespaceId}/keys?${params}`
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${namespaceId}/keys?${params}`
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${CF_API_TOKEN}` },
     })
@@ -79,7 +78,7 @@ async function kvListKeys(namespaceId: string): Promise<string[]> {
 }
 
 async function kvGetValue(namespaceId: string, key: string): Promise<string | null> {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/storage/kv/namespaces/${namespaceId}/values/${encodeURIComponent(key)}`
+  const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${namespaceId}/values/${encodeURIComponent(key)}`
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${CF_API_TOKEN}` },
   })
@@ -99,6 +98,11 @@ async function main() {
 
   if (!CF_API_TOKEN) {
     console.error('Error: CF_API_TOKEN env var required')
+    process.exit(1)
+  }
+
+  if (!CF_ACCOUNT_ID) {
+    console.error('Error: CF_ACCOUNT_ID (or CLOUDFLARE_ACCOUNT_ID) env var required')
     process.exit(1)
   }
 
