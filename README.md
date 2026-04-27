@@ -1,16 +1,42 @@
-# React + Vite
+# QuizMeBaby
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plataforma SaaS de quiz lead-gen. Next.js + Prisma + Postgres + Vercel.
 
-Currently, two official plugins are available:
+## CI (GitHub Actions)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+O pipeline CI roda automaticamente em todo `push` e `pull_request` para `main`.
 
-## React Compiler
+**Arquivo:** `.github/workflows/ci.yml`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Steps
 
-## Expanding the ESLint configuration
+| Step | Comando | O que faz |
+|---|---|---|
+| Install | `npm ci` | Instala dependências exatas do `package-lock.json` + roda `postinstall` (prisma generate) |
+| Prisma generate | `npx prisma generate` | Garante que o Prisma Client está gerado com o schema atual |
+| Build | `npm run build` | `next build` — verifica que a app compila sem erros |
+| Lint | `npm run lint` | `next lint` — valida regras ESLint do Next.js |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Variáveis de ambiente no CI
+
+O pipeline usa **valores dummy** para variáveis obrigatórias (DATABASE_URL, NEXTAUTH_SECRET, etc.). Esses valores apenas satisfazem as validações de formato — **nenhuma conexão real é feita**.
+
+As variáveis de produção ficam no Vercel e nunca são commitadas.
+
+### Por que CI e não apenas Vercel auto-deploy?
+
+O Vercel faz deploy de qualquer push, mesmo com build quebrado. O CI garante que `next build` passa **antes** de chegar em produção, detectando problemas na PR.
+
+## Desenvolvimento local
+
+```bash
+cp .env.example .env.local
+# Preencha DATABASE_URL e demais vars
+
+npm install
+npm run dev
+```
+
+## Deploy
+
+Deploy automático via Vercel no push para `main`. Configure branch protection no GitHub para exigir CI verde antes do merge.
