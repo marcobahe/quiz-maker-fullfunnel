@@ -25,6 +25,10 @@ jobs:
         working-directory: workers/edge-renderer
         run: npm ci
 
+      - name: Type-check
+        working-directory: workers/edge-renderer
+        run: npm run type-check
+
       - name: Deploy worker
         working-directory: workers/edge-renderer
         run: npx wrangler deploy
