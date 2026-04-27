@@ -96,6 +96,7 @@ function buildPayload({ quiz, lead, answers, score, resultCategory }) {
       answer_value: a.value !== undefined ? a.value : (a.points !== undefined ? a.points : null),
     })),
     score: score || 0,
+    result_category: resultCategory || null,
     completed_at: lead.createdAt ? lead.createdAt.toISOString() : new Date().toISOString(),
     utm: {
       source: attr.utmSource || attr.utm_source || null,
