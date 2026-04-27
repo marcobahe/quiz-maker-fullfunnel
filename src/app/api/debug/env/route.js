@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth';
 import { requireAdmin } from '@/lib/admin';
 
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   const session = await getServerSession(authOptions);
   const error = requireAdmin(session);
   if (error) return error;
