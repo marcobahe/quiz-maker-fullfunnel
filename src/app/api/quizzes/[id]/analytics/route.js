@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/utils/getClientIp';
 import { analyticsEventSchema } from '@/lib/schemas/analytics.schema';
 import { handleApiError } from '@/lib/apiError';
 
@@ -12,10 +13,7 @@ export async function POST(request, { params }) {
     const { id: quizId } = await params;
 
     // Rate limit: 30 events per IP per minute
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    const ip = getClientIp(request);
     const rl = await checkRateLimit(`analytics:${ip}`, { max: 30, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(
