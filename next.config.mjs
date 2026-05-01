@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // emoji-mart and related packages use ESM-only bundled output that webpack
+  // can't resolve without explicit transpilation (Next.js 15 + webpack 5).
+  transpilePackages: ['emoji-mart', '@emoji-mart/data', '@emoji-mart/react'],
   async headers() {
     return [
       {
