@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    name: Typecheck & Build
+    name: Typecheck, Lint & Build
     runs-on: ubuntu-latest
 
     env:

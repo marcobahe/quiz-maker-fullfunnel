@@ -1,0 +1,41 @@
+name: Deploy Edge Renderer Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'workers/edge-renderer/**'
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare Workers
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: workers/edge-renderer/package-lock.json
+
+      - name: Install dependencies
+        working-directory: workers/edge-renderer
+        run: npm ci
+
+      - name: Type-check
+        working-directory: workers/edge-renderer
+        run: npm run type-check
+
+      - name: Deploy worker
+        working-directory: workers/edge-renderer
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+# Rollback procedure (manual, run locally):
+#   npx wrangler rollback --message "reason for rollback"
+#   This reverts to the previous stable deployment on Cloudflare.
