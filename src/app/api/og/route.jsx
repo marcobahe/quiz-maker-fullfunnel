@@ -2,7 +2,8 @@ import { ImageResponse } from '@vercel/og';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export const runtime = 'edge';
+// Removed 'edge' runtime — Prisma uses Node.js-only modules (crypto, pg) incompatible with edge
+export const runtime = 'nodejs';
 
 export async function GET(request) {
   try {
