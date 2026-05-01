@@ -34,7 +34,7 @@ const dbUrl = buildDatabaseUrl();
 function createPrisma() {
   if (dbUrl) {
     return new PrismaClient({
-      datasources: { db: { url: dbUrl } },
+      datasourceUrl: dbUrl,
       log:
         process.env.NODE_ENV === 'production'
           ? ['error', 'warn']
