@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { ensurePersonalWorkspace } from '@/lib/workspace';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/getClientIp';
 import { registerSchema } from '@/lib/schemas/auth.schema';
 import { handleApiError } from '@/lib/apiError';
 
@@ -10,9 +11,7 @@ export async function POST(request) {
   try {
     // Rate limit: 3 registrations per IP per minute
     const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+      getClientIp(request);
     const rl = await checkRateLimit(`register:${ip}`, { max: 3, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(

@@ -6,6 +6,7 @@ import { dispatchIntegrations } from '@/lib/webhookDispatcher';
 import { dispatchQuizWebhook } from '@/lib/quizWebhookDispatcher';
 import { checkLimit } from '@/lib/planLimits';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/getClientIp';
 import { handleApiError } from '@/lib/apiError';
 import { createLeadSchema } from '@/lib/schemas/lead.schema';
 
@@ -73,9 +74,7 @@ export async function POST(request, { params }) {
 
     // Rate limit: 5 lead submissions per IP per quiz per minute
     const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+      getClientIp(request);
     const rl = await checkRateLimit(`lead:${quizId}:${ip}`, { max: 5, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(
