@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/getClientIp';
 import { testWebhook, testGHL } from '@/lib/webhookDispatcher';
 import { handleApiError } from '@/lib/apiError';
 
@@ -18,10 +19,7 @@ export async function POST(request, { params }) {
     const { id: quizId, integrationId } = await params;
 
     // Rate limit: 5 tests per IP per minute
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    const ip = getClientIp(request);
     const rl = await checkRateLimit(`integration-test:${ip}`, { max: 5, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/getClientIp';
 import { handleApiError } from '@/lib/apiError';
 
 const paramsSchema = z.object({
@@ -38,10 +39,7 @@ export async function GET(request, { params }) {
     }
 
     // Rate limit: 20 verify requests per quiz per IP per minute
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    const ip = getClientIp(request);
     const rl = await checkRateLimit(`paywall:verify:${quizId}:${ip}`, {
       max: 20,
       windowMs: 60_000,

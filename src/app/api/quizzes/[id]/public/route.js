@@ -3,6 +3,7 @@ import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { PLAYER_ORIGIN } from '@/lib/urls';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/getClientIp';
 import { handleApiError } from '@/lib/apiError';
 
 // Disable caching to always get fresh data
@@ -16,10 +17,7 @@ const publicParamsSchema = z.object({
 export async function GET(request, { params }) {
   try {
     // Rate limit: 20 requests per IP per minute
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    const ip = getClientIp(request);
     const rl = await checkRateLimit(`public:${ip}`, { max: 20, windowMs: 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(

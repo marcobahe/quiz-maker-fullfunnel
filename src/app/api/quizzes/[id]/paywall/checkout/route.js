@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import { getQuizPlayerUrl } from '@/lib/urls';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/getClientIp';
 import { handleApiError } from '@/lib/apiError';
 
 const paramsSchema = z.object({
@@ -35,10 +36,7 @@ export async function POST(request, { params }) {
     }
 
     // Rate limit: 5 checkout attempts per quiz per IP per minute
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    const ip = getClientIp(request);
     const rl = await checkRateLimit(`paywall:checkout:${quizId}:${ip}`, {
       max: 5,
       windowMs: 60_000,
