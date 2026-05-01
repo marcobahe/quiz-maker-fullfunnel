@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../prisma/generated/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 const globalForPrisma = globalThis;
 
@@ -24,7 +25,7 @@ const dbUrl = buildDatabaseUrl();
 
 /**
  * When DATABASE_URL is missing (e.g. during `next build` page-data collection),
- * we must NOT instantiate PrismaClient at all — even without the datasources
+ * we must NOT instantiate PrismaClient at all — even without the adapter
  * option, PrismaClient reads the env var at construction time and throws
  * PrismaClientConstructorValidationError.
  *
@@ -33,8 +34,11 @@ const dbUrl = buildDatabaseUrl();
  */
 function createPrisma() {
   if (dbUrl) {
+    const adapter = new PrismaPg({
+      connectionString: dbUrl,
+    });
     return new PrismaClient({
-      datasourceUrl: dbUrl,
+      adapter,
       log:
         process.env.NODE_ENV === 'production'
           ? ['error', 'warn']
