@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
+import { assertPublicUrl } from '@/lib/ssrfGuard';
 import { z } from 'zod';
 
 const webhookConfigSchema = z.object({
@@ -75,6 +76,11 @@ export async function POST(request, { params }) {
 
     if (!quiz) {
       return NextResponse.json({ error: 'Quiz não encontrado' }, { status: 404 });
+    }
+
+    // SSRF guard: validate before persisting so the stored URL is always safe
+    if (parsed.data.webhookUrl) {
+      await assertPublicUrl(parsed.data.webhookUrl);
     }
 
     const updateData = {};

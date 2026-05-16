@@ -2,14 +2,15 @@
  * SSRF guard — validates that a URL points to an external, public host.
  *
  * Blocks:
- *  - 127.0.0.0/8   (loopback)
- *  - 10.0.0.0/8    (private class A)
- *  - 172.16.0.0/12 (private class B)
- *  - 192.168.0.0/16(private class C)
- *  - 169.254.0.0/16(link-local / cloud metadata)
- *  - 0.0.0.0/8     (this network)
- *  - 100.64.0.0/10 (CGNAT)
+ *  - 127.0.0.0/8    (loopback)
+ *  - 10.0.0.0/8     (private class A)
+ *  - 172.16.0.0/12  (private class B)
+ *  - 192.168.0.0/16 (private class C)
+ *  - 169.254.0.0/16 (link-local / cloud metadata)
+ *  - 0.0.0.0/8      (this network)
+ *  - 100.64.0.0/10  (CGNAT)
  *  - ::1 / fc00::/7 / fe80::/10 (IPv6 private/loopback)
+ *  - ::ffff:0:0/96  (IPv4-mapped IPv6)
  *
  * Usage:
  *   import { assertPublicUrl } from '@/lib/ssrfGuard';
@@ -45,23 +46,51 @@ function isBlockedIpv4(ip) {
   return false;
 }
 
+/**
+ * Checks whether a resolved IPv6 address is in a private/reserved range.
+ * Handles: loopback (::1), unique-local (fc00::/7), link-local (fe80::/10),
+ * and IPv4-mapped (::ffff:0:0/96).
+ */
 function isBlockedIpv6(ip) {
   const normalized = ip.toLowerCase().replace(/^\[|\]$/g, '');
+
   // Loopback
   if (normalized === '::1') return true;
-  // Unique local (fc00::/7)
-  const firstWord = parseInt(normalized.split(':')[0] || '0', 16);
-  if ((firstWord & 0xfe00) === 0xfc00) return true;
-  // Link-local (fe80::/10)
-  if ((firstWord & 0xffc0) === 0xfe80) return true;
+
+  // IPv4-mapped IPv6: ::ffff:<ipv4> — extract and check embedded IPv4
+  if (normalized.startsWith('::ffff:')) {
+    const embedded = normalized.slice(7); // everything after "::ffff:"
+    // Could be dotted-decimal (::ffff:127.0.0.1) or hex (::ffff:7f00:1)
+    if (net.isIPv4(embedded)) {
+      return isBlockedIpv4(embedded);
+    }
+    // Hex form: two 16-bit groups, e.g. "7f00:0001"
+    const hexParts = embedded.split(':');
+    if (hexParts.length === 2) {
+      const hi = parseInt(hexParts[0], 16);
+      const lo = parseInt(hexParts[1], 16);
+      const dotted = `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
+      return isBlockedIpv4(dotted);
+    }
+    return true; // block anything ::ffff:* we can't parse
+  }
+
+  // Unique local (fc00::/7) and link-local (fe80::/10)
+  // Parse first 16-bit group; handles full and compressed notation
+  const firstGroup = normalized.split(':')[0];
+  if (!firstGroup) return true; // compressed forms starting with :: (not ::1 or ::ffff:*) — block
+  const firstWord = parseInt(firstGroup, 16);
+  if ((firstWord & 0xfe00) === 0xfc00) return true; // fc00::/7
+  if ((firstWord & 0xffc0) === 0xfe80) return true; // fe80::/10
+
   return false;
 }
 
 /**
  * Asserts that `urlString` is safe to fetch (not SSRF-able).
- * Resolves DNS and checks every returned address.
+ * Resolves both A (IPv4) and AAAA (IPv6) records and checks every address.
  * @param {string} urlString
- * @throws {Error} if the URL or its resolved IP is blocked
+ * @throws {Error} if the URL or its resolved IPs are blocked
  */
 export async function assertPublicUrl(urlString) {
   let url;
@@ -93,21 +122,20 @@ export async function assertPublicUrl(urlString) {
     return;
   }
 
-  // Hostname — resolve all addresses (v4 + v6) and check each
-  let addresses;
-  try {
-    addresses = await dns.promises.resolve(hostname);
-  } catch {
-    // Fallback: dns.resolve may not support all record types; try lookup
-    try {
-      const result = await dns.promises.lookup(hostname, { all: true });
-      addresses = result.map((r) => r.address);
-    } catch {
-      throw new Error('Não foi possível resolver o hostname do webhook');
-    }
-  }
+  // Hostname — resolve A and AAAA records in parallel; check every returned address.
+  // Using resolve4/resolve6 explicitly so that a successful A lookup never silently
+  // skips AAAA records (the original bug with dns.promises.resolve() and no type arg).
+  const [v4Result, v6Result] = await Promise.allSettled([
+    dns.promises.resolve4(hostname),
+    dns.promises.resolve6(hostname),
+  ]);
 
-  if (!addresses || addresses.length === 0) {
+  const addresses = [
+    ...(v4Result.status === 'fulfilled' ? v4Result.value : []),
+    ...(v6Result.status === 'fulfilled' ? v6Result.value : []),
+  ];
+
+  if (addresses.length === 0) {
     throw new Error('Não foi possível resolver o hostname do webhook');
   }
 
