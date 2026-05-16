@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { handleApiError } from '@/lib/apiError';
 import { updateIntegrationSchema } from '@/lib/schemas/integrations.schema';
 
@@ -12,6 +13,15 @@ export async function PUT(request, { params }) {
     session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    // Rate limit: 100 integration updates per user per hour
+    const rl = await checkRateLimit(`integration:update:${session.user.id}`, { max: 100, windowMs: 3_600_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas atualizações de integração. Tente novamente mais tarde.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
 
     const { id: quizId, integrationId } = await params;
@@ -72,6 +82,15 @@ export async function DELETE(request, { params }) {
     session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    // Rate limit: shared 100/hour bucket with PUT for integration mutations
+    const rl = await checkRateLimit(`integration:update:${session.user.id}`, { max: 100, windowMs: 3_600_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas operações de integração. Tente novamente mais tarde.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
 
     const { id: quizId, integrationId } = await params;
