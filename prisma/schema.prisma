@@ -237,3 +237,28 @@ model MediaAsset {
   @@index([fileType])
   @@index([createdAt])
 }
+
+// Audit log — retention 2 years (purge job on createdAt < now() - 2y)
+model AuditLog {
+  id         String   @id @default(cuid())
+  // Actor — null means anonymous/system
+  userId     String?
+  // e.g. "profile.email_changed", "api_key.created", "admin.user_suspended"
+  action     String
+  // e.g. "user", "api_key", "quiz", "lead_export"
+  resource   String
+  resourceId String?
+  // JSON-serialised before/after values; omit sensitive fields (hash passwords)
+  oldValue   String?
+  newValue   String?
+  ipAddress  String?
+  userAgent  String?
+  // Extra free-form context (request path, admin reason, etc.)
+  metadata   String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+}
