@@ -237,3 +237,17 @@ model MediaAsset {
   @@index([fileType])
   @@index([createdAt])
 }
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // e.g. 'gdpr_data_export'
+  ip        String?
+  userAgent String?
+  meta      Json?    // extra structured context
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
