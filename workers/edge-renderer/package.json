@@ -10,7 +10,7 @@
     "invalidate": "tsx scripts/invalidate-quiz.ts"
   },
   "dependencies": {
-    "hono": "^4.4.0"
+    "hono": "^4.12.19"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240512.0",
