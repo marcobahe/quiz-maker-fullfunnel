@@ -2,6 +2,41 @@ import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { domainCache, CACHE_TTL } from '@/lib/domain-cache';
 
+// ── Conditional Security Headers ───────────────────────────
+// X-Frame-Options and CSP frame-ancestors are applied here (not in
+// next.config.mjs) so that /q/:slug* (quiz player pages) can be embedded
+// in third-party iframes while the rest of the app is clickjack-protected.
+const BASE_CSP_PARTS = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: https:",
+  "font-src 'self' https://fonts.gstatic.com",
+  "connect-src 'self'",
+];
+
+const STATIC_SECURITY_HEADERS = [
+  ['X-Content-Type-Options', 'nosniff'],
+  ['Strict-Transport-Security', 'max-age=31536000; includeSubDomains'],
+  ['Referrer-Policy', 'strict-origin-when-cross-origin'],
+  ['Permissions-Policy', 'camera=(), microphone=(), geolocation=()'],
+];
+
+function applySecurityHeaders(response, targetPathname) {
+  STATIC_SECURITY_HEADERS.forEach(([k, v]) => response.headers.set(k, v));
+
+  if (targetPathname.startsWith('/q/')) {
+    response.headers.set('Content-Security-Policy', BASE_CSP_PARTS.join('; '));
+  } else {
+    response.headers.set(
+      'Content-Security-Policy',
+      [...BASE_CSP_PARTS, "frame-ancestors 'none'"].join('; ')
+    );
+    response.headers.set('X-Frame-Options', 'DENY');
+  }
+  return response;
+}
+
 // In-memory cache for domain → slug mapping (per edge instance)
 // NOTE: Custom domains are primarily served by the Cloudflare Worker (play.quizmebaby.app)
 // via DOMAIN_MAP KV. This middleware serves as a fallback for domains that reach Vercel
@@ -77,11 +112,14 @@ export async function middleware(request) {
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       // Deactivated domains are cached with active: false — always 404
       if (!cached.active || !cached.slug) {
-        return new NextResponse('Domínio não configurado', { status: 404 });
+        return applySecurityHeaders(
+          new NextResponse('Domínio não configurado', { status: 404 }),
+          pathname
+        );
       }
       const url = request.nextUrl.clone();
       url.pathname = `/q/${cached.slug}`;
-      return NextResponse.rewrite(url);
+      return applySecurityHeaders(NextResponse.rewrite(url), url.pathname);
     }
 
     // Resolve domain via internal API
@@ -99,17 +137,23 @@ export async function middleware(request) {
           domainCache.set(hostname, { slug: data.slug, active: true, timestamp: Date.now() });
           const url = request.nextUrl.clone();
           url.pathname = `/q/${data.slug}`;
-          return NextResponse.rewrite(url);
+          return applySecurityHeaders(NextResponse.rewrite(url), url.pathname);
         }
       }
 
       // Cache negative result — domain not found or inactive
       domainCache.set(hostname, { slug: null, active: false, timestamp: Date.now() });
-      return new NextResponse('Domínio não configurado', { status: 404 });
+      return applySecurityHeaders(
+        new NextResponse('Domínio não configurado', { status: 404 }),
+        pathname
+      );
     } catch (err) {
       console.error('Custom domain resolution error:', err);
       // On error, don't cache — let it retry
-      return new NextResponse('Erro interno', { status: 500 });
+      return applySecurityHeaders(
+        new NextResponse('Erro interno', { status: 500 }),
+        pathname
+      );
     }
   }
 
@@ -119,11 +163,11 @@ export async function middleware(request) {
     if (!token) {
       const loginUrl = new URL('/login', request.nextUrl.origin);
       loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
-      return NextResponse.redirect(loginUrl);
+      return applySecurityHeaders(NextResponse.redirect(loginUrl), pathname);
     }
   }
 
-  return NextResponse.next();
+  return applySecurityHeaders(NextResponse.next(), pathname);
 }
 
 export const config = {

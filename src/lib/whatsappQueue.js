@@ -42,6 +42,7 @@ export async function enqueueWhatsappMessage({
   // Create persistent log entry so the send attempt survives across retries
   let logRecord;
   try {
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
     logRecord = await prisma.whatsappMessageLog.create({
       data: {
         leadId,
@@ -51,6 +52,7 @@ export async function enqueueWhatsappMessage({
         message,
         status: 'pending',
         attemptCount: 0,
+        expiresAt,
       },
     });
   } catch (dbErr) {

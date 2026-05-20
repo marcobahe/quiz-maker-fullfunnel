@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
+import { assertPublicUrl } from '@/lib/ssrfGuard';
 
 /**
  * POST /api/quizzes/[id]/webhook/test — test the quiz's native webhook URL
@@ -30,6 +31,9 @@ export async function POST(request, { params }) {
     if (!quiz.webhookUrl) {
       return NextResponse.json({ error: 'Webhook URL não configurado' }, { status: 400 });
     }
+
+    // SSRF guard: block private/reserved IPs and domains resolving to them
+    await assertPublicUrl(quiz.webhookUrl);
 
     const start = Date.now();
 

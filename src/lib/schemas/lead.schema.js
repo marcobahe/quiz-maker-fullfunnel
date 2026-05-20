@@ -4,9 +4,13 @@ export const createLeadSchema = z.object({
   name: z.string().max(255).optional().nullable(),
   email: z.string().email().max(255).optional().nullable(),
   phone: z.string().max(50).optional().nullable(),
-  answers: z.any().optional(),
+  answers: z.array(z.object({
+    questionId: z.string().max(255),
+    answer: z.string().max(1000),
+    points: z.number().int().min(0).max(999),
+  })).max(500).optional(),
   score: z.number().optional(),
   resultCategory: z.string().max(255).optional().nullable(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string().max(255)).optional(),
   attribution: z.string().max(500).optional().nullable(),
 });

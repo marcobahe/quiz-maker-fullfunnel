@@ -34,6 +34,7 @@ export async function POST(request) {
         const session = event.data.object;
         const userId = session.metadata?.userId;
         const plan = session.metadata?.plan;
+        const sessionType = session.metadata?.type;
 
         if (userId && plan) {
           await prisma.user.update({
@@ -44,6 +45,39 @@ export async function POST(request) {
               stripeSubscriptionId: session.subscription,
             },
           });
+        }
+
+        // Quiz paywall one-time purchase — record in QuizPurchase with expiry
+        if (sessionType === 'quiz_paywall') {
+          const paywallQuizId = session.metadata?.quizId;
+          const paywallEmail = session.customer_details?.email || session.customer_email;
+          if (paywallQuizId && paywallEmail) {
+            const purchaseExpiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
+            await prisma.quizPurchase.upsert({
+              where: { quizId_email: { quizId: paywallQuizId, email: paywallEmail } },
+              create: {
+                quizId: paywallQuizId,
+                email: paywallEmail,
+                status: 'completed',
+                stripeSessionId: session.id,
+                stripePaymentIntentId: session.payment_intent || null,
+                amount: session.amount_total || 0,
+                expiresAt: purchaseExpiresAt,
+              },
+              update: {
+                status: 'completed',
+                stripeSessionId: session.id,
+                stripePaymentIntentId: session.payment_intent || null,
+                amount: session.amount_total || 0,
+                expiresAt: purchaseExpiresAt,
+              },
+            });
+            // Preserve the lead audit trail: clear expiresAt for leads with this email+quizId
+            await prisma.lead.updateMany({
+              where: { quizId: paywallQuizId, email: paywallEmail },
+              data: { expiresAt: null },
+            });
+          }
         }
 
         // GHL Sync: new subscriber

@@ -19,6 +19,10 @@ model User {
   stripeSubscriptionId String?
   planExpiresAt        DateTime?
   onboardingDone       Boolean             @default(false)
+  // MFA / TOTP
+  mfaEnabled           Boolean             @default(false)
+  mfaSecret            String?             // AES-256-GCM encrypted TOTP secret
+  mfaBackupCodes       String?             // JSON array of hashed backup codes
   quizzes              Quiz[]
   customDomains        CustomDomain[]
   ownedWorkspaces      Workspace[]         @relation("WorkspaceOwner")
@@ -102,21 +106,26 @@ model WorkspaceMember {
 }
 
 model Lead {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   quizId         String
-  quiz           Quiz     @relation(fields: [quizId], references: [id])
+  quiz           Quiz      @relation(fields: [quizId], references: [id])
   name           String?
   email          String?
   phone          String?
   answers        String?
-  score          Int      @default(0)
+  score          Int       @default(0)
   resultCategory String?
-  metadata       String   @default("{}")
+  metadata       String    @default("{}")
   country        String?
   region         String?
   city           String?
   attribution    Json?
-  createdAt      DateTime @default(now())
+  // Retention: 90 days. Null = preserved (e.g. completed purchase). Cleanup job skips leads
+  // with a matching completed QuizPurchase (same quizId + email).
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([expiresAt])
 }
 
 model Integration {
@@ -191,31 +200,39 @@ model WhatsappMessageLog {
   error         String?
   attemptCount  Int       @default(0)
   sentAt        DateTime?
+  // Retention: 30 days. Set at creation time; cleanup job hard-deletes expired rows.
+  expiresAt     DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([status])
   @@index([createdAt])
+  @@index([expiresAt])
   @@index([leadId])
   @@index([quizId])
 }
 
 model QuizPurchase {
-  id                    String   @id @default(cuid())
+  id                    String    @id @default(cuid())
   quizId                String
-  quiz                  Quiz     @relation(fields: [quizId], references: [id])
+  quiz                  Quiz      @relation(fields: [quizId], references: [id])
   email                 String
-  status                String   @default("pending") // 'pending' | 'completed' | 'failed'
+  status                String    @default("pending") // 'pending' | 'completed' | 'failed'
   stripeSessionId       String?
   stripePaymentIntentId String?
-  amount                Int      @default(0) // em centavos
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  amount                Int       @default(0) // em centavos
+  // Set when status → 'completed': expiresAt = now + 90 days.
+  // Cleanup job hard-deletes completed/failed records after expiry.
+  // Pending records are never expired (may still be processed).
+  expiresAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@unique([quizId, email])
   @@index([quizId])
   @@index([email])
   @@index([status])
+  @@index([expiresAt])
 }
 
 model MediaAsset {
@@ -235,5 +252,51 @@ model MediaAsset {
   @@index([userId])
   @@index([quizId])
   @@index([fileType])
+  @@index([createdAt])
+}
+
+// Login attempt log — retention 90 days (purge job on createdAt < now() - 90d)
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  // Soft references — no FK so records survive user deletion
+  userId     String?
+  email      String?
+  ipAddress  String?
+  userAgent  String?
+  success    Boolean
+  authMethod String   @default("credentials") // "credentials" | "google"
+  failReason String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([email])
+  @@index([success])
+  @@index([createdAt])
+  @@index([ipAddress, success, createdAt])
+  @@index([email, success, createdAt])  // alert-check query: WHERE email AND success=false AND createdAt>=?
+}
+
+// Audit log — retention 2 years (purge job on createdAt < now() - 2y)
+model AuditLog {
+  id         String   @id @default(cuid())
+  // Actor — null means anonymous/system
+  userId     String?
+  // e.g. "profile.email_changed", "api_key.created", "admin.user_suspended"
+  action     String
+  // e.g. "user", "api_key", "quiz", "lead_export"
+  resource   String
+  resourceId String?
+  // JSON-serialised before/after values; omit sensitive fields (hash passwords)
+  oldValue   String?
+  newValue   String?
+  ipAddress  String?
+  userAgent  String?
+  // Extra free-form context (request path, admin reason, etc.)
+  metadata   String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource, resourceId])
   @@index([createdAt])
 }

@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { publishToEdge, unpublishFromEdge, refreshEdgeCache, publishDomainMapping, removeDomainMapping, invalidateEdgeCache } from '@/lib/cloudflare-kv';
 import { handleApiError } from '@/lib/apiError';
 import { updateQuizSchema } from '@/lib/schemas/quiz.schema';
+import { auditDeletion } from '@/lib/auditLog';
 
 function generateSlug(name) {
   return name
@@ -212,6 +213,12 @@ export async function DELETE(request, { params }) {
     await prisma.lead.deleteMany({ where: { quizId: id } });
     await prisma.integration.deleteMany({ where: { quizId: id } });
     await prisma.quiz.delete({ where: { id } });
+
+    await auditDeletion(request, session.user.id, {
+      resource: 'quiz',
+      resourceId: id,
+      snapshot: { name: existing.name, slug: existing.slug, status: existing.status },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

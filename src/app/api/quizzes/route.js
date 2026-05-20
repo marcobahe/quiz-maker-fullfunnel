@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { checkLimit } from '@/lib/planLimits';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { checkWorkspaceAccess } from '@/lib/admin';
 import { handleApiError } from '@/lib/apiError';
 import { createQuizSchema } from '@/lib/schemas/quiz.schema';
@@ -23,6 +24,15 @@ export async function GET(request) {
     session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    // Rate limit: 60 list requests per user per minute
+    const rl = await checkRateLimit(`quiz:list:${session.user.id}`, { max: 60, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas requisições. Tente novamente em instantes.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -123,6 +133,15 @@ export async function POST(request) {
     session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    // Rate limit: 30 quiz creates per user per hour
+    const rl = await checkRateLimit(`quiz:create:${session.user.id}`, { max: 30, windowMs: 3_600_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas criações de quiz. Tente novamente mais tarde.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
     }
 
     // Check plan limits
