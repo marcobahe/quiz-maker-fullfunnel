@@ -159,15 +159,16 @@ async function sendLoginSecurityAlert({ userEmail, failCount, ipAddress }) {
     console.warn('[LoginAlert] GMAIL_APP_PASSWORD not set — alert suppressed for', userEmail);
     return;
   }
+  const emailFrom = process.env.EMAIL_FROM ?? 'fully11012001@gmail.com';
   try {
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
       secure: false,
-      auth: { user: 'fully11012001@gmail.com', pass: gmailPass },
+      auth: { user: emailFrom, pass: gmailPass },
     });
     await transporter.sendMail({
-      from: '"QuizMeBaby Security" <fully11012001@gmail.com>',
+      from: `"QuizMeBaby Security" <${emailFrom}>`,
       to: userEmail,
       subject: `[Alerta de Segurança] ${failCount} tentativas de login falhas na sua conta`,
       html: `

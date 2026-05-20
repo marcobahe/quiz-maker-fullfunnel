@@ -33,6 +33,9 @@ export async function GET(request) {
     const rawLimit = parseInt(searchParams.get('limit') ?? String(DEFAULT_LIMIT), 10);
     const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), MAX_LIMIT) : DEFAULT_LIMIT;
     const cursor = searchParams.get('cursor');
+    if (cursor !== null && isNaN(Date.parse(cursor))) {
+      return NextResponse.json({ error: 'Parâmetro cursor inválido' }, { status: 400 });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
