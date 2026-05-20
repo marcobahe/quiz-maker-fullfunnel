@@ -24,14 +24,7 @@ const securityHeaders = [
       "img-src 'self' data: https:",
       "font-src 'self'",
       "connect-src 'self'",
-      "frame-ancestors 'none'",
     ].join('; '),
-  },
-  {
-    // Prevent the page from being embedded in a frame (anti-clickjacking).
-    // Redundant with frame-ancestors in CSP but kept for legacy browsers.
-    key: 'X-Frame-Options',
-    value: 'DENY',
   },
   {
     // Prevent MIME-type sniffing — forces browser to honour Content-Type.

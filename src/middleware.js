@@ -123,7 +123,19 @@ export async function middleware(request) {
     }
   }
 
-  return NextResponse.next();
+  // ── Route-specific security headers ─────────────────────────
+  // Quiz routes (/q/*) must be embeddable via iframe on custom domains,
+  // so we skip frame-ancestors and X-Frame-Options there. All other
+  // routes get strict frame denial to prevent clickjacking.
+  const response = NextResponse.next();
+  if (!pathname.startsWith('/q/')) {
+    response.headers.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+    );
+    response.headers.set('X-Frame-Options', 'DENY');
+  }
+  return response;
 }
 
 export const config = {
