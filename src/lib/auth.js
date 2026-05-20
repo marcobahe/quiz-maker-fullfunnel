@@ -3,6 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import prisma from './prisma';
 import { logLoginAttempt } from './auditLog';
+import { checkRateLimit } from './rateLimit';
 
 // Validate required OAuth environment variables at startup
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -29,6 +30,16 @@ export const authOptions = {
       // NextAuth v4 passes the raw Node IncomingMessage as second arg —
       // used to capture IP address and User-Agent for audit logging.
       async authorize(credentials, req) {
+        // Rate limit: 5 login attempts per IP per 15 minutes
+        const ip =
+          req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+          req.headers['x-real-ip'] ||
+          'unknown';
+        const rl = await checkRateLimit(`login:${ip}`, { max: 5, windowMs: 900_000 });
+        if (!rl.allowed) {
+          throw new Error('Muitas tentativas. Tente novamente em instantes.');
+        }
+
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Email e senha são obrigatórios');
         }
@@ -77,6 +88,7 @@ export const authOptions = {
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 86400, // 24 hours
   },
   pages: {
     signIn: '/login',
