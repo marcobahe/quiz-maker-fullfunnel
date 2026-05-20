@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { handleApiError } from '@/lib/apiError';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { updateProfileSchema } from '@/lib/schemas/userProfile.schema';
+import { auditProfile, auditDeletion } from '@/lib/auditLog';
 
 // GET /api/user/profile — retorna dados do perfil do usuário
 export async function GET() {
@@ -141,6 +142,17 @@ export async function PUT(request) {
       },
     });
 
+    // Audit each changed field
+    if (updateData.name !== undefined) {
+      await auditProfile(request, session.user.id, { field: 'name', oldVal: user.name, newVal: updateData.name });
+    }
+    if (updateData.email !== undefined) {
+      await auditProfile(request, session.user.id, { field: 'email', oldVal: user.email, newVal: updateData.email });
+    }
+    if (updateData.password !== undefined) {
+      await auditProfile(request, session.user.id, { field: 'password', oldVal: '[REDACTED]', newVal: '[REDACTED]' });
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     return handleApiError(error, { route: '/api/user/profile', method: 'PUT', userId: session?.user?.id });
@@ -148,7 +160,7 @@ export async function PUT(request) {
 }
 
 // DELETE /api/user/profile — excluir conta
-export async function DELETE() {
+export async function DELETE(request) {
   let session;
   try {
     session = await getServerSession(authOptions);
@@ -163,6 +175,8 @@ export async function DELETE() {
       prisma.workspace.deleteMany({ where: { ownerId: session.user.id } }),
       prisma.user.delete({ where: { id: session.user.id } }),
     ]);
+
+    await auditDeletion(request, session.user.id, { resource: 'user', resourceId: session.user.id, snapshot: null });
 
     return NextResponse.json({ success: true });
   } catch (error) {

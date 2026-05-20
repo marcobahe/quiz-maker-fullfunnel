@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
+import { auditDataAccess } from '@/lib/auditLog';
 
 function escapeCsvField(value) {
   if (value === null || value === undefined) return '';
@@ -131,6 +132,8 @@ export async function GET(request, { params }) {
 
       rows.push([...baseRow, ...answerCols].map(escapeCsvField).join(','));
     }
+
+    await auditDataAccess(request, session.user.id, { dataType: 'leads_exported', resourceId: quizId });
 
     const csv = BOM + rows.join('\r\n');
 

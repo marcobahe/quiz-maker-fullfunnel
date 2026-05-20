@@ -2,6 +2,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import prisma from './prisma';
+import { auditLogin } from './auditLog';
 
 // Validate required OAuth environment variables at startup
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -35,14 +36,17 @@ export const authOptions = {
         });
 
         if (!user || !user.password) {
+          await auditLogin(null, { userId: null, success: false, reason: 'user_not_found' });
           throw new Error('Usuário não encontrado');
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) {
+          await auditLogin(null, { userId: user.id, success: false, reason: 'invalid_password' });
           throw new Error('Senha incorreta');
         }
 
+        await auditLogin(null, { userId: user.id, success: true });
         return {
           id: user.id,
           name: user.name,

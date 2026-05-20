@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma';
 import { handleApiError } from '@/lib/apiError';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { updateUserSchema } from '@/lib/schemas/admin.schema';
+import { auditAdminAction, auditDeletion } from '@/lib/auditLog';
 
 // GET - User details
 export async function GET(request, { params }) {
@@ -150,6 +151,24 @@ export async function PATCH(request, { params }) {
       },
     });
 
+    // Audit role and suspension changes
+    if (updateData.role !== undefined) {
+      await auditAdminAction(request, session.user.id, {
+        op: 'user_role_changed',
+        targetUserId: id,
+        oldVal: { role: user.role },
+        newVal: { role: updateData.role },
+      });
+    }
+    if (updateData.suspended !== undefined) {
+      await auditAdminAction(request, session.user.id, {
+        op: updateData.suspended ? 'user_suspended' : 'user_unsuspended',
+        targetUserId: id,
+        oldVal: { suspended: user.suspended },
+        newVal: { suspended: updateData.suspended },
+      });
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     return handleApiError(error, { route: '/api/admin/users/[id]', method: 'PATCH', userId: null });
@@ -227,6 +246,12 @@ export async function DELETE(request, { params }) {
 
       // Delete user
       await tx.user.delete({ where: { id } });
+    });
+
+    await auditDeletion(request, session.user.id, {
+      resource: 'user',
+      resourceId: id,
+      snapshot: { email: user.email, name: user.name, role: user.role },
     });
 
     return NextResponse.json({ success: true });
