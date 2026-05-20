@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getClientIp } from '@/lib/getClientIp';
 import { aiAnalyzeSchema } from '@/lib/schemas/aiAnalyze.schema';
 import { handleApiError } from '@/lib/apiError';
 
@@ -10,9 +11,7 @@ export async function POST(request, { params }) {
 
     // Rate limit by IP: 10 req/IP/min (defense in depth)
     const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+      getClientIp(request);
     const ipRl = await checkRateLimit(`ai-analyze:${ip}`, { max: 10, windowMs: 60_000 });
     if (!ipRl.allowed) {
       return NextResponse.json(
