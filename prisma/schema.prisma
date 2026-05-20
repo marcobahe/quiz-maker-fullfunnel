@@ -106,21 +106,26 @@ model WorkspaceMember {
 }
 
 model Lead {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   quizId         String
-  quiz           Quiz     @relation(fields: [quizId], references: [id])
+  quiz           Quiz      @relation(fields: [quizId], references: [id])
   name           String?
   email          String?
   phone          String?
   answers        String?
-  score          Int      @default(0)
+  score          Int       @default(0)
   resultCategory String?
-  metadata       String   @default("{}")
+  metadata       String    @default("{}")
   country        String?
   region         String?
   city           String?
   attribution    Json?
-  createdAt      DateTime @default(now())
+  // Retention: 90 days. Null = preserved (e.g. completed purchase). Cleanup job skips leads
+  // with a matching completed QuizPurchase (same quizId + email).
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([expiresAt])
 }
 
 model Integration {
@@ -195,31 +200,39 @@ model WhatsappMessageLog {
   error         String?
   attemptCount  Int       @default(0)
   sentAt        DateTime?
+  // Retention: 30 days. Set at creation time; cleanup job hard-deletes expired rows.
+  expiresAt     DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([status])
   @@index([createdAt])
+  @@index([expiresAt])
   @@index([leadId])
   @@index([quizId])
 }
 
 model QuizPurchase {
-  id                    String   @id @default(cuid())
+  id                    String    @id @default(cuid())
   quizId                String
-  quiz                  Quiz     @relation(fields: [quizId], references: [id])
+  quiz                  Quiz      @relation(fields: [quizId], references: [id])
   email                 String
-  status                String   @default("pending") // 'pending' | 'completed' | 'failed'
+  status                String    @default("pending") // 'pending' | 'completed' | 'failed'
   stripeSessionId       String?
   stripePaymentIntentId String?
-  amount                Int      @default(0) // em centavos
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  amount                Int       @default(0) // em centavos
+  // Set when status → 'completed': expiresAt = now + 90 days.
+  // Cleanup job hard-deletes completed/failed records after expiry.
+  // Pending records are never expired (may still be processed).
+  expiresAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@unique([quizId, email])
   @@index([quizId])
   @@index([email])
   @@index([status])
+  @@index([expiresAt])
 }
 
 model MediaAsset {

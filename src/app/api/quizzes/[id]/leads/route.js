@@ -125,6 +125,7 @@ export async function POST(request, { params }) {
     const region = request.headers.get('x-vercel-ip-country-region') || null;
     const city = request.headers.get('x-vercel-ip-city') ? decodeURIComponent(request.headers.get('x-vercel-ip-city')) : null;
 
+    const leadExpiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
     const lead = await prisma.lead.create({
       data: {
         quizId,
@@ -139,6 +140,7 @@ export async function POST(request, { params }) {
         region,
         city,
         attribution: body.attribution || null,
+        expiresAt: leadExpiresAt,
       },
     });
 
