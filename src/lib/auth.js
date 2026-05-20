@@ -2,7 +2,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import prisma from './prisma';
-import { auditLogin } from './auditLog';
+import { logLoginAttempt } from './auditLog';
 
 // Validate required OAuth environment variables at startup
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -26,27 +26,44 @@ export const authOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      // NextAuth v4 passes the raw Node IncomingMessage as second arg —
+      // used to capture IP address and User-Agent for audit logging.
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Email e senha são obrigatórios');
         }
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          select: { id: true, name: true, email: true, image: true, password: true, plan: true, role: true, mfaEnabled: true },
         });
 
         if (!user || !user.password) {
-          await auditLogin(null, { userId: null, success: false, reason: 'user_not_found' });
+          await logLoginAttempt(req, { userId: null, email: credentials.email, success: false, authMethod: 'credentials', failReason: 'user_not_found' });
           throw new Error('Usuário não encontrado');
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) {
-          await auditLogin(null, { userId: user.id, success: false, reason: 'invalid_password' });
+          await logLoginAttempt(req, { userId: user.id, email: user.email, success: false, authMethod: 'credentials', failReason: 'invalid_password' });
           throw new Error('Senha incorreta');
         }
 
-        await auditLogin(null, { userId: user.id, success: true });
+        // If MFA is enabled, return a pending token — full session granted after TOTP verification
+        if (user.mfaEnabled) {
+          await logLoginAttempt(req, { userId: user.id, email: user.email, success: false, authMethod: 'credentials', failReason: 'mfa_pending' });
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            image: user.image,
+            plan: user.plan || 'free',
+            role: user.role || 'user',
+            mfaPending: true,
+          };
+        }
+
+        await logLoginAttempt(req, { userId: user.id, email: user.email, success: true, authMethod: 'credentials' });
         return {
           id: user.id,
           name: user.name,
@@ -65,7 +82,7 @@ export const authOptions = {
     signIn: '/login',
   },
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       // For Google OAuth: create or link user in our database
       if (account?.provider === 'google') {
         try {
@@ -73,9 +90,11 @@ export const authOptions = {
             where: { email: user.email },
           });
 
+          let dbUserId = existingUser?.id ?? null;
+
           if (!existingUser) {
             // Create new user from Google account
-            await prisma.user.create({
+            const created = await prisma.user.create({
               data: {
                 email: user.email,
                 name: user.name,
@@ -83,6 +102,7 @@ export const authOptions = {
                 password: null, // No password for OAuth users
               },
             });
+            dbUserId = created.id;
           } else {
             // Sync name and image from Google on each login
             const updates = {};
@@ -95,8 +115,12 @@ export const authOptions = {
               });
             }
           }
+
+          // Log the Google OAuth login attempt (no req in this callback — IP captured via edge middleware)
+          await logLoginAttempt(null, { userId: dbUserId, email: user.email, success: true, authMethod: 'google' });
         } catch (error) {
           console.error('Error during Google sign-in:', error);
+          await logLoginAttempt(null, { userId: null, email: user.email, success: false, authMethod: 'google', failReason: 'server_error' });
           return false;
         }
       }
@@ -118,10 +142,11 @@ export const authOptions = {
           token.id = user.id;
           token.plan = user.plan || 'free';
           token.role = user.role || 'user';
+          if (user.mfaPending) token.mfaPending = true;
         }
       }
 
-      // Handle session updates (e.g., impersonation)
+      // Handle session updates (e.g., impersonation, MFA clearance)
       if (trigger === 'update' && updateSession) {
         if (updateSession.impersonatingAs) {
           token.impersonatingAs = updateSession.impersonatingAs;
@@ -135,6 +160,10 @@ export const authOptions = {
           delete token.originalUserId;
           delete token.originalRole;
         }
+        // MFA verification complete — clear pending flag
+        if (updateSession.mfaVerified) {
+          delete token.mfaPending;
+        }
       }
 
       return token;
@@ -144,6 +173,7 @@ export const authOptions = {
         session.user.id = token.impersonatingAs || token.id;
         session.user.plan = token.plan || 'free';
         session.user.role = token.role || 'user';
+        if (token.mfaPending) session.user.mfaPending = true;
 
         // Impersonation info
         if (token.impersonatingAs) {

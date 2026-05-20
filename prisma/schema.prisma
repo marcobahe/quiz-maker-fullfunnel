@@ -19,6 +19,10 @@ model User {
   stripeSubscriptionId String?
   planExpiresAt        DateTime?
   onboardingDone       Boolean             @default(false)
+  // MFA / TOTP
+  mfaEnabled           Boolean             @default(false)
+  mfaSecret            String?             // AES-256-GCM encrypted TOTP secret
+  mfaBackupCodes       String?             // JSON array of hashed backup codes
   quizzes              Quiz[]
   customDomains        CustomDomain[]
   ownedWorkspaces      Workspace[]         @relation("WorkspaceOwner")
@@ -236,6 +240,26 @@ model MediaAsset {
   @@index([quizId])
   @@index([fileType])
   @@index([createdAt])
+}
+
+// Login attempt log — retention 90 days (purge job on createdAt < now() - 90d)
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  // Soft references — no FK so records survive user deletion
+  userId     String?
+  email      String?
+  ipAddress  String?
+  userAgent  String?
+  success    Boolean
+  authMethod String   @default("credentials") // "credentials" | "google"
+  failReason String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([email])
+  @@index([success])
+  @@index([createdAt])
+  @@index([ipAddress, success, createdAt])
 }
 
 // Audit log — retention 2 years (purge job on createdAt < now() - 2y)

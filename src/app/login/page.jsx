@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
 
@@ -43,8 +43,14 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else {
-        router.push('/');
-        router.refresh();
+        // Check if MFA verification is required
+        const session = await getSession();
+        if (session?.user?.mfaPending) {
+          router.push('/login/mfa');
+        } else {
+          router.push('/');
+          router.refresh();
+        }
       }
     } catch (err) {
       setError('Erro de conexão. Tente novamente.');
