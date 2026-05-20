@@ -12,7 +12,8 @@ const BASE_CSP_PARTS = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: https:",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self'",
+  // uploadthing.com + *.ingest.uploadthing.com: UploadThing v7 direct browser uploads
+  "connect-src 'self' https://uploadthing.com https://*.ingest.uploadthing.com",
 ];
 
 const STATIC_SECURITY_HEADERS = [
