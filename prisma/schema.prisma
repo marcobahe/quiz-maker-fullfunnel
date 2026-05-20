@@ -273,6 +273,7 @@ model LoginAttempt {
   @@index([success])
   @@index([createdAt])
   @@index([ipAddress, success, createdAt])
+  @@index([email, success, createdAt])  // alert-check query: WHERE email AND success=false AND createdAt>=?
 }
 
 // Audit log — retention 2 years (purge job on createdAt < now() - 2y)

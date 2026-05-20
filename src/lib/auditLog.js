@@ -232,18 +232,24 @@ export async function logLoginAttempt(req, { userId, email, success, authMethod 
     console.error('[logLoginAttempt] Failed to write LoginAttempt:', err?.message ?? err);
   }
 
-  // 2. Write AuditLog via existing helper
-  await auditLogin(req, { userId: userId ?? null, success, reason: failReason });
+  // 2. Write AuditLog via existing helper (never throws — logging must not break auth flow)
+  try {
+    await auditLogin(req, { userId: userId ?? null, success, reason: failReason });
+  } catch (err) {
+    console.error('[logLoginAttempt] Failed to write AuditLog:', err?.message ?? err);
+  }
 
-  // 3. Check suspicious pattern: ≥10 failures in last hour for this email
-  if (!success && email) {
+  // 3. Check suspicious pattern: ≥10 real failures in last hour for this email.
+  // Exclude mfa_pending — credential-verified MFA logins are not attack signals.
+  if (!success && email && failReason !== 'mfa_pending') {
     try {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       const failCount = await prisma.loginAttempt.count({
         where: {
           email,
-          success:   false,
-          createdAt: { gte: oneHourAgo },
+          success:    false,
+          failReason: { not: 'mfa_pending' },
+          createdAt:  { gte: oneHourAgo },
         },
       });
 
