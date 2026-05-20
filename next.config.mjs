@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 
 // Security headers applied to all routes.
+// NOTE: X-Frame-Options and CSP frame-ancestors are set conditionally in
+// src/middleware.js so that /q/:slug* (quiz player pages) can be embedded
+// in third-party iframes while the rest of the app remains protected.
 //
 // CSRF posture: SameSite=Lax (NextAuth default) is sufficient here because:
 //   1. All state-changing actions are POST/PUT/DELETE — browsers only attach
@@ -20,18 +23,11 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: https:",
-      "font-src 'self'",
+      "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self'",
-      "frame-ancestors 'none'",
     ].join('; '),
-  },
-  {
-    // Prevent the page from being embedded in a frame (anti-clickjacking).
-    // Redundant with frame-ancestors in CSP but kept for legacy browsers.
-    key: 'X-Frame-Options',
-    value: 'DENY',
   },
   {
     // Prevent MIME-type sniffing — forces browser to honour Content-Type.
