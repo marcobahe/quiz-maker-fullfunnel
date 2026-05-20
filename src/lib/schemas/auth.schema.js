@@ -7,4 +7,12 @@ export const registerSchema = z.object({
     .string()
     .min(8, 'A senha deve ter pelo menos 8 caracteres')
     .max(128, 'A senha deve ter no máximo 128 caracteres'),
+  // Consent flags (all required for registration)
+  marketingConsent: z.boolean().default(false),
+  termsConsent: z.boolean().refine((v) => v === true, {
+    message: 'Você deve aceitar os Termos de Uso',
+  }),
+  privacyConsent: z.boolean().refine((v) => v === true, {
+    message: 'Você deve aceitar a Política de Privacidade',
+  }),
 });

@@ -4,6 +4,18 @@ import bcrypt from 'bcryptjs';
 import prisma from './prisma';
 import { logLoginAttempt } from './auditLog';
 
+function extractIpFromHeaders(headers) {
+  if (!headers) return null;
+  const fwd = headers['x-forwarded-for'];
+  if (fwd) return (typeof fwd === 'string' ? fwd : fwd[0]).split(',')[0].trim();
+  return headers['x-real-ip'] ?? null;
+}
+
+function extractUaFromHeaders(headers) {
+  if (!headers) return null;
+  return headers['user-agent'] ?? null;
+}
+
 // Validate required OAuth environment variables at startup
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
   console.error(
@@ -82,7 +94,7 @@ export const authOptions = {
     signIn: '/login',
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, req }) {
       // For Google OAuth: create or link user in our database
       if (account?.provider === 'google') {
         try {
@@ -91,6 +103,9 @@ export const authOptions = {
           });
 
           let dbUserId = existingUser?.id ?? null;
+          const now = new Date();
+          const ipAddress = extractIpFromHeaders(req?.headers);
+          const userAgent = extractUaFromHeaders(req?.headers);
 
           if (!existingUser) {
             // Create new user from Google account
@@ -100,27 +115,82 @@ export const authOptions = {
                 name: user.name,
                 image: user.image,
                 password: null, // No password for OAuth users
+                termsConsentAt: now,
+                privacyConsentAt: now,
               },
             });
             dbUserId = created.id;
+
+            // Consent audit trail for OAuth sign-up
+            await prisma.consentAudit.createMany({
+              data: [
+                {
+                  userId: created.id,
+                  consentType: 'terms',
+                  action: 'granted',
+                  ipAddress,
+                  userAgent,
+                  metadata: JSON.stringify({ source: 'google_oauth_signup' }),
+                },
+                {
+                  userId: created.id,
+                  consentType: 'privacy',
+                  action: 'granted',
+                  ipAddress,
+                  userAgent,
+                  metadata: JSON.stringify({ source: 'google_oauth_signup' }),
+                },
+              ],
+            });
           } else {
             // Sync name and image from Google on each login
             const updates = {};
             if (user.name && user.name !== existingUser.name) updates.name = user.name;
             if (user.image && user.image !== existingUser.image) updates.image = user.image;
+            // Backfill consent fields for users created before this feature
+            if (!existingUser.termsConsentAt) updates.termsConsentAt = now;
+            if (!existingUser.privacyConsentAt) updates.privacyConsentAt = now;
             if (Object.keys(updates).length > 0) {
               await prisma.user.update({
                 where: { email: user.email },
                 data: updates,
               });
             }
+
+            // If backfilling consent, also write audit records once
+            if (!existingUser.termsConsentAt || !existingUser.privacyConsentAt) {
+              const auditRecords = [];
+              if (!existingUser.termsConsentAt) {
+                auditRecords.push({
+                  userId: existingUser.id,
+                  consentType: 'terms',
+                  action: 'granted',
+                  ipAddress,
+                  userAgent,
+                  metadata: JSON.stringify({ source: 'google_oauth_login_backfill' }),
+                });
+              }
+              if (!existingUser.privacyConsentAt) {
+                auditRecords.push({
+                  userId: existingUser.id,
+                  consentType: 'privacy',
+                  action: 'granted',
+                  ipAddress,
+                  userAgent,
+                  metadata: JSON.stringify({ source: 'google_oauth_login_backfill' }),
+                });
+              }
+              if (auditRecords.length > 0) {
+                await prisma.consentAudit.createMany({ data: auditRecords });
+              }
+            }
           }
 
           // Log the Google OAuth login attempt (no req in this callback — IP captured via edge middleware)
-          await logLoginAttempt(null, { userId: dbUserId, email: user.email, success: true, authMethod: 'google' });
+          await logLoginAttempt(req ?? null, { userId: dbUserId, email: user.email, success: true, authMethod: 'google' });
         } catch (error) {
           console.error('Error during Google sign-in:', error);
-          await logLoginAttempt(null, { userId: null, email: user.email, success: false, authMethod: 'google', failReason: 'server_error' });
+          await logLoginAttempt(req ?? null, { userId: null, email: user.email, success: false, authMethod: 'google', failReason: 'server_error' });
           return false;
         }
       }

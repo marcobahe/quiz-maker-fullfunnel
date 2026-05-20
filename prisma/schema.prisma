@@ -7,73 +7,80 @@ generator client {
 }
 
 model User {
-  id                   String              @id @default(cuid())
-  name                 String?
-  email                String              @unique
-  password             String?
-  image                String?
-  role                 String              @default("user") // "owner" | "admin" | "user"
-  plan                 String              @default("free")
-  suspended            Boolean             @default(false)
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
-  planExpiresAt        DateTime?
-  onboardingDone       Boolean             @default(false)
+  id                        String            @id @default(cuid())
+  name                      String?
+  email                     String            @unique
+  password                  String?
+  image                     String?
+  role                      String            @default("user") // "owner" | "admin" | "user"
+  plan                      String            @default("free")
+  suspended                 Boolean           @default(false)
+  stripeCustomerId          String?
+  stripeSubscriptionId      String?
+  planExpiresAt             DateTime?
+  onboardingDone            Boolean           @default(false)
   // MFA / TOTP
-  mfaEnabled           Boolean             @default(false)
-  mfaSecret            String?             // AES-256-GCM encrypted TOTP secret
-  mfaBackupCodes       String?             // JSON array of hashed backup codes
-  quizzes              Quiz[]
-  customDomains        CustomDomain[]
-  ownedWorkspaces      Workspace[]         @relation("WorkspaceOwner")
-  memberships          WorkspaceMember[]
-  mediaAssets          MediaAsset[]
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+  mfaEnabled                Boolean           @default(false)
+  mfaSecret                 String? // AES-256-GCM encrypted TOTP secret
+  mfaBackupCodes            String? // JSON array of hashed backup codes
+  quizzes                   Quiz[]
+  customDomains             CustomDomain[]
+  ownedWorkspaces           Workspace[]       @relation("WorkspaceOwner")
+  memberships               WorkspaceMember[]
+  mediaAssets               MediaAsset[]
+  // Consent & Legal Basis Tracking (GDPR / LGPD)
+  marketingConsentAt        DateTime?
+  marketingConsentIp        String?
+  marketingConsentUserAgent String?
+  termsConsentAt            DateTime?
+  privacyConsentAt          DateTime?
+  consentAudits             ConsentAudit[]
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
 }
 
 model Quiz {
-  id           String           @id @default(cuid())
-  userId       String
-  user         User             @relation(fields: [userId], references: [id])
-  workspaceId  String?
-  workspace    Workspace?       @relation(fields: [workspaceId], references: [id])
-  name         String
-  slug         String           @unique
-  description  String?
-  status       String           @default("draft")
-  canvasData   String?
-  settings     String           @default("{}")
-  scoreRanges  String           @default("[]")
-  emailNotifications  Boolean  @default(false)
-  notificationMode    String?  // 'instant-hot', 'daily', 'weekly'  
-  notificationEmail   String?  // email para receber (default: email do user)
-  shuffleQuestions    Boolean  @default(false)
-  questionTimer       Int?     // segundos por pergunta (null = sem timer)
-  leads        Lead[]
-  integrations Integration[]
-  analytics    AnalyticsEvent[]
+  id                   String           @id @default(cuid())
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id])
+  workspaceId          String?
+  workspace            Workspace?       @relation(fields: [workspaceId], references: [id])
+  name                 String
+  slug                 String           @unique
+  description          String?
+  status               String           @default("draft")
+  canvasData           String?
+  settings             String           @default("{}")
+  scoreRanges          String           @default("[]")
+  emailNotifications   Boolean          @default(false)
+  notificationMode     String? // 'instant-hot', 'daily', 'weekly'  
+  notificationEmail    String? // email para receber (default: email do user)
+  shuffleQuestions     Boolean          @default(false)
+  questionTimer        Int? // segundos por pergunta (null = sem timer)
+  leads                Lead[]
+  integrations         Integration[]
+  analytics            AnalyticsEvent[]
   // A/B Testing
-  parentId     String?
-  parent       Quiz?            @relation("QuizVariants", fields: [parentId], references: [id])
-  variants     Quiz[]           @relation("QuizVariants")
-  splitPercent  Int?             @default(50)
-  isVariant     Boolean          @default(false)
-  customDomains CustomDomain[]
+  parentId             String?
+  parent               Quiz?            @relation("QuizVariants", fields: [parentId], references: [id])
+  variants             Quiz[]           @relation("QuizVariants")
+  splitPercent         Int?             @default(50)
+  isVariant            Boolean          @default(false)
+  customDomains        CustomDomain[]
   // Outbound webhook (generic — any platform)
-  webhookUrl    String?
-  webhookSecret String?
-  webhookLogs   WebhookLog[]
+  webhookUrl           String?
+  webhookSecret        String?
+  webhookLogs          WebhookLog[]
   // Paywall (Stripe-backed)
-  paywallEnabled         Boolean  @default(false)
-  paywallPrice           Int?     // em centavos (BRL)
-  paywallType            String?  // 'result' | 'full' | 'lead'
-  paywallStripePriceId   String?
-  paywallTitle           String?
-  paywallDescription     String?
-  purchases              QuizPurchase[]
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  paywallEnabled       Boolean          @default(false)
+  paywallPrice         Int? // em centavos (BRL)
+  paywallType          String? // 'result' | 'full' | 'lead'
+  paywallStripePriceId String?
+  paywallTitle         String?
+  paywallDescription   String?
+  purchases            QuizPurchase[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 }
 
 model Workspace {
@@ -85,10 +92,10 @@ model Workspace {
   members        WorkspaceMember[]
   quizzes        Quiz[]
   // GHL self-service integration
-  ghlApiKey      String?           // encrypted at rest via AES-256-GCM (fieldEncryption.js)
+  ghlApiKey      String? // encrypted at rest via AES-256-GCM (fieldEncryption.js)
   ghlSyncStatus  String            @default("not_configured") // "not_configured" | "active" | "pending_setup" | "error"
-  ghlAccountName String?           // plain text — display name from GHL location
-  ghlLocationId  String?           // plain text — GHL sub-account location ID
+  ghlAccountName String? // plain text — display name from GHL location
+  ghlLocationId  String? // plain text — GHL sub-account location ID
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 }
@@ -127,9 +134,9 @@ model Integration {
   id        String   @id @default(cuid())
   quizId    String
   quiz      Quiz     @relation(fields: [quizId], references: [id])
-  type      String   // "webhook" | "gohighlevel"
+  type      String // "webhook" | "gohighlevel"
   name      String   @default("")
-  config    String   // JSON string with configuration
+  config    String // JSON string with configuration
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -226,13 +233,13 @@ model MediaAsset {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  quizId    String?  // soft ref — survives quiz deletion for audit
+  quizId    String? // soft ref — survives quiz deletion for audit
   fileKey   String   @unique
   fileName  String
-  fileType  String   // 'image' | 'audio' | 'video'
+  fileType  String // 'image' | 'audio' | 'video'
   fileSize  Int
   url       String
-  endpoint  String   // 'imageUploader' | 'audioUploader' | 'videoUploader'
+  endpoint  String // 'imageUploader' | 'audioUploader' | 'videoUploader'
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -263,6 +270,28 @@ model LoginAttempt {
 }
 
 // Audit log — retention 2 years (purge job on createdAt < now() - 2y)
+// Consent audit log — immutable record of every consent change.
+// Retention: 5 years (longer than AuditLog because consent evidence is legal basis).
+model ConsentAudit {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // "marketing" | "terms" | "privacy"
+  consentType String
+  // "granted" | "revoked" | "updated"
+  action      String
+  ipAddress   String?
+  userAgent   String?
+  pageUrl     String?
+  metadata    String   @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([consentType])
+  @@index([action])
+  @@index([createdAt])
+}
+
 model AuditLog {
   id         String   @id @default(cuid())
   // Actor — null means anonymous/system
